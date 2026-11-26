@@ -1,0 +1,508 @@
+{
+  "system": {
+    "cpu": "Intel(R) Core(TM) Ultra 9 285K",
+    "ram_bytes": 136871063552,
+    "os": "10.0.26300"
+  },
+  "schema": 1,
+  "suite": "texture-sparse-profiles",
+  "test": "pipeline::hot::textures::sparse_profiles",
+  "parameters": {},
+  "timing_keys": [
+    "single_full_us",
+    "single_partial_us",
+    "eight_full_us",
+    "eight_partial_us",
+    "large_full_us",
+    "large_partial_us",
+    "large_64k_partial_us"
+  ],
+  "workload_keys": [
+    "single_title_patch_bytes",
+    "eight_title_patch_bytes",
+    "large_title_patch_bytes",
+    "large_64k_title_patch_bytes"
+  ],
+  "timeout_seconds": 180,
+  "formal": false,
+  "complete": true,
+  "debug_layer": "pending: Windows Graphics Tools unavailable",
+  "binary": {
+    "commit": "b717db908f42fb93397ce4a642803415b387c26f",
+    "source_delta_sha256": null,
+    "executable": "target/diag/deps/victory_gpu-b3e12a1e6b92b6a6.exe",
+    "sha256": "668a0ddf723b431dd2b4e9c732460baedbacc1d41a3327fadda6bd56f4b2c28b",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.1\nLLVM version: 22.1.8"
+  },
+  "requested": 1,
+  "utc": "2026-11-26T17:39:34.360040+00:00",
+  "gpu": {
+    "utc": "2026-11-26T17:39:34.330907+00:00",
+    "name": "NVIDIA GeForce RTX 5090",
+    "driver_version": "621.14",
+    "memory.total": "32607",
+    "utilization.gpu": "8",
+    "memory.used": "5069",
+    "temperature.gpu": "37.82",
+    "clocks.gr": "2542",
+    "clocks.mem": "7001",
+    "power.draw": "104.33",
+    "pstate": "P3",
+    "clocks.max.gr": "3090",
+    "clocks.max.mem": "14001",
+    "pcie.link.gen.current": "5",
+    "pcie.link.gen.max": "5",
+    "pcie.link.width.current": "16",
+    "pcie.link.width.max": "16"
+  },
+  "profile": "diag",
+  "runs": [
+    {
+      "index": 1,
+      "position": 1,
+      "utc": "2026-11-26T17:39:34.536013+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T17:39:34.651198+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "9",
+          "memory.used": "5065",
+          "temperature.gpu": "37.45",
+          "clocks.gr": "2542",
+          "clocks.mem": "7001",
+          "power.draw": "89.93",
+          "pstate": "P3",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T17:39:34.651198+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "9",
+        "memory.used": "5065",
+        "temperature.gpu": "37.45",
+        "clocks.gr": "2542",
+        "clocks.mem": "7001",
+        "power.draw": "89.93",
+        "pstate": "P3",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": false,
+      "post": {
+        "utc": "2026-11-26T17:39:39.071275+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "7",
+        "memory.used": "5196",
+        "temperature.gpu": "37.85",
+        "clocks.gr": "2662",
+        "clocks.mem": "13801",
+        "power.draw": "99.35",
+        "pstate": "P1",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "single_full_us": 69901.9,
+        "single_full_bytes": 67108864,
+        "single_full_subresources": 1,
+        "single_full_staging_requested_bytes": 67108864,
+        "single_full_staging_backing_bytes": 67108864,
+        "single_partial_us": 30839.5,
+        "single_partial_bytes": 67108864,
+        "single_partial_subresources": 1,
+        "single_partial_staging_requested_bytes": 67108864,
+        "single_partial_staging_backing_bytes": 67108864,
+        "single_title_patch_bytes": 256,
+        "eight_full_us": 35338.2,
+        "eight_full_bytes": 178257920,
+        "eight_full_subresources": 32,
+        "eight_full_staging_requested_bytes": 178257920,
+        "eight_full_staging_backing_bytes": 268435456,
+        "eight_partial_us": 9435.3,
+        "eight_partial_bytes": 33554432,
+        "eight_partial_subresources": 8,
+        "eight_partial_staging_requested_bytes": 178257920,
+        "eight_partial_staging_backing_bytes": 268435456,
+        "eight_title_patch_bytes": 8192,
+        "large_full_us": 360414.5,
+        "large_full_bytes": 1426063360,
+        "large_full_subresources": 256,
+        "large_full_staging_requested_bytes": 1426063360,
+        "large_full_staging_backing_bytes": 2147483648,
+        "large_partial_us": 377072.1,
+        "large_partial_bytes": 268435456,
+        "large_partial_subresources": 64,
+        "large_partial_staging_requested_bytes": 1426063360,
+        "large_partial_staging_backing_bytes": 2147483648,
+        "large_title_patch_bytes": 65536,
+        "large_64k_partial_us": 364709.1,
+        "large_64k_partial_bytes": 268435456,
+        "large_64k_partial_subresources": 64,
+        "large_64k_partial_staging_requested_bytes": 1426063360,
+        "large_64k_partial_staging_backing_bytes": 2147483648,
+        "large_64k_title_patch_bytes": 4194304,
+        "verified": 1
+      }
+    }
+  ],
+  "summary": {
+    "single_full_us": {
+      "n": 1,
+      "median": 69901.9,
+      "p95": 69901.9,
+      "p99": 69901.9,
+      "sample_stddev": null
+    },
+    "single_full_bytes": {
+      "n": 1,
+      "median": 67108864,
+      "p95": 67108864,
+      "p99": 67108864,
+      "sample_stddev": null
+    },
+    "single_full_subresources": {
+      "n": 1,
+      "median": 1,
+      "p95": 1,
+      "p99": 1,
+      "sample_stddev": null
+    },
+    "single_full_staging_requested_bytes": {
+      "n": 1,
+      "median": 67108864,
+      "p95": 67108864,
+      "p99": 67108864,
+      "sample_stddev": null
+    },
+    "single_full_staging_backing_bytes": {
+      "n": 1,
+      "median": 67108864,
+      "p95": 67108864,
+      "p99": 67108864,
+      "sample_stddev": null
+    },
+    "single_partial_us": {
+      "n": 1,
+      "median": 30839.5,
+      "p95": 30839.5,
+      "p99": 30839.5,
+      "sample_stddev": null
+    },
+    "single_partial_bytes": {
+      "n": 1,
+      "median": 67108864,
+      "p95": 67108864,
+      "p99": 67108864,
+      "sample_stddev": null
+    },
+    "single_partial_subresources": {
+      "n": 1,
+      "median": 1,
+      "p95": 1,
+      "p99": 1,
+      "sample_stddev": null
+    },
+    "single_partial_staging_requested_bytes": {
+      "n": 1,
+      "median": 67108864,
+      "p95": 67108864,
+      "p99": 67108864,
+      "sample_stddev": null
+    },
+    "single_partial_staging_backing_bytes": {
+      "n": 1,
+      "median": 67108864,
+      "p95": 67108864,
+      "p99": 67108864,
+      "sample_stddev": null
+    },
+    "single_title_patch_bytes": {
+      "n": 1,
+      "median": 256,
+      "p95": 256,
+      "p99": 256,
+      "sample_stddev": null
+    },
+    "eight_full_us": {
+      "n": 1,
+      "median": 35338.2,
+      "p95": 35338.2,
+      "p99": 35338.2,
+      "sample_stddev": null
+    },
+    "eight_full_bytes": {
+      "n": 1,
+      "median": 178257920,
+      "p95": 178257920,
+      "p99": 178257920,
+      "sample_stddev": null
+    },
+    "eight_full_subresources": {
+      "n": 1,
+      "median": 32,
+      "p95": 32,
+      "p99": 32,
+      "sample_stddev": null
+    },
+    "eight_full_staging_requested_bytes": {
+      "n": 1,
+      "median": 178257920,
+      "p95": 178257920,
+      "p99": 178257920,
+      "sample_stddev": null
+    },
+    "eight_full_staging_backing_bytes": {
+      "n": 1,
+      "median": 268435456,
+      "p95": 268435456,
+      "p99": 268435456,
+      "sample_stddev": null
+    },
+    "eight_partial_us": {
+      "n": 1,
+      "median": 9435.3,
+      "p95": 9435.3,
+      "p99": 9435.3,
+      "sample_stddev": null
+    },
+    "eight_partial_bytes": {
+      "n": 1,
+      "median": 33554432,
+      "p95": 33554432,
+      "p99": 33554432,
+      "sample_stddev": null
+    },
+    "eight_partial_subresources": {
+      "n": 1,
+      "median": 8,
+      "p95": 8,
+      "p99": 8,
+      "sample_stddev": null
+    },
+    "eight_partial_staging_requested_bytes": {
+      "n": 1,
+      "median": 178257920,
+      "p95": 178257920,
+      "p99": 178257920,
+      "sample_stddev": null
+    },
+    "eight_partial_staging_backing_bytes": {
+      "n": 1,
+      "median": 268435456,
+      "p95": 268435456,
+      "p99": 268435456,
+      "sample_stddev": null
+    },
+    "eight_title_patch_bytes": {
+      "n": 1,
+      "median": 8192,
+      "p95": 8192,
+      "p99": 8192,
+      "sample_stddev": null
+    },
+    "large_full_us": {
+      "n": 1,
+      "median": 360414.5,
+      "p95": 360414.5,
+      "p99": 360414.5,
+      "sample_stddev": null
+    },
+    "large_full_bytes": {
+      "n": 1,
+      "median": 1426063360,
+      "p95": 1426063360,
+      "p99": 1426063360,
+      "sample_stddev": null
+    },
+    "large_full_subresources": {
+      "n": 1,
+      "median": 256,
+      "p95": 256,
+      "p99": 256,
+      "sample_stddev": null
+    },
+    "large_full_staging_requested_bytes": {
+      "n": 1,
+      "median": 1426063360,
+      "p95": 1426063360,
+      "p99": 1426063360,
+      "sample_stddev": null
+    },
+    "large_full_staging_backing_bytes": {
+      "n": 1,
+      "median": 2147483648,
+      "p95": 2147483648,
+      "p99": 2147483648,
+      "sample_stddev": null
+    },
+    "large_partial_us": {
+      "n": 1,
+      "median": 377072.1,
+      "p95": 377072.1,
+      "p99": 377072.1,
+      "sample_stddev": null
+    },
+    "large_partial_bytes": {
+      "n": 1,
+      "median": 268435456,
+      "p95": 268435456,
+      "p99": 268435456,
+      "sample_stddev": null
+    },
+    "large_partial_subresources": {
+      "n": 1,
+      "median": 64,
+      "p95": 64,
+      "p99": 64,
+      "sample_stddev": null
+    },
+    "large_partial_staging_requested_bytes": {
+      "n": 1,
+      "median": 1426063360,
+      "p95": 1426063360,
+      "p99": 1426063360,
+      "sample_stddev": null
+    },
+    "large_partial_staging_backing_bytes": {
+      "n": 1,
+      "median": 2147483648,
+      "p95": 2147483648,
+      "p99": 2147483648,
+      "sample_stddev": null
+    },
+    "large_title_patch_bytes": {
+      "n": 1,
+      "median": 65536,
+      "p95": 65536,
+      "p99": 65536,
+      "sample_stddev": null
+    },
+    "large_64k_partial_us": {
+      "n": 1,
+      "median": 364709.1,
+      "p95": 364709.1,
+      "p99": 364709.1,
+      "sample_stddev": null
+    },
+    "large_64k_partial_bytes": {
+      "n": 1,
+      "median": 268435456,
+      "p95": 268435456,
+      "p99": 268435456,
+      "sample_stddev": null
+    },
+    "large_64k_partial_subresources": {
+      "n": 1,
+      "median": 64,
+      "p95": 64,
+      "p99": 64,
+      "sample_stddev": null
+    },
+    "large_64k_partial_staging_requested_bytes": {
+      "n": 1,
+      "median": 1426063360,
+      "p95": 1426063360,
+      "p99": 1426063360,
+      "sample_stddev": null
+    },
+    "large_64k_partial_staging_backing_bytes": {
+      "n": 1,
+      "median": 2147483648,
+      "p95": 2147483648,
+      "p99": 2147483648,
+      "sample_stddev": null
+    },
+    "large_64k_title_patch_bytes": {
+      "n": 1,
+      "median": 4194304,
+      "p95": 4194304,
+      "p99": 4194304,
+      "sample_stddev": null
+    }
+  },
+  "invalid_count": 0,
+  "max_invalid": 0,
+  "invalid_runs": [],
+  "telemetry": {
+    "pre": {
+      "pstate": [
+        "P3"
+      ],
+      "clocks.gr": [
+        2542,
+        2542
+      ],
+      "clocks.mem": [
+        7001,
+        7001
+      ],
+      "pcie.link.gen.current": [
+        5,
+        5
+      ],
+      "pcie.link.width.current": [
+        16,
+        16
+      ],
+      "temperature.gpu": [
+        37.45,
+        37.45
+      ],
+      "power.draw": [
+        89.93,
+        89.93
+      ]
+    },
+    "post": {
+      "pstate": [
+        "P1"
+      ],
+      "clocks.gr": [
+        2662,
+        2662
+      ],
+      "clocks.mem": [
+        13801,
+        13801
+      ],
+      "pcie.link.gen.current": [
+        5,
+        5
+      ],
+      "pcie.link.width.current": [
+        16,
+        16
+      ],
+      "temperature.gpu": [
+        37.85,
+        37.85
+      ],
+      "power.draw": [
+        99.35,
+        99.35
+      ]
+    }
+  }
+}
