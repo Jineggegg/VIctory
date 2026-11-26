@@ -11,7 +11,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use super::UserData;
 use super::bitcode::{Attr, Bin, Cast, Term, V, pred};
 use super::container::SigElement;
-use super::shader::{Shader, VIEW_INTEGER, VIEW_SIGNED, VIEW_STRIDE_BITS, VIEW_STRIDES, flags};
+use super::shader::{
+    Shader, VIEW_INTEGER, VIEW_RAW_OFFSET_SHIFT, VIEW_SIGNED, VIEW_STRIDE_BITS, VIEW_STRIDES,
+    flags,
+};
 use crate::ShaderError;
 use crate::gfx10::{Dpp, Fields, NULL, Operand};
 use crate::io::{Barycentric, Elsewhere, Export, Input, Interp, Io, Target};
@@ -21,6 +24,7 @@ use crate::resource::{Address, CODE, MEMORY, Resources, Role, Site, Source, USER
 use crate::structure::{Atom, Bool, LaneExit, Structured};
 
 mod bvh;
+mod view_stride;
 
 type Why = &'static str;
 
@@ -223,6 +227,9 @@ struct Lower<'a> {
     /// Handles of descriptors chosen by control flow, made in their join
     /// block, by the choice (its `Debug` text), sampler heap and properties.
     join_handles: HashMap<(String, bool, u32), V>,
+    /// `VIEW_STRIDES` dword loaded by [`Lower::buffer_guard`], reused by
+    /// [`Lower::view_raw_bias`] to avoid a second load or OOB read at null.
+    guarded_stride: HashMap<V, V>,
     /// Blocks splitting the edge from one IR block to another.
     edges: HashMap<(usize, usize), usize>,
     /// Per IR block: a `done` export is behind every lane entering it.
@@ -683,6 +690,7 @@ impl<'a> Lower<'a> {
             handles: HashMap::new(),
             entry_handles: HashMap::new(),
             join_handles: HashMap::new(),
+            guarded_stride: HashMap::new(),
             edges: HashMap::new(),
             exported: vec![false; p.blocks.len()],
             rpo: vec![usize::MAX; p.blocks.len()],
@@ -1798,6 +1806,14 @@ impl<'a> Lower<'a> {
             let h = self.handle(site, src, false, props)?;
             let off = match self.root_view_offset(src) {
                 Some(at) => self.s.m.bin(self.cur, Bin::Add, off, at),
+                None if self.is_heap_direct(src)
+                    || self.used_kind(src).is_some_and(|u| u.stride >= 4) =>
+                {
+                    match self.view_raw_bias(h) {
+                        Some(bias) => self.s.m.bin(self.cur, Bin::Add, off, bias),
+                        None => off,
+                    }
+                }
                 None => off,
             };
             return Ok((h, off));
@@ -4338,7 +4354,7 @@ impl<'a> Lower<'a> {
             || un.contains("atomic")
             || used.is_some_and(|u| u.kind == ResourceType::Uav);
         let u = if uav { 0x1000 } else { 0 };
-        let (props, image) = match &ui.fields {
+        let (props, image, div_stride) = match &ui.fields {
             Fields::Image { dim, .. } => {
                 let kind = match dim {
                     0 => 1,
@@ -4348,23 +4364,25 @@ impl<'a> Lower<'a> {
                     5 => 7,
                     _ => return Err("an image dimension (cube or MSAA)"),
                 };
-                ((kind | u, 0x409), Some(kind))
+                ((kind | u, 0x409), Some(kind), None)
             }
             Fields::Buffer { idxen, format, .. } => {
                 let stride = used.map_or(0, |u| u.stride);
-                let props = if un.starts_with("buffer_load_format")
+                let (props, div) = if un.starts_with("buffer_load_format")
                     || un.starts_with("buffer_store_format")
                 {
-                    (10 | u, 0x409)
+                    ((10 | u, 0x409), None)
                 } else if *idxen && format.is_none() && stride >= 4 && stride.is_multiple_of(4) {
-                    (12 | u, stride)
+                    // Structured buffers are viewed raw on the host; raw
+                    // `getDimensions` returns bytes, so divide by the stride.
+                    ((11 | u, 0), Some(stride))
                 } else {
-                    (11 | u, 0)
+                    ((11 | u, 0), None)
                 };
                 if used.is_some_and(|u| u.kind == ResourceType::Cbv) {
                     return Err("a constant buffer's descriptor read as data");
                 }
-                (props, None)
+                (props, None, div)
             }
             // A buffer the code reads with scalar loads (`buf[buf.Length - 1]`
             // at a uniform index): structured by the used-resource entry's
@@ -4374,12 +4392,12 @@ impl<'a> Lower<'a> {
                 if used.kind == ResourceType::Cbv {
                     return Err("a constant buffer's descriptor read as data");
                 }
-                let props = match used.stride {
-                    0 | 1 => (11 | u, 0),
-                    s if s.is_multiple_of(4) => (12 | u, s),
+                let div = match used.stride {
+                    0 | 1 => None,
+                    s if s.is_multiple_of(4) => Some(s),
                     _ => return Err("a scalar-loaded buffer of odd stride read as data"),
                 };
-                (props, None)
+                ((11 | u, 0), None, div)
             }
             _ => return Err("a scalar memory read as data"),
         };
@@ -4433,7 +4451,19 @@ impl<'a> Lower<'a> {
                 let d3 = self.s.m.bin(c, Bin::Or, base, last);
                 vec![(1, d1), (2, d2), (3, d3), (4, depth)]
             }
-            None => vec![(2, field(self, 0))],
+            None => {
+                let mut records = field(self, 0);
+                if (self.is_heap_direct(&src) || used.is_some_and(|u| u.stride >= 4))
+                    && let Some(bias) = self.view_raw_bias(h)
+                {
+                    records = self.s.m.bin(c, Bin::Sub, records, bias);
+                }
+                if let Some(stride) = div_stride {
+                    let s = self.s.m.i32(stride);
+                    records = self.s.m.bin(c, Bin::UDiv, records, s);
+                }
+                vec![(2, records)]
+            }
         };
         for k in 0..count {
             let rel = k.wrapping_sub(u32::from(first));
@@ -4610,40 +4640,6 @@ impl<'a> Lower<'a> {
             self.end_guarded(inner, &[]);
         }
         self.end_guarded(outer, &[]);
-    }
-
-    /// The byte stride of the buffer view at heap index `index`, from the
-    /// view-stride table (`t`[`VIEW_STRIDES`]).
-    fn stride_at(&mut self, index: V) -> V {
-        let word = self.view_word(index);
-        let bits = self.s.m.i32(VIEW_STRIDE_BITS);
-        self.s.m.bin(self.cur, Bin::And, word, bits)
-    }
-
-    /// Dword `index` of the view-stride table: the stride and the format
-    /// kind bits ([`VIEW_INTEGER`], [`VIEW_SIGNED`]).
-    fn view_word(&mut self, index: V) -> V {
-        let c = self.cur;
-        let four = self.s.m.i32(4);
-        let at = self.s.m.bin(c, Bin::Mul, index, four);
-        let table = self.s.root_srv_handle(VIEW_STRIDES);
-        self.raw_dword(table, at)
-    }
-
-    /// Whether the typed buffer view a handle names has an integer format,
-    /// and whether a signed one, from the view-stride table; `None` if the
-    /// handle's heap index is not known.
-    fn integer_view(&mut self, h: V) -> Option<(V, V)> {
-        let index = *self.s.view_index.get(&h)?;
-        let word = self.view_word(index);
-        let c = self.cur;
-        let zero = self.s.m.i32(0);
-        let [int, signed] = [VIEW_INTEGER, VIEW_SIGNED].map(|bit| {
-            let bit = self.s.m.i32(bit);
-            let x = self.s.m.bin(c, Bin::And, word, bit);
-            self.s.m.cmp(c, pred::NE, x, zero)
-        });
-        Some((int, signed))
     }
 
     /// Title memory at a raw GPU address (decision 0005: the unified-memory
@@ -5393,8 +5389,7 @@ impl<'a> Lower<'a> {
                 }
                 let here = std::mem::replace(&mut self.cur, self.s.entry);
                 let index = self.entry_heap_index(address, *first, sampler);
-                let index = self.buffer_guard(src, index, sampler, props);
-                let h = self.s.heap_handle(self.cur, index, sampler, false, props);
+                let h = self.guarded_heap_handle(src, index, sampler, false, props);
                 self.cur = here;
                 self.entry_handles.insert(key, h);
                 Ok(h)
@@ -5405,13 +5400,10 @@ impl<'a> Lower<'a> {
                     return Ok(h);
                 }
                 let index = self.heap_index(*load, *first, sampler)?;
-                let index = self.buffer_guard(src, index, sampler, props);
                 // A waterfall loop's load at the first lane's offset reads
                 // each lane's own entry (see `resource::Waterfall`).
                 let per_lane = self.x.res.waterfall.loads.contains(load);
-                let h = self
-                    .s
-                    .heap_handle(self.cur, index, sampler, per_lane, props);
+                let h = self.guarded_heap_handle(src, index, sampler, per_lane, props);
                 self.handles.insert(key, h);
                 Ok(h)
             }
@@ -5516,10 +5508,8 @@ impl<'a> Lower<'a> {
                 let join = self.block[*block].ok_or("a descriptor chosen by control flow")?;
                 let here = std::mem::replace(&mut self.cur, join);
                 let index = self.uniform_heap_index(src, sampler);
-                let h = index.map(|index| {
-                    let index = self.buffer_guard(src, index, sampler, props);
-                    self.s.heap_handle(self.cur, index, sampler, false, props)
-                });
+                let h =
+                    index.map(|index| self.guarded_heap_handle(src, index, sampler, false, props));
                 self.cur = here;
                 let h = h?;
                 self.join_handles.insert(key, h);
@@ -5541,18 +5531,32 @@ impl<'a> Lower<'a> {
                 let set = self.heap_index(a, fa, sampler)?;
                 let clear = self.heap_index(b, fb, sampler)?;
                 let index = self.s.m.select(self.cur, cond, set, clear);
-                let index = self.buffer_guard(src, index, sampler, props);
-                Ok(self.s.heap_handle(self.cur, index, sampler, false, props))
+                Ok(self.guarded_heap_handle(src, index, sampler, false, props))
             }
             Source::Fetched { .. } | Source::Lanes { .. } | Source::LanePhi { .. } => {
                 // A descriptor each lane has its own of (a waterfall loop
                 // reads it from the first active lane): each lane's heap
                 // index, non-uniform.
                 let index = self.lane_heap_index(src, sampler)?;
-                let index = self.buffer_guard(src, index, sampler, props);
-                Ok(self.s.heap_handle(self.cur, index, sampler, true, props))
+                Ok(self.guarded_heap_handle(src, index, sampler, true, props))
             }
         }
+    }
+
+    fn guarded_heap_handle(
+        &mut self,
+        src: &Source,
+        index: V,
+        sampler: bool,
+        nonuniform: bool,
+        props: (u32, u32),
+    ) -> V {
+        let (index, word) = self.buffer_guard(src, index, sampler, props);
+        let h = self.s.heap_handle(self.cur, index, sampler, nonuniform, props);
+        if let Some(word) = word {
+            self.guarded_stride.insert(h, word);
+        }
+        h
     }
 
     /// The heap index to read a buffer view at, for a descriptor `src` from
@@ -5562,10 +5566,16 @@ impl<'a> Lower<'a> {
     /// from data; one naming a texture slot read a texture descriptor as a
     /// buffer one (a wild address: the texture's address shifted 8 bits
     /// down) and faulted the device.
-    fn buffer_guard(&mut self, src: &Source, index: V, sampler: bool, props: (u32, u32)) -> V {
+    fn buffer_guard(
+        &mut self,
+        src: &Source,
+        index: V,
+        sampler: bool,
+        props: (u32, u32),
+    ) -> (V, Option<V>) {
         // Typed, raw and structured buffers (DXIL resource kinds 10-12).
         if sampler || !(10..=12).contains(&(props.0 & 0xFF)) || !self.is_heap_direct(src) {
-            return index;
+            return (index, None);
         }
         let c = self.cur;
         let last = self.s.m.i32(super::HEAP_VIEWS - 1);
@@ -5583,7 +5593,7 @@ impl<'a> Lower<'a> {
         // The null unordered access view sits just below the null SRV.
         let null = super::NULL_BUFFER_VIEW - u32::from(props.0 & 0x1000 != 0);
         let null = self.s.m.i32(null);
-        self.s.m.select(c, none, null, index)
+        (self.s.m.select(c, none, null, index), Some(stride))
     }
 
     /// Whether a descriptor comes from the resource heap itself (root type
@@ -9574,11 +9584,11 @@ impl<'a> Lower<'a> {
                     if stride < 4 || !stride.is_multiple_of(4) {
                         return Err("a structured buffer of unknown stride");
                     }
-                    let h = self.handle(site, src, false, (12 | u, stride))?;
                     let s = self.s.m.i32(stride);
                     let row = self.s.m.bin(self.cur, Bin::Mul, index, s);
                     let byte = self.s.m.bin(self.cur, Bin::Add, row, off);
-                    (h, [index, off, iu], byte)
+                    let (h, byte) = self.raw_view(site, src, byte, 4, (11 | u, 0), true, guard)?;
+                    (h, [byte, iu, iu], byte)
                 }
                 None => {
                     let (h, off) = self.raw_view(site, src, off, 4, (11 | u, 0), true, guard)?;
@@ -9727,11 +9737,14 @@ impl<'a> Lower<'a> {
                         if stride < 4 || !stride.is_multiple_of(4) {
                             return Err("a structured buffer of unknown stride");
                         }
-                        args.push(self.handle(site, src, false, (12 | u, stride))?);
-                        args.extend([index, off]);
                         let s = self.s.m.i32(stride);
                         let row = self.s.m.bin(self.cur, Bin::Mul, index, s);
-                        (byte, bytes) = (self.s.m.bin(self.cur, Bin::Add, row, off), 4 * count);
+                        let off = self.s.m.bin(self.cur, Bin::Add, row, off);
+                        let n = 4 * count;
+                        let (h, off) =
+                            self.raw_view(site, src, off, n, (11 | u, 0), true, guard)?;
+                        args.extend([h, off, iu]);
+                        (byte, bytes) = (off, n);
                     }
                     None => {
                         let n = 4 * count;
@@ -9837,14 +9850,19 @@ impl<'a> Lower<'a> {
                     if stride < 4 || !stride.is_multiple_of(4) {
                         return Err("a structured buffer of unknown stride");
                     }
-                    let h = self.handle(site, src, false, (12 | u, stride))?;
+                    let s = self.s.m.i32(stride);
+                    let row = self.s.m.bin(c, Bin::Mul, index, s);
+                    let off = self.s.m.bin(c, Bin::Add, row, off);
+                    let bytes = 4 * count;
+                    let (h, off) =
+                        self.raw_view(site, src, off, bytes, (11 | u, 0), false, guard)?;
                     self.s.op(
-                        c,
+                        self.cur,
                         "rawBufferLoad.f32",
                         Attr::ReadOnly,
                         self.s.t.res_ret,
                         139,
-                        &[h, index, off, mask, align],
+                        &[h, off, iu, mask, align],
                     )
                 }
                 None => {
