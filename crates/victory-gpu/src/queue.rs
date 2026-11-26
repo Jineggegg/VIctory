@@ -911,3 +911,11 @@ mod tests {
         assert!(at[1] > first);
     }
 }
+
+#[cfg(all(test, windows, feature = "diagnostics"))]
+pub(crate) fn bench_submit(list: std::sync::Arc<crate::host::HostList>) {
+    // The queue key is used only for grouping ready segments. No waits or signals.
+    let mut pending = held();
+    pending.push(0, Item::Segment(list, Vec::new()));
+    pump(&mut pending, Why::Submission);
+}

@@ -2463,3 +2463,10 @@ mod tests {
         assert_eq!(host.log_messages(), None);
     }
 }
+
+#[cfg(all(test, feature = "diagnostics"))]
+impl HostHeap {
+    pub(crate) fn bench_slot_keys(&self) -> Vec<u64> {
+        self.made.lock().unwrap().to_vec()
+    }
+}

@@ -1658,3 +1658,13 @@ pub(crate) mod tests {
         assert_eq!(pages(0x2_0000, 0x1_0000), 1);
     }
 }
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn bench_mark(first: usize, pages: usize) {
+    let bits = bitmap(false).unwrap().data as *mut u32;
+    assert!(first + pages < victory_shader::emit::VIEW_WRITE_BITS as usize);
+    for bit in first..first + pages {
+        // SAFETY: a bounded mark in the mapped bitmap, while the GPU is idle.
+        unsafe { *bits.add(bit / 32) |= 1 << (bit % 32) };
+    }
+}

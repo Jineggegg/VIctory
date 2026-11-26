@@ -1280,7 +1280,11 @@ impl Host {
                     .and_then(|()| self.fence.SetEventOnCompletion(*submitted, self.event));
                 match waited {
                     Ok(()) => {
+                        #[cfg(all(test, feature = "diagnostics"))]
+                        let wait_start = std::time::Instant::now();
                         WaitForSingleObject(self.event, INFINITE);
+                        #[cfg(all(test, feature = "diagnostics"))]
+                        BENCH_FENCE_NS.fetch_add(wait_start.elapsed().as_nanos() as u64, Ordering::Relaxed);
                     }
                     Err(e) => tracing::warn!(error = %e, "host submission not waited for"),
                 }
@@ -4131,3 +4135,17 @@ mod present_plane_tests {
         assert_eq!(composite, Some((64, 64, [127, 0, 128, 255])));
     }
 }
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn bench_submission_us() -> [u64; 2] {
+    SUBMISSION_US.each_ref().map(|v| v.load(Ordering::Relaxed))
+}
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn bench_timestamp_frequency() -> u64 {
+    // SAFETY: a live queue and a plain query.
+    unsafe { host().unwrap().queue.GetTimestampFrequency().unwrap() }
+}
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) static BENCH_FENCE_NS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);

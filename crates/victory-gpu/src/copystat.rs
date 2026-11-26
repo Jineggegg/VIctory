@@ -417,3 +417,8 @@ unsafe impl std::alloc::GlobalAlloc for CountingAlloc {
         q
     }
 }
+
+#[cfg(test)]
+pub(crate) fn bench_count(c: C) -> u64 {
+    COUNT[c as usize].load(Relaxed)
+}
