@@ -70,15 +70,77 @@ fn library_dir() -> Option<&'static PathBuf> {
     static PATH: OnceLock<Option<PathBuf>> = OnceLock::new();
     PATH.get_or_init(|| {
         let device = &crate::host::host()?.device;
-        // SAFETY: query the adapter that owns the existing D3D12 device.
-        let (desc, driver) = unsafe {
-            let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).ok()?;
-            let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(device.GetAdapterLuid()).ok()?;
-            (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
-        };
-        let adapter = namespace(&desc, driver)?;
+        let adapter = adapter_namespace(device)?;
         Some(translator_dir(root.join(adapter), crate::shader_cache::build()))
     }).as_ref()
+}
+
+fn adapter_namespace(device: &ID3D12Device) -> Option<String> {
+    // SAFETY: reads the identifier of this live device.
+    let luid = unsafe { device.GetAdapterLuid() };
+    if let Some(name) = hardware_namespace(luid) {
+        return Some(name);
+    }
+    dxgi_namespace(luid)
+}
+
+fn dxgi_namespace(luid: windows::Win32::Foundation::LUID) -> Option<String> {
+    // SAFETY: query the adapter that owns the existing D3D12 device.
+    let (desc, driver) = unsafe {
+        let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).ok()?;
+        let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(luid).ok()?;
+        (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
+    };
+    namespace(&desc, driver)
+}
+
+fn hardware_namespace(luid: windows::Win32::Foundation::LUID) -> Option<String> {
+    use windows::Wdk::Graphics::Direct3D::*;
+
+    let mut open = D3DKMT_OPENADAPTERFROMLUID { AdapterLuid: luid, ..Default::default() };
+    // SAFETY: an initialized adapter LUID and a writable result handle.
+    unsafe { D3DKMTOpenAdapterFromLuid(&mut open) }.ok().ok()?;
+    let read = |kind, data, size| {
+        let mut query = D3DKMT_QUERYADAPTERINFO {
+            hAdapter: open.hAdapter,
+            Type: kind,
+            pPrivateDriverData: data,
+            PrivateDriverDataSize: size,
+        };
+        // SAFETY: each call below supplies the live output object and size
+        // prescribed by its query type.
+        unsafe { D3DKMTQueryAdapterInfo(&mut query) }.ok().ok()
+    };
+    let result = (|| {
+        let mut kind = D3DKMT_ADAPTERTYPE::default();
+        read(KMTQAITYPE_ADAPTERTYPE, (&raw mut kind).cast(), size_of_val(&kind) as u32)?;
+        // SAFETY: Value is the WDK's unsigned representation of the flags.
+        const SOFTWARE_DEVICE: u32 = 1 << 2;
+        if unsafe { kind.Anonymous.Value } & SOFTWARE_DEVICE != 0 {
+            return None;
+        }
+        let mut ids = D3DKMT_QUERY_DEVICE_IDS::default();
+        read(KMTQAITYPE_PHYSICALADAPTERDEVICEIDS, (&raw mut ids).cast(), size_of_val(&ids) as u32)?;
+        let ids = ids.DeviceIds;
+        let mut version = D3DKMT_UMD_DRIVER_VERSION::default();
+        read(KMTQAITYPE_UMD_DRIVER_VERSION, (&raw mut version).cast(), size_of_val(&version) as u32)?;
+        if ids.VendorID == 0 || ids.DeviceID == 0 || version.DriverVersion == 0 {
+            return None;
+        }
+        // The PCI subsystem DWORD contains subsystem ID then subvendor ID.
+        let desc = DXGI_ADAPTER_DESC1 {
+            VendorId: ids.VendorID,
+            DeviceId: ids.DeviceID,
+            SubSysId: (u32::from(u16::try_from(ids.SubSystemID).ok()?) << 16)
+                | u32::from(u16::try_from(ids.SubVendorID).ok()?),
+            Revision: ids.RevisionID,
+            ..Default::default()
+        };
+        namespace(&desc, Some(version.DriverVersion))
+    })();
+    // SAFETY: this call releases the handle opened above, on all result paths.
+    unsafe { D3DKMTCloseAdapter(&D3DKMT_CLOSEADAPTER { hAdapter: open.hAdapter }) }.ok().ok()?;
+    result
 }
 
 fn namespace(desc: &DXGI_ADAPTER_DESC1, driver: Option<i64>) -> Option<String> {
@@ -571,6 +633,27 @@ mod tests {
     use super::*;
 
     /// A size the host cannot give is refused, not fatal; others are zeros.
+    #[test]
+    #[ignore]
+    fn hardware_metadata_matches_the_dxgi_driver_namespace() {
+        let host = crate::host::host().expect("test device");
+        // SAFETY: plain identifier query on the current live device.
+        let luid = unsafe { host.device.GetAdapterLuid() };
+        let start = std::time::Instant::now();
+        let fast = hardware_namespace(luid);
+        let t1 = start.elapsed();
+        let start = std::time::Instant::now();
+        let reference = dxgi_namespace(luid).expect("DXGI driver identity");
+        let t2 = start.elapsed();
+        if reference.starts_with("hw-") {
+            assert_eq!(fast.as_deref(), Some(reference.as_str()));
+        } else {
+            assert_eq!(adapter_namespace(&host.device).as_deref(), Some(reference.as_str()));
+        }
+        println!("IDENTITY kind={} kmt_us={:.3} dxgi_us={:.3}", &reference[..2],
+                 t1.as_secs_f64()*1e6, t2.as_secs_f64()*1e6);
+    }
+
     #[test]
     fn a_save_buffer_the_host_cannot_give_is_refused() {
         assert!(zeroed(usize::MAX / 2).is_none());
