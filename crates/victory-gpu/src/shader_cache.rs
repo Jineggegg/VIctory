@@ -20,7 +20,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use std::io::{self, Write};
 use victory_shader::emit::{HostShader, StaticSampler, UserData};
-use victory_shader::{HwStage, RootType};
+use crate::pipeline::Translated;
+use victory_shader::{HwStage, ResourceType, RootType, UsedResource};
 
 static CACHE: OnceLock<Cache> = OnceLock::new();
 static HITS: AtomicU64 = AtomicU64::new(0);
@@ -99,8 +100,17 @@ fn key(translator: &str, encoding: &[u8], limit: u32, view_pages: bool) -> [u8; 
 /// The translation of a console shader container, from the cache when
 /// there is one, and whether it came from there.
 pub fn host_shader(container: &[u8]) -> (Result<HostShader, String>, bool) {
+    let (result, hit) = translated(container);
+    (result.map(|t| t.host), hit)
+}
+
+pub(crate) fn translated(container: &[u8]) -> (Result<Translated, String>, bool) {
     let options = options();
-    let translate = |c: &[u8]| victory_shader::emit::translate_with(c, options).map_err(|e| e.to_string());
+    let translate = |c: &[u8]| {
+        victory_shader::emit::translate_with_resources(c, options)
+            .map(|(host, used)| Translated { host, used })
+            .map_err(|e| e.to_string())
+    };
     match CACHE.get() {
         Some(cache) => cached(cache, build(), container, translate),
         None => (translate(container), false),
@@ -122,7 +132,7 @@ impl Cache {
         })
     }
 
-    fn read(path: &Path, key: &[u8; 32]) -> Option<Result<HostShader, String>> {
+    fn read(path: &Path, key: &[u8; 32]) -> Option<Result<Translated, String>> {
         let entry = std::fs::read(path).ok()?;
         let (bytes, digest) = entry.split_at(entry.len().checked_sub(32)?);
         if blake3::keyed_hash(key, bytes).as_bytes() != digest {
@@ -157,8 +167,8 @@ fn cached(
     cache: &Cache,
     build: &[u8; 32],
     container: &[u8],
-    translate: impl Fn(&[u8]) -> Result<HostShader, String>,
-) -> (Result<HostShader, String>, bool) {
+    translate: impl Fn(&[u8]) -> Result<Translated, String>,
+) -> (Result<Translated, String>, bool) {
     let key = blake3::keyed_hash(build, container);
     let path = cache.dir.join(key.to_hex().as_str());
     if let Some(shader) = Cache::read(&path, key.as_bytes()) {
@@ -211,9 +221,37 @@ fn root_type(code: u32) -> RootType {
     }
 }
 
+fn encode_resource_type(out: &mut Vec<u8>, kind: ResourceType) {
+    match kind {
+        ResourceType::Srv => out.push(0),
+        ResourceType::Sampler => out.push(1),
+        ResourceType::Cbv => out.push(2),
+        ResourceType::Uav => out.push(3),
+        ResourceType::Other(x) => {
+            out.push(4);
+            out.push(x);
+        }
+    }
+}
+
+fn encode_root_type(out: &mut Vec<u8>, root: RootType) {
+    match root {
+        RootType::Constants => out.push(0),
+        RootType::Descriptor => out.push(1),
+        RootType::Table => out.push(2),
+        RootType::ImmediateSampler => out.push(3),
+        RootType::ResourceHeap => out.push(4),
+        RootType::SamplerHeap => out.push(5),
+        RootType::Other(x) => {
+            out.push(6);
+            out.extend_from_slice(&x.to_le_bytes());
+        }
+    }
+}
+
 /// Little-endian words and length-prefixed lists; a refusal is its
 /// reason's text.
-fn encode(translation: &Result<HostShader, String>) -> Vec<u8> {
+fn encode(translation: &Result<Translated, String>) -> Vec<u8> {
     let s = match translation {
         Ok(s) => s,
         Err(reason) => return [REFUSED.as_slice(), reason.as_bytes()].concat(),
@@ -235,7 +273,7 @@ fn encode(translation: &Result<HostShader, String>) -> Vec<u8> {
         heap,
         heap_writes,
         view_marks,
-    } = s;
+    } = &s.host;
     let mut out = MAGIC.to_vec();
     let word = |out: &mut Vec<u8>, v: u32| out.extend(v.to_le_bytes());
     let stage = STAGES.iter().position(|x| x == stage).unwrap_or(0) as u32;
@@ -286,10 +324,21 @@ fn encode(translation: &Result<HostShader, String>) -> Vec<u8> {
             | u32::from(*heap_writes) << 4
             | u32::from(*view_marks) << 5,
     );
+    word(&mut out, s.used.len() as u32);
+    for res in &s.used {
+        encode_resource_type(&mut out, res.kind);
+        encode_root_type(&mut out, res.root);
+        out.extend_from_slice(&res.table_offset_dwords.to_le_bytes());
+        out.extend_from_slice(&res.lower_bound.to_le_bytes());
+        out.extend_from_slice(&res.stride.to_le_bytes());
+        out.push(res.dwords);
+        out.push(res.user_data);
+        out.push(res.slot);
+    }
     out
 }
 
-fn decode(bytes: &[u8]) -> Option<Result<HostShader, String>> {
+fn decode(bytes: &[u8]) -> Option<Result<Translated, String>> {
     struct Reader<'a>(&'a [u8]);
     impl<'a> Reader<'a> {
         fn take(&mut self, n: usize) -> Option<&'a [u8]> {
@@ -299,6 +348,30 @@ fn decode(bytes: &[u8]) -> Option<Result<HostShader, String>> {
         }
         fn word(&mut self) -> Option<u32> {
             Some(u32::from_le_bytes(self.take(4)?.try_into().ok()?))
+        }
+        fn u8(&mut self) -> Option<u8> { Some(self.take(1)?[0]) }
+        fn resource_type(&mut self) -> Option<ResourceType> {
+            match self.u8()? {
+                0 => Some(ResourceType::Srv),
+                1 => Some(ResourceType::Sampler),
+                2 => Some(ResourceType::Cbv),
+                3 => Some(ResourceType::Uav),
+                4 => Some(ResourceType::Other(self.u8()?)),
+                _ => None,
+            }
+        }
+
+        fn root_type(&mut self) -> Option<RootType> {
+            match self.u8()? {
+                0 => Some(RootType::Constants),
+                1 => Some(RootType::Descriptor),
+                2 => Some(RootType::Table),
+                3 => Some(RootType::ImmediateSampler),
+                4 => Some(RootType::ResourceHeap),
+                5 => Some(RootType::SamplerHeap),
+                6 => Some(RootType::Other(self.word()?)),
+                _ => None,
+            }
         }
         fn list(&mut self) -> Option<Vec<u8>> {
             let n = self.word()? as usize;
@@ -347,7 +420,21 @@ fn decode(bytes: &[u8]) -> Option<Result<HostShader, String>> {
     let root_srvs = r.list()?;
     let root_uavs = r.list()?;
     let memory = r.word()?;
-    r.0.is_empty().then_some(Ok(HostShader {
+    let count = r.word()? as usize;
+    let mut used = Vec::with_capacity(count.min(256));
+    for _ in 0..count {
+        used.push(UsedResource {
+            kind: r.resource_type()?,
+            root: r.root_type()?,
+            table_offset_dwords: r.word()?,
+            lower_bound: r.word()?,
+            stride: r.word()?,
+            dwords: r.u8()?,
+            user_data: r.u8()?,
+            slot: r.u8()?,
+        });
+    }
+    let host = HostShader {
         stage,
         dxil,
         user_data,
@@ -362,15 +449,16 @@ fn decode(bytes: &[u8]) -> Option<Result<HostShader, String>> {
         heap: memory & 8 != 0,
         heap_writes: memory & 16 != 0,
         view_marks: memory & 32 != 0,
-    }))
+    };
+    r.0.is_empty().then_some(Ok(Translated { host, used }))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn shader() -> HostShader {
-        HostShader {
+    fn shader() -> Translated {
+        let host = HostShader {
             stage: HwStage::Ps,
             dxil: b"DXBC and the rest".to_vec(),
             user_data: vec![UserData {
@@ -395,7 +483,18 @@ mod tests {
             heap: true,
             heap_writes: true,
             view_marks: true,
-        }
+        };
+        let used = vec![UsedResource {
+            kind: ResourceType::Other(255),
+            root: RootType::Other(u32::MAX),
+            table_offset_dwords: 7,
+            lower_bound: 2,
+            stride: 32,
+            dwords: 8,
+            user_data: 3,
+            slot: 1,
+        }];
+        Translated { host, used }
     }
 
     #[test]
@@ -448,7 +547,7 @@ mod tests {
         let fails = AtomicU64::new(0);
         let fail = |_: &[u8]| {
             fails.fetch_add(1, Ordering::Relaxed);
-            Err::<HostShader, _>("unsupported".to_owned())
+            Err::<Translated, _>("unsupported".to_owned())
         };
         let refused = (Err("unsupported".to_owned()), false);
         assert_eq!(cached(&cache, &build, b"other", fail), refused);
@@ -557,7 +656,7 @@ mod tests {
         assert!(
             std::str::from_utf8(ENCODING)
                 .unwrap()
-                .contains("fn encode(translation: &Result<HostShader, String>)")
+                .contains("fn encode(translation: &Result<Translated, String>)")
         );
     }
 
