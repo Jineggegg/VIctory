@@ -31,10 +31,8 @@ fn memory(scene: &str) {
         ..Default::default()
     };
     // SAFETY: current process and a sized, writable output buffer.
-    assert_ne!(
-        unsafe { K32GetProcessMemoryInfo(GetCurrentProcess(), &mut counters, counters.cb) },
-        0
-    );
+    let ok = unsafe { K32GetProcessMemoryInfo(GetCurrentProcess(), &mut counters, counters.cb) };
+    assert_ne!(ok, 0);
     println!("BENCH {scene}_local_mb={local}");
     println!(
         "BENCH {scene}_working_set_bytes={}",
