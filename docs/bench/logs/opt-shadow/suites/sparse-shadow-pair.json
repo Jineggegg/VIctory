@@ -1,0 +1,13 @@
+{
+  "name": "victory-sparse-shadow-pair-v1",
+  "test": "pipeline::hot::sparse_shadow_pair",
+  "timings": [
+    "sparse_views_us",
+    "sparse_later_us",
+    "sparse_total_us"
+  ],
+  "workload": [
+    "sparse_requested_bytes",
+    "sparse_gap_request_bytes"
+  ]
+}

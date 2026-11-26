@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "victory-shadow-scale-small-v1",
+  "test": "pipeline::hot::shadow_scale_pair",
+  "parameters": {
+    "VICTORY_BENCH_SCALE": "small"
+  },
+  "family_size": 2,
+  "pairs": 15,
+  "a_commit": "ce9f965ff368ce59cced3ef6a1d065983fb7b57a",
+  "b_commit": "437a96ec91233266c6c92c0dd233abb0c632e75f",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 19:12:20Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=3% | VRAM=4014\/32607 MiB | power=63.10 W | temp=36.34 C | graphics=1095 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%",
+    "tolerated_background": "chrome(pid=60252) 3D=1%"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [ ],
+  "family_excludes_zero": [ ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "marked_writeback_frame_us": {
+      "a_median": 5596.5,
+      "b_median": 5782.9,
+      "change_pct": 4.1264936902058569,
+      "ci95_pct": [
+        -1.3401232913427985,
+        7.8240532517765526
+      ],
+      "family95_pct": [
+        -1.3401232913427985,
+        8.6244304621392978
+      ]
+    },
+    "shadow_refresh_bytes": {
+      "a_median": 16777216,
+      "b_median": 16777216,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "shadow_refresh_us": {
+      "a_median": 2026.4,
+      "b_median": 2058.3,
+      "change_pct": -2.7041805438186683,
+      "ci95_pct": [
+        -3.4522706209453191,
+        4.535136202131862
+      ],
+      "family95_pct": [
+        -3.9546928699356276,
+        4.535136202131862
+      ]
+    },
+    "writeback_bytes": {
+      "a_median": 15728640,
+      "b_median": 15728640,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "writeback_withheld_bytes": {
+      "a_median": 1048576,
+      "b_median": 1048576,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}

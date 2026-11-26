@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "victory-sparse-shadow-pair-v1",
+  "test": "pipeline::hot::sparse_shadow_pair",
+  "parameters": { },
+  "family_size": 3,
+  "pairs": 15,
+  "a_commit": "b090559b78487f30daae2aa8681a594e2fbdf888",
+  "b_commit": "e5bb0d066a7b027f0da8866ff9d45d6e1716ab04",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 19:28:39Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=4270\/32607 MiB | power=4.25 W | temp=40.19 C | graphics=195 MHz | memory=405 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=none",
+    "tolerated_background": "none"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [
+    "sparse_later_bytes"
+  ],
+  "pointwise_excludes_zero": [
+    "sparse_views_us",
+    "sparse_later_us",
+    "sparse_total_us"
+  ],
+  "family_excludes_zero": [
+    "sparse_views_us",
+    "sparse_later_us",
+    "sparse_total_us"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "sparse_later_bytes": {
+      "a_median": 0,
+      "b_median": 65536,
+      "change_pct": null,
+      "ci95_pct": null,
+      "family95_pct": null
+    },
+    "sparse_gap_request_bytes": {
+      "a_median": 65536,
+      "b_median": 65536,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "sparse_later_us": {
+      "a_median": 0.7,
+      "b_median": 16.3,
+      "change_pct": 2228.5714285714289,
+      "ci95_pct": [
+        1914.2857142857142,
+        2342.8571428571431
+      ],
+      "family95_pct": [
+        1914.2857142857142,
+        2342.8571428571431
+      ]
+    },
+    "sparse_requested_bytes": {
+      "a_median": 2097152,
+      "b_median": 2097152,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "sparse_total_us": {
+      "a_median": 33411.3,
+      "b_median": 327,
+      "change_pct": -99.0199615555227,
+      "ci95_pct": [
+        -99.033128980772958,
+        -98.999495198516115
+      ],
+      "family95_pct": [
+        -99.033128980772958,
+        -98.999495198516115
+      ]
+    },
+    "sparse_views_bytes": {
+      "a_median": 268435456,
+      "b_median": 2097152,
+      "change_pct": -99.21875,
+      "ci95_pct": [
+        -99.21875,
+        -99.21875
+      ],
+      "family95_pct": [
+        -99.21875,
+        -99.21875
+      ]
+    },
+    "sparse_views_us": {
+      "a_median": 33410.6,
+      "b_median": 310.1,
+      "change_pct": -99.06623130956541,
+      "ci95_pct": [
+        -99.0824027654607,
+        -99.04848555999061
+      ],
+      "family95_pct": [
+        -99.0845837527638,
+        -99.04848555999061
+      ]
+    }
+  }
+}

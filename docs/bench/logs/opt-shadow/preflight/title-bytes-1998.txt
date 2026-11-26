@@ -1,0 +1,18 @@
+running 1 test
+test shadow::probe_original_withheld_page_contents ... covered=266338304 expected_covered=251658240 wrong_pages=224 wrong_bytes=14621600 first_wrong=Some(1)
+
+thread 'shadow::probe_original_withheld_page_contents' (59904) panicked at crates\victory-gpu\src\shadow.rs:2088:5:
+assertion `left == right` failed: title memory differs from original workload
+  left: 224
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    shadow::probe_original_withheld_page_contents
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.69s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`

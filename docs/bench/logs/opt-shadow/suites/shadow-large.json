@@ -1,0 +1,16 @@
+{
+  "name": "victory-shadow-scale-large-v1",
+  "test": "pipeline::hot::shadow_scale_pair",
+  "timings": [
+    "marked_writeback_frame_us",
+    "shadow_refresh_us"
+  ],
+  "workload": [
+    "shadow_refresh_bytes",
+    "writeback_bytes",
+    "writeback_withheld_bytes"
+  ],
+  "env": {
+    "VICTORY_BENCH_SCALE": "large"
+  }
+}

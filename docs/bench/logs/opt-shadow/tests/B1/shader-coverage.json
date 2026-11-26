@@ -1,0 +1,485 @@
+{
+  "test_binary": "victory_shader-3d01bf2c2a103fdb.exe",
+  "source": "62b69e805cbd",
+  "tests": 310,
+  "batches": [
+    {
+      "batch": 0,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "dxbc::tests::rejects_bad_input",
+        "emit::bvh_tests::intersections_on_nodes_in_title_memory_equal_the_reference",
+        "emit::lower::tests::a_descriptor_selected_by_scc_picks_its_heap_index",
+        "emit::lower::tests::small_floats_widen_as_halves",
+        "emit::semantics_tests::carries_match_the_hardware",
+        "emit::semantics_tests::rounding_matches_the_hardware",
+        "emit::synthetic_tests::gathers_at_a_level_that_may_be_a_fraction_stop",
+        "emit::tests::the_loop_limit_switch_parses_or_falls_back",
+        "emit::valu_tests::v_cvt_norm_i16_and_u16_f16_round_the_exact_product",
+        "gfx10::opcodes::tests::s_ttracedata_imm_is_sopp_0x28",
+        "ir::tests::non_trivial_phis_preserve_compressed_representatives",
+        "resource::tests::a_descriptor_read_from_the_first_lane_of_a_loop_phi_fails_naming_it",
+        "resource::tests::root_constant_zero_offsets_tables_and_root_descriptors"
+      ]
+    },
+    {
+      "batch": 1,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "dxbc::tests::round_trips_parts",
+        "emit::bvh_tests::intersections_on_the_gpu_equal_the_reference",
+        "emit::lower::tests::a_descriptor_skipped_only_by_lanes_that_never_run_needs_no_source",
+        "emit::lower::tests::sums_of_absolute_differences_lower",
+        "emit::semantics_tests::class_compares_match_the_hardware",
+        "emit::semantics_tests::scalar_alu_matches_the_hardware",
+        "emit::synthetic_tests::ordered_pixel_sections_use_rasterizer_ordered_views",
+        "emit::valu_tests::a_branch_to_fallthrough_keeps_both_values_at_a_join",
+        "emit::valu_tests::v_cvt_off_f32_i4_uses_the_signed_low_nibble",
+        "gfx10::sp3::tests::atc_probe_immediate_is_not_a_register",
+        "ir::tests::relative_vgpr_access_spans_up_to_the_vgpr_count",
+        "resource::tests::a_descriptor_used_after_exec_is_restored_is_no_waterfall",
+        "resource::tests::root_descriptors_are_built_in_code"
+      ]
+    },
+    {
+      "batch": 2,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "dxil::tests::detects_xbox_layout",
+        "emit::bvh_tests::intersections_with_64_bit_pointers_on_the_gpu_equal_the_reference",
+        "emit::lower::tests::a_guarded_scalar_write_kills_a_stale_sgpr",
+        "emit::lower::tests::the_24_bit_multiplies_lower_both_halves",
+        "emit::semantics_tests::compares_match_the_hardware",
+        "emit::semantics_tests::scalar_min_max_set_scc_from_the_compare",
+        "emit::synthetic_tests::permutes_mask_high_address_bits_and_divergent_branches",
+        "emit::valu_tests::bfe_signed_and_unsigned_match_rdna2",
+        "emit::valu_tests::v_cvt_u16_and_i16_f16_saturate",
+        "gfx10::sp3::tests::fields_the_instruction_lacks_are_not_printed",
+        "ir::tests::remove_trivial_phis_compresses_reverse_chain_in_bounded_steps",
+        "resource::tests::a_first_lane_read_outside_a_loop_is_no_waterfall",
+        "resource::tests::root_parameters_past_the_user_sgprs_load_from_the_pointer"
+      ]
+    },
+    {
+      "batch": 3,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "dxil::tests::parses_standard_layout",
+        "emit::bvh_tests::nan_bounds_miss",
+        "emit::lower::tests::a_mask_joined_with_data_needs_a_uniform_join",
+        "emit::lower::tests::the_code_table_starts_after_the_instructions",
+        "emit::semantics_tests::compares_of_denormals_agree_across_adapters",
+        "emit::semantics_tests::selects_match_the_hardware",
+        "emit::synthetic_tests::permutes_read_the_lane_named_and_zero_from_lanes_left_out",
+        "emit::valu_tests::f16_max_and_min_order_negative_zero_below_positive_zero",
+        "emit::valu_tests::v_fma_f16_rounds_once_and_preserves_other_half",
+        "gfx10::sp3::tests::image_d16_data_is_packed",
+        "ir::tests::reports_what_it_cannot_express",
+        "resource::tests::a_first_lane_read_without_its_compare_is_no_waterfall",
+        "resource::tests::sampler_words_from_bit_masks_and_wide_literals_are_constants"
+      ]
+    },
+    {
+      "batch": 4,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "dxil::tests::rejects_missing_bitcode_magic",
+        "emit::bvh_tests::parallel_rays_zero_area_and_nan_miss",
+        "emit::lower::tests::a_missing_value_on_a_path_no_lane_takes_is_dead",
+        "emit::lower::tests::v_cndmask_accepts_uniform_and_constant_masks",
+        "emit::semantics_tests::constant_compares_run",
+        "emit::semantics_tests::sixteen_bit_floats_match_the_hardware",
+        "emit::synthetic_tests::pops_wait_loop_exits_immediately_for_inactive_lanes",
+        "emit::valu_tests::fspx_programs_run_with_the_hardwares_dot_products",
+        "emit::valu_tests::v_fract_f16_never_returns_one",
+        "gfx10::sp3::tests::lane_masks_follow_the_wave_size",
+        "ir::tests::reverse_order_diamond_chain_eliminates_trivial_phis",
+        "resource::tests::a_loop_that_drops_unmatched_lanes_is_no_waterfall",
+        "resource::tests::spilled_sgprs_are_followed_through_vgpr_lanes"
+      ]
+    },
+    {
+      "batch": 5,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::a_constant_branch_drops_its_other_side_and_that_side_s_phi_entry",
+        "emit::bvh_tests::shared_edges_and_vertices_leave_no_gap",
+        "emit::lower::tests::a_missing_value_stays_missing_through_two_live_joins",
+        "emit::lower::tests::vop3_conversion_modifiers_affect_the_lowering",
+        "emit::semantics_tests::constant_results_run",
+        "emit::semantics_tests::sub_dword_operands_match_the_hardware",
+        "emit::synthetic_tests::relative_moves_in_waterfall_loops_reach_each_lane_s_element",
+        "emit::valu_tests::image_addresses_of_16_bits_and_clamps",
+        "emit::valu_tests::v_fract_f32_never_returns_one",
+        "gfx10::sp3::tests::memory_and_export",
+        "native::tests::compute_dispatch_settings",
+        "resource::tests::a_per_lane_descriptor_some_lanes_do_not_write_fails",
+        "resource::tests::table_descriptors_are_loaded_from_their_range"
+      ]
+    },
+    {
+      "batch": 6,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::a_loop_whose_back_edge_is_never_taken",
+        "emit::bvh_tests::the_denominators_sign_and_ratios_match_moller_trumbore",
+        "emit::lower::tests::a_scalar_carry_chain_reaches_the_select",
+        "emit::lower::tests::waterfall_loops_over_descriptors_joined_per_lane_sample_with_each_lanes_own",
+        "emit::semantics_tests::conversions_match_the_hardware",
+        "emit::semantics_tests::transcendental_specials_match_the_hardware",
+        "emit::synthetic_tests::wave64_permutes_check_exec_within_each_half",
+        "emit::valu_tests::image_atomics_of_64_bits",
+        "emit::valu_tests::v_med3_f16_matches_rdna2_with_nan",
+        "gfx10::sp3::tests::one_sided_packed_negation_is_printed",
+        "native::tests::finds_graphics_programs",
+        "resource::tests::a_retry_that_keeps_other_lanes_than_those_waiting_is_no_waterfall",
+        "resource::tests::the_console_waterfall_over_a_first_lane_offset_is_one"
+      ]
+    },
+    {
+      "batch": 7,
+      "passed": 12,
+      "ignored": 1,
+      "names": [
+        "emit::bitcode::tests::bench_write",
+        "emit::bvh_tests::the_triangle_id_names_vertices_and_barycentrics",
+        "emit::lower::tests::a_scalar_result_needs_no_exec",
+        "emit::lower::tests::waterfall_loops_over_per_lane_descriptors_sample_with_each_lanes_own",
+        "emit::semantics_tests::cube_faces_match_the_hardware",
+        "emit::semantics_tests::wide_shifts_match_the_hardware",
+        "emit::synthetic_tests::wave64_permutes_stay_within_each_32_lane_half",
+        "emit::valu_tests::max_and_min_order_negative_zero_below_positive_zero",
+        "emit::valu_tests::v_med3_f32_matches_rdna2_with_nan",
+        "gfx10::sp3::tests::scalar",
+        "native::tests::finds_mesh_and_compute_programs",
+        "resource::tests::a_selection_that_mixes_two_descriptors_fails",
+        "resource::tests::untraceable_addresses_fail_with_a_reason"
+      ]
+    },
+    {
+      "batch": 8,
+      "passed": 12,
+      "ignored": 1,
+      "names": [
+        "emit::bitcode::tests::constant_globals_nothing_reads_are_left_out",
+        "emit::census_tests::every_opcode_translate_or_refuse_never_panic",
+        "emit::lower::tests::a_value_no_lane_from_its_edge_reads_needs_no_form",
+        "emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index",
+        "emit::semantics_tests::defect_multiply_adds_fused_only_where_the_host_fuses",
+        "emit::shader::tests::uavs_outside_pixel_and_compute_programs_are_declared",
+        "emit::tests::a_half_over_a_first_interpolation_half_reads_as_a_half",
+        "emit::valu_tests::med3_orders_negative_zero_below_positive_zero",
+        "emit::valu_tests::v_min3_max3_med3_integer_forms_match_rdna2",
+        "gfx10::sp3::tests::vector_modifiers",
+        "native::tests::initialized_sgprs_covers_user_system_and_scratch",
+        "resource::tests::a_v_cmpx_waterfall_whose_retry_drops_lanes_is_none",
+        "structure::tests::a_forward_exit_to_a_null_export_is_a_discard"
+      ]
+    },
+    {
+      "batch": 9,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::empty_blocks_before_a_phi_fold_only_where_the_entry_can_move",
+        "emit::container::tests::md5_core_matches_the_standard",
+        "emit::lower::tests::a_waterfall_loop_that_only_sizes_takes_the_kind_of_the_sampled_one",
+        "emit::memory_tests::root_views_read_their_copy_and_zeros_past_it",
+        "emit::semantics_tests::else_lanes_keep_their_registers",
+        "emit::stride_tests::a_constant_buffer_through_the_heap_reads_as_a_raw_buffer",
+        "emit::tests::a_row_keeps_one_interpolation_mode",
+        "emit::valu_tests::normalized_buffer_formats_load_correctly_rounded_quotients",
+        "emit::valu_tests::v_mul_legacy_f32_treats_denormals_as_zero",
+        "gfx10::tests::flat_offsets_ignore_bit_eleven",
+        "native::tests::mesh_stage_io_ignores_unused_vs_input_count",
+        "resource::tests::a_waterfall_narrowed_by_v_cmpx_is_one",
+        "structure::tests::a_loop_exit_to_a_null_export_is_no_discard"
+      ]
+    },
+    {
+      "batch": 10,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::empty_latch_with_dead_phis_is_folded",
+        "emit::crosslane_tests::cpu_reference_oracle_boundary_checks",
+        "emit::lower::tests::an_address_half_set_where_only_lanes_that_never_run_skip_is_known",
+        "emit::memory_tests::straddling_writes_across_256mib_and_4gib_boundaries_mark_exact_pages",
+        "emit::semantics_tests::f16_arithmetic_rounds_once",
+        "emit::stride_tests::a_half_buffer_load_reads_the_half_at_its_address",
+        "emit::tests::a_stencil_export_declares_the_stencil_ref_feature",
+        "emit::valu_tests::normalized_buffer_formats_load_their_ends_exactly",
+        "emit::valu_tests::v_sin_and_v_cos_f16_reduce_large_turns",
+        "gfx10::tests::follows_branches_and_skips_data",
+        "native::tests::pc_layout_has_none",
+        "resource::tests::a_waterfall_nested_in_another_is_refused_by_name",
+        "structure::tests::a_mask_spilled_to_a_vgpr_lane_comes_back_as_itself"
+      ]
+    },
+    {
+      "batch": 11,
+      "passed": 12,
+      "ignored": 1,
+      "names": [
+        "emit::bitcode::tests::only_values_with_effects_or_readers_are_written",
+        "emit::crosslane_tests::dpp16_inactive_source_and_bound_ctrl_match_rdna2_on_gpu",
+        "emit::lower::tests::buffer_cache_invalidations_lower_as_no_ops",
+        "emit::memory_tests::title_memory_is_read_and_written_at_computed_addresses",
+        "emit::semantics_tests::f16_results_round_as_the_mode_says",
+        "emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride",
+        "emit::tests::an_exec_high_write_does_not_overflow_the_stack",
+        "emit::valu_tests::normalized_codes_truncate_back_to_themselves",
+        "emit::valu_tests::v_sin_and_v_cos_f32_reduce_large_turns",
+        "gfx10::tests::follows_far_jumps",
+        "native::tests::reads_every_native_blob",
+        "resource::tests::a_wave64_access_with_exec_hi_overwritten_is_no_waterfall",
+        "structure::tests::bench_bools"
+      ]
+    },
+    {
+      "batch": 12,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::successors_of_each_terminator",
+        "emit::crosslane_tests::dpp8_and_dpp8fi_inactive_source_match_rdna2_on_gpu",
+        "emit::lower::tests::buffer_formats_by_number",
+        "emit::memory_tests::writes_through_views_mark_their_pages",
+        "emit::semantics_tests::f16_results_round_to_nearest_even",
+        "emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros",
+        "emit::tests::an_export_before_a_discarding_done_export_stores_unguarded",
+        "emit::valu_tests::packed_add_selects_halves_of_inline_constants",
+        "emit::waterfall_tests::lanes_load_from_the_buffer_their_nested_arms_chose",
+        "gfx10::tests::follows_far_jumps_backward",
+        "native::tests::reads_fspx_compute_programs",
+        "resource::tests::a_wave64_retry_of_one_half_is_no_waterfall",
+        "structure::tests::data_loaded_where_a_mask_was_is_no_mask"
+      ]
+    },
+    {
+      "batch": 13,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::unread_phis_are_dropped",
+        "emit::crosslane_tests::ds_swizzle_b32_inactive_source_returns_zero_on_gpu",
+        "emit::lower::tests::compute_spills_beside_a_descriptor_word_read_back",
+        "emit::rect::rule_tests::right_angles_are_found_in_any_order",
+        "emit::semantics_tests::floor_conversions_match_the_hardware",
+        "emit::stride_tests::a_heap_index_in_a_paged_view_heap_reads_where_its_page_is",
+        "emit::tests::an_interpolation_after_j_is_reused_in_other_lanes_translates",
+        "emit::valu_tests::packed_fmac_accumulates_each_half",
+        "emit::waterfall_tests::lanes_sample_the_entry_their_offset_names_in_the_console_waterfall",
+        "gfx10::tests::lengths_and_names",
+        "native::tests::reads_mesh_outputs_and_limits",
+        "resource::tests::an_access_under_a_further_mask_is_no_waterfall",
+        "structure::tests::divergent_if_becomes_a_lane_branch"
+      ]
+    },
+    {
+      "batch": 14,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::uses_count_only_what_is_written",
+        "emit::crosslane_tests::pixel_quad_swizzle_and_dpp_validate_and_create_pipeline",
+        "emit::lower::tests::descriptors_joined_by_nested_control_flow_lower_to_one_uniform_handle",
+        "emit::rect::tests::rectangles_get_their_fourth_corner",
+        "emit::semantics_tests::hosts_that_do_not_fuse_are_named",
+        "emit::stride_tests::a_sampler_chosen_by_a_uniform_branch_samples_as_chosen",
+        "emit::tests::constant_color_validates",
+        "emit::valu_tests::relative_moves_reach_only_what_their_clamped_index_can",
+        "emit::waterfall_tests::lanes_sample_the_texture_their_arm_loaded_or_picked",
+        "gfx10::tests::rejects_bad_code",
+        "native::tests::reads_pixel_io_and_applies_the_full_export_patch",
+        "resource::tests::computed_addresses_are_title_memory",
+        "structure::tests::divergent_loop_exits_per_lane"
+      ]
+    },
+    {
+      "batch": 15,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::vbr_and_blocks",
+        "emit::diff_tests::cube_gradients_pick_the_level",
+        "emit::lower::tests::descriptors_reloaded_from_a_root_table_share_one_handle",
+        "emit::sampler::tests::anisotropic_samplers_preserve_mip_point_filtering",
+        "emit::semantics_tests::integers_match_the_hardware",
+        "emit::stride_tests::d16_typed_buffer_accesses_pass_bits_through_integer_views",
+        "emit::tests::edge_flagged_triangles_draw_as_unflagged_ones",
+        "emit::valu_tests::s_cmpk_compares_against_the_extended_immediate",
+        "emit::waterfall_tests::lanes_sample_the_texture_their_if_else_arm_chose",
+        "gfx10::tests::tables_are_sorted",
+        "native::tests::reads_root_tables",
+        "resource::tests::descriptors_joined_by_control_flow_are_traced_per_edge",
+        "structure::tests::exec_narrowed_without_a_branch_leaves_a_guard"
+      ]
+    },
+    {
+      "batch": 16,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::worklist_liveness_matches_passes",
+        "emit::diff_tests::float_semantics_are_the_consoles",
+        "emit::lower::tests::ds_bpermute_refuses_gds",
+        "emit::sampler::tests::console_compiled_samplers_decode",
+        "emit::semantics_tests::lds_bytes_and_halves_match_the_hardware",
+        "emit::stride_tests::d16_x_loads_read_r16_uint_and_r16_float_views",
+        "emit::tests::elements_sharing_a_row_keep_their_order",
+        "emit::valu_tests::scalar_quad_masks_pack_nibbles_and_set_scc",
+        "emit::waterfall_tests::lanes_sample_their_own_texture_in_a_waterfall_narrowed_by_v_cmpx",
+        "io::tests::interpolation_pairs_and_color_exports",
+        "native::tests::rejects_corrupt_blobs",
+        "resource::tests::descriptors_joined_from_a_per_lane_load_and_a_per_lane_choice_are_traced_per_path",
+        "structure::tests::given_matches_a_walk_per_variable"
+      ]
+    },
+    {
+      "batch": 17,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bitcode::tests::written_bytes_unchanged",
+        "emit::diff_tests::translated_compute_matches_pc",
+        "emit::lower::tests::ds_bpermute_wave64_preserves_32_lane_half",
+        "emit::sampler::tests::host_filter_falls_back_without_changing_reduction_or_lod",
+        "emit::semantics_tests::lds_out_of_bounds_reads_zero_and_drops_writes",
+        "emit::stride_tests::half_buffer_stores_leave_the_other_half_alone",
+        "emit::tests::immediate_sampler_slots_distinguish_comparison_uses",
+        "emit::valu_tests::signed_64_bit_operands_sign_extend_their_literal",
+        "emit::wave::tests::constant_decodes_width_and_inline_kinds",
+        "io::tests::mesh_inputs_and_primitive_export",
+        "native::tests::rejects_corrupt_fspx_parts",
+        "resource::tests::descriptors_read_from_the_first_lane_of_a_per_lane_choice_are_traced_per_lane",
+        "structure::tests::given_replaces_every_decided_atom"
+      ]
+    },
+    {
+      "batch": 18,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bvh_tests::a_ray_parallel_to_a_slab_hits_only_between_its_planes",
+        "emit::diff_tests::translated_mesh_shaders_draw_as_pc_ones",
+        "emit::lower::tests::guarded_or_modified_v_mov_b32_is_not_folded_as_constant",
+        "emit::sampler::tests::host_filter_keeps_other_filters_unchanged",
+        "emit::semantics_tests::masked_lanes_keep_their_registers",
+        "emit::stride_tests::heap_indexed_structured_buffers_with_distinct_strides",
+        "emit::tests::indexed_move_initializes_an_input_before_its_first_use",
+        "emit::valu_tests::src_scc_reads_as_zero_or_one",
+        "emit::wave::tests::dpp_lanes_follow_the_isa",
+        "io::tests::pixel_vgprs_follow_the_input_address",
+        "range::tests::a_bound_must_survive_what_the_bounded_moves_write",
+        "resource::tests::descriptors_read_from_the_first_lane_of_an_if_else_join_are_traced_per_path",
+        "structure::tests::guards_follow_exec_and_block_reachability"
+      ]
+    },
+    {
+      "batch": 19,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bvh_tests::a_triangle_returns_t_and_barycentrics_over_one_denominator",
+        "emit::diff_tests::translated_shaders_draw_as_pc_ones",
+        "emit::lower::tests::packed_buffer_formats_by_number",
+        "emit::sampler::tests::mip_lod_bias_decodes_signed_14bit_fixed_point_extremes",
+        "emit::semantics_tests::med3_orders_signed_zeros",
+        "emit::stride_tests::table_bound_structured_buffer_reads_by_element_and_dimensions",
+        "emit::tests::interpolated_f16_writes_the_op_sel_half_with_modifiers",
+        "emit::valu_tests::tbuffer_d16_loads_pack_two_channels_per_dword",
+        "emit::wave::tests::exec_minus_two_masks_lane_zero_and_enforces_dpp_guard",
+        "io::tests::unpaired_or_unknown_interpolation_fails",
+        "range::tests::a_first_lane_where_exec_may_be_empty_is_unbounded",
+        "resource::tests::descriptors_read_from_the_first_lane_of_lds_fail_naming_it",
+        "structure::tests::irreducible_loops_are_split"
+      ]
+    },
+    {
+      "batch": 20,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bvh_tests::box16_holds_halves_in_pairs",
+        "emit::flow_tests::control_flow_runs_as_pc_compiles_it",
+        "emit::lower::tests::packed_halves_fill_parameters_first_fit",
+        "emit::sampler::tests::no_mip_filter_forces_zero_lod_range_and_non_zero_preserves_it",
+        "emit::semantics_tests::min_max_and_clamp_match_the_hardware",
+        "emit::stride_tests::views_read_in_a_paged_view_heap_mark_their_pages",
+        "emit::tests::primitive_export_indices_drop_the_edge_flags",
+        "emit::valu_tests::v_cmp_class_f16_matches_rdna2",
+        "emit::wave::tests::per_lane_prefix_soundness",
+        "ir::tests::drops_scheduling_and_follows_far_jumps",
+        "range::tests::a_loop_counter_bounds_the_index",
+        "resource::tests::descriptors_read_from_the_first_lane_of_per_lane_loads_are_traced_to_them",
+        "structure::tests::scalar_branches_stay_uniform"
+      ]
+    },
+    {
+      "batch": 21,
+      "passed": 13,
+      "ignored": 0,
+      "names": [
+        "emit::bvh_tests::boxes_come_sorted_by_distance_misses_last",
+        "emit::host::tests::parallel_warp_pipelines_and_draws",
+        "emit::lower::tests::perm_constant_selector_needs_no_int64",
+        "emit::semantics_tests::arithmetic_matches_the_hardware",
+        "emit::semantics_tests::min_max_and_selects_take_denormals_on_the_bits",
+        "emit::synthetic_tests::a_compare_mask_joined_with_data_on_the_skip_edge_is_0_there",
+        "emit::tests::reading_a_channel_below_an_input_element_does_not_underflow",
+        "emit::valu_tests::v_cmp_lg_is_false_for_nan",
+        "emit::wave::tests::prefixes_are_recognised",
+        "ir::tests::in_place_scalar_ops_read_their_destination",
+        "resource::tests::a_buffer_descriptor_joined_per_lane_is_traced_on_the_paths_of_lanes_that_load",
+        "resource::tests::descriptors_selected_by_scc_are_traced_per_outcome",
+        "structure::tests::vars_match_the_scan"
+      ]
+    },
+    {
+      "batch": 22,
+      "passed": 12,
+      "ignored": 0,
+      "names": [
+        "emit::bvh_tests::equal_distances_keep_the_networks_order",
+        "emit::lower::marks::tests::title_page_marks_keep_every_lanes_bit",
+        "emit::lower::tests::perm_dynamic_selector_needs_no_int64",
+        "emit::semantics_tests::byte_dot_products_match_the_hardware",
+        "emit::semantics_tests::mixed_precision_matches_the_hardware",
+        "emit::synthetic_tests::a_mask_joined_with_data_at_a_uniform_loop_is_its_number",
+        "emit::tests::sample_interpolated_inputs_set_psv_sample_frequency",
+        "emit::valu_tests::v_cmp_u64_and_i64_order_by_the_high_dword",
+        "emit::wave::tests::v_add_f16_inline_float_constants_are_not_zero_identity",
+        "ir::tests::joins_get_phis_only_where_values_differ",
+        "resource::tests::a_compare_that_does_not_mask_the_access_is_no_waterfall",
+        "resource::tests::heap_indices_from_root_constants_in_a_merged_stage"
+      ]
+    },
+    {
+      "batch": 23,
+      "passed": 12,
+      "ignored": 0,
+      "names": [
+        "emit::bvh_tests::extent_and_origin_bound_the_interval_inclusively",
+        "emit::lower::tests::a_descriptor_loaded_only_for_its_size_takes_the_kind_of_its_reload",
+        "emit::lower::tests::scalar_bit_tests_lower",
+        "emit::semantics_tests::byte_packing_matches_the_hardware",
+        "emit::semantics_tests::output_multipliers_give_positive_zero",
+        "emit::synthetic_tests::gathers_at_a_level_match_the_hardware",
+        "emit::tests::stub_pipeline_is_created",
+        "emit::valu_tests::v_cvt_f16_u16_and_i16_widen_the_integer_first",
+        "emit::wave::tests::wave32_mov_b64_all_lanes_keeps_exec_masked_for_dpp",
+        "ir::tests::loops_carry_values_through_phis",
+        "resource::tests::a_descriptor_made_raw_is_the_loaded_one",
+        "resource::tests::root_constant_zero_offsets_emit_to_dxil"
+      ]
+    }
+  ]
+}

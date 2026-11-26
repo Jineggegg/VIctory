@@ -1,0 +1,57 @@
+[
+  {
+    "variant": "顺序写回精确的修改区间",
+    "formal": false,
+    "runs": 2,
+    "source_commit": "ad9a94a05df5278b8884b127a5eaab2ea32c7fe1",
+    "source_delta_sha256": "391dba9354acfa3076117a2dbeaf7344aa9e73d0560c2dcac9b61b75e7544bef",
+    "exe_sha256": "e2abd11ce3e946be72c77e35ef71384112f5ff447a63161378411f01c886685e",
+    "marked_median_ms": 149.6974,
+    "refresh_median_ms": 16.29355,
+    "working_set_median_MiB": 1078.55078125
+  },
+  {
+    "variant": "每个任务仅处理一个标记页",
+    "formal": false,
+    "runs": 5,
+    "source_commit": "13a1eddbb2f212b152dcfca547e21b5bd51b1dda",
+    "source_delta_sha256": "678ee909002a649541bfddbb247f285f0c8d9118e9ed5b3ddcd4a83f8a3b63fc",
+    "exe_sha256": "eb8b94e26c8512a1682c86543960e776b11b1a3f3ae442fe09ab643c249c1901",
+    "marked_median_ms": 82.5365,
+    "refresh_median_ms": 27.9298,
+    "working_set_median_MiB": 1044.515625
+  },
+  {
+    "variant": "四个工作者，每块四页",
+    "formal": false,
+    "runs": 5,
+    "source_commit": "13a1eddbb2f212b152dcfca547e21b5bd51b1dda",
+    "source_delta_sha256": "4d2917ec2ee6c515bf13ad0683f1b7de82236e68e045d1ba9ee17bbae4f19ae1",
+    "exe_sha256": "c9e36bf450e227d9acd5ee21a24876969f99074e9186d33bca2be031348699c7",
+    "marked_median_ms": 67.0053,
+    "refresh_median_ms": 25.5738,
+    "working_set_median_MiB": 1043.92578125
+  },
+  {
+    "variant": "八个工作者，每块八页，紧凑修改掩码",
+    "formal": false,
+    "runs": 5,
+    "source_commit": "13a1eddbb2f212b152dcfca547e21b5bd51b1dda",
+    "source_delta_sha256": "636967952ba27fb99a930249a385464a96945f1c93c1723f1406ab029d4617e3",
+    "exe_sha256": "9ae5e1758fcdd05b4ce6458b5763fb91806615a1b71328fda0c31173b01219f8",
+    "marked_median_ms": 37.0364,
+    "refresh_median_ms": 19.318,
+    "working_set_median_MiB": 1044.40625
+  },
+  {
+    "variant": "对修改掩码再做稀疏编码",
+    "formal": false,
+    "runs": 5,
+    "source_commit": "7f815fd0b64c0af5851c31cc5e8d8029bd677278",
+    "source_delta_sha256": "87643a2a3f4007cccf090565149d47a6a5c174884c62a743f2c4c6cc487d50d7",
+    "exe_sha256": "d44b825359c545c3c1c86e4a7ccc5df3c406809afac6d32a1dd9bdc747d233f1",
+    "marked_median_ms": 39.486599999999996,
+    "refresh_median_ms": 19.1818,
+    "working_set_median_MiB": 1103.546875
+  }
+]

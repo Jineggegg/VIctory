@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "victory-shadow-scale-large-v1",
+  "test": "pipeline::hot::shadow_scale_pair",
+  "parameters": {
+    "VICTORY_BENCH_SCALE": "large"
+  },
+  "family_size": 2,
+  "pairs": 30,
+  "a_commit": "877088e7b4eeccbdc689dbbc884d3a74c77be946",
+  "b_commit": "db1062dd1464e3610bafc380146d439ed03f444d",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 20:58:55Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=7% | VRAM=4388\/32607 MiB | power=75.77 W | temp=37.45 C | graphics=1657 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=cloudmusic(pid=17884) 3D=1%, chrome(pid=60252) 3D=2%, dwm(pid=61556) 3D=3%",
+    "tolerated_background": "cloudmusic(pid=17884) 3D=1%, chrome(pid=60252) 3D=2%, dwm(pid=61556) 3D=3%"
+  },
+  "same_binary": false,
+  "order": "six permutations of A\/B1\/B2, paired by round",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [
+    "marked_writeback_frame_us",
+    "shadow_refresh_us"
+  ],
+  "family_excludes_zero": [
+    "shadow_refresh_us"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "marked_writeback_frame_us": {
+      "a_median": 167532.15000000002,
+      "b_median": 170017.2,
+      "change_pct": 2.0155556536779473,
+      "ci95_pct": [
+        0.23915793702203869,
+        2.6364975474103769
+      ],
+      "family95_pct": [
+        -0.0420240128253313,
+        2.6653778268553863
+      ]
+    },
+    "shadow_refresh_bytes": {
+      "a_median": 1073741824,
+      "b_median": 1073741824,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "shadow_refresh_us": {
+      "a_median": 87224.55,
+      "b_median": 80489.35,
+      "change_pct": -7.1683546918560106,
+      "ci95_pct": [
+        -9.3017217938149059,
+        -5.5987174645056426
+      ],
+      "family95_pct": [
+        -9.3904146682995187,
+        -5.3047194765015071
+      ]
+    },
+    "writeback_bytes": {
+      "a_median": 1006632960,
+      "b_median": 1006632960,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "writeback_withheld_bytes": {
+      "a_median": 67108864,
+      "b_median": 67108864,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  },
+  "formal": true,
+  "control_arm": "B2",
+  "test_arm": "B1"
+}
