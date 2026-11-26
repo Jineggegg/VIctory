@@ -1,5 +1,6 @@
 //! Repository maintenance. Run with `cargo xtask <command>`.
 
+mod bench;
 mod policy;
 
 use std::path::{Path, PathBuf};
@@ -24,6 +25,23 @@ enum Cmd {
         #[arg(long)]
         staged: bool,
     },
+    /// Run the Windows hotspot benchmark through the WSL queue and GPU reservation.
+    BenchHot {
+        #[arg(value_enum)]
+        mode: bench::Mode,
+        #[arg(long)]
+        runs: Option<usize>,
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Compare two hotspot results.json files.
+    BenchCompare { before: PathBuf, after: PathBuf },
+    /// Streaming numeric backend used by the Windows benchmark driver.
+    #[command(hide = true)]
+    BenchStats {
+        #[arg(long)]
+        compare: bool,
+    },
     /// Point git at .githooks/ so every commit runs the policy check.
     InstallHooks,
 }
@@ -32,6 +50,9 @@ fn main() -> Result<()> {
     let root = workspace_root();
     match Cli::parse().command {
         Cmd::Policy { staged } => policy::run(&root, staged),
+        Cmd::BenchHot { mode, runs, out } => bench::hot(&root, mode, runs, out),
+        Cmd::BenchCompare { before, after } => bench::compare(&root, &before, &after),
+        Cmd::BenchStats { compare } => bench::statistics(compare),
         Cmd::InstallHooks => {
             let status = Command::new("git")
                 .args(["config", "core.hooksPath", ".githooks"])
