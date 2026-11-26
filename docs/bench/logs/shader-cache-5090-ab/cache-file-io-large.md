@@ -20,3 +20,5 @@
 | 重命名发布 | 170.50 | 186.65 | 179.60 | 217.85 |
 
 平铺方案在缓存根目录初始化时创建翻译器目录。每条记录直接在该目录创建临时文件，写完后原子重命名。基线在重命名前关闭句柄；平铺在发布后关闭。六个批次的 p95、p99 均为最大值。此表没有采集文件系统过滤驱动事件，也没有变更 Defender 设置。所有条目的实际纳秒计时见[原始记录](cache-file-io-large.txt)。
+
+逐对原始记录，每份包含两臂各 2,000 条。[第 1 对](cache-file-io-large/pair-1.txt) · [第 2 对](cache-file-io-large/pair-2.txt) · [第 3 对](cache-file-io-large/pair-3.txt) · [第 4 对](cache-file-io-large/pair-4.txt) · [第 5 对](cache-file-io-large/pair-5.txt) · [第 6 对](cache-file-io-large/pair-6.txt)
