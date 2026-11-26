@@ -3317,6 +3317,23 @@ mod tests {
             crate::descriptor::create_cbv(std::ptr::null(), &[address as u32, (address >> 32) as u32, 256, 0],
                 records[i + 1].as_mut_ptr() as u64);
         }
+        // The multiply-and-fold used in cblvictoryvi 9376fd60 mixes four
+        // u64s with XOR. Compensate in the unused last word so two *valid*
+        // records for different resources give exactly the same fingerprint.
+        let mix = |words: &[u32]| {
+            const K: u64 = 0x9e37_79b9_7f4a_7c15;
+            words.chunks_exact(2).fold(K ^ 32, |hash, pair| {
+                let word = u64::from(pair[0]) | u64::from(pair[1]) << 32;
+                let next = (hash ^ word).wrapping_mul(K);
+                next ^ (next >> 29)
+            })
+        };
+        let correction = mix(&records[1][..6]) ^ mix(&records[2][..6]);
+        records[2][6] = correction as u32;
+        records[2][7] = (correction >> 32) as u32;
+        assert_ne!(records[1][..3], records[2][..3]);
+        // Equal internal states give equal final folded fingerprints too.
+        assert_eq!(mix(&records[1]), mix(&records[2]));
         records[0] = records[1];
         let old = heap.mirror(0, start, true).unwrap();
         let table = heap.dynamic(1).unwrap();
@@ -3364,10 +3381,16 @@ mod tests {
             // SAFETY: execution has completed and the buffer contains two dwords.
             assert_eq!(unsafe { data.cast::<[u32; 2]>().read_unaligned() }, [11, expected]);
         };
+        // The recorded table still reads 11; the colliding live record reads 12.
+        records[0] = records[2];
+        heap.sync_slots(0, 1, start, 32);
+        run(1, 12);
+        records[0] = records[1];
+        heap.sync_slots(0, 1, start, 32);
         // Same id and generation, a bad tag: comparing a key alone would miss it.
         records[0][0] ^= 1;
         heap.sync_slots(0, 1, start, 32);
-        run(1, 0);
+        run(2, 0);
         // A newer byte copy arrives after the diff has picked the old constant.
         records[0] = records[1];
         let replacement = records[2];
@@ -3377,10 +3400,10 @@ mod tests {
         });
         heap.sync_slots(0, 1, start, 32);
         crate::shadow::unregister(pools[0], pools[0] as u64);
-        run(2, 12);
+        run(3, 12);
         records[0][2] = records[0][2].wrapping_add(1);
         heap.sync_slots(0, 1, records.as_ptr() as u64, 32);
-        run(3, 0);
+        run(4, 0);
         drop(list);
         drop(heap);
         crate::shadow::unregister(pools[1], pools[1] as u64);
