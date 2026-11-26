@@ -1,0 +1,23 @@
+{
+  "name": "victory-descriptor-recording-phases-8-v1",
+  "test": "pipeline::hot::contention::recording",
+  "timings": [
+    "record_submit_us",
+    "submit_span_us",
+    "held_wait_sum_us",
+    "held_busy_us",
+    "execute_busy_us",
+    "host_mutex_wait_us",
+    "host_prepare_us",
+    "native_submit_and_fence_us",
+    "native_fence_wait_us",
+    "list_recycle_us",
+    "list_reset_us"
+  ],
+  "workload": [
+    "threads"
+  ],
+  "env": {
+    "VICTORY_BENCH_THREADS": "8"
+  }
+}
