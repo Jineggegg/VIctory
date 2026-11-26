@@ -15,3 +15,5 @@ BENCH prebuild_1996_cold_us=37730169.700
 BENCH prebuild_1996_hot_us=17655.500
 
 这组单次本机数据证明输出与计数一致，性能结论仍以相同代码基线的交替 A/B 为准。
+
+集成候选 7e4e6a74 的 Windows 原生全测包括 victory、victory-shader、victory-game、victory-gpu 和 victory-pipeline。diag 配置启用 victory-gpu/diagnostics，测试按单线程运行，含文档测试，共 636 项通过、0 项失败、20 项默认忽略。
