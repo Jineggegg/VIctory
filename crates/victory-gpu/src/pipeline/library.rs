@@ -45,6 +45,7 @@ use windows::Win32::Graphics::Dxgi::{
 use windows::core::{HSTRING, Interface, PCWSTR};
 
 static DIR: OnceLock<PathBuf> = OnceLock::new();
+static LIBRARY_DIR: OnceLock<Option<PathBuf>> = OnceLock::new();
 
 /// Keeps the pipeline library and the early list in `dir` from now on.
 pub fn use_pipeline_cache(dir: PathBuf) {
@@ -60,6 +61,9 @@ fn translator_dir(root: PathBuf, translator: &[u8; 32]) -> PathBuf {
 /// There are no blobs or early hints to read for a new translator. Avoid
 /// constructing a DXGI factory on the first pipeline request in that case.
 fn existing_library_dir() -> Option<&'static PathBuf> {
+    if let Some(resolved) = LIBRARY_DIR.get() {
+        return resolved.as_ref();
+    }
     DIR.get()?.is_dir().then(library_dir).flatten()
 }
 
@@ -67,8 +71,7 @@ fn existing_library_dir() -> Option<&'static PathBuf> {
 /// packages side by side. The device also validates the bytes on load.
 fn library_dir() -> Option<&'static PathBuf> {
     let root = DIR.get()?;
-    static PATH: OnceLock<Option<PathBuf>> = OnceLock::new();
-    PATH.get_or_init(|| {
+    LIBRARY_DIR.get_or_init(|| {
         let device = &crate::host::host()?.device;
         let adapter = adapter_namespace(device)?;
         Some(translator_dir(root.join(adapter), crate::shader_cache::build()))
@@ -168,8 +171,24 @@ struct Library {
     added: u64,
     /// Title pipelines the pre-build put in the library or found there, by
     /// key, and whether that list changed since the last save.
-    prebuilt: HashSet<String>,
+    prebuilt: Option<HashSet<String>>,
     prebuilt_changed: bool,
+}
+
+impl Library {
+    /// Gameplay loads PSOs by their driver names. The prebuild index is
+    /// needed by the CLI, or when publishing a new tagged snapshot.
+    fn prebuilt_keys(&mut self) -> &mut HashSet<String> {
+        self.prebuilt.get_or_insert_with(|| {
+            if self._blob.is_empty() {
+                return HashSet::new();
+            }
+            library_dir()
+                .and_then(|dir| std::fs::read(dir.join(PREBUILT_FILE)).ok())
+                .map(|index| listed(&index, &tag(&self._blob)))
+                .unwrap_or_default()
+        })
+    }
 }
 
 // SAFETY: D3D12 objects are free-threaded (a pipeline library with the
@@ -252,13 +271,7 @@ fn library() -> Option<&'static Shared> {
             let dir = disk_configured.then(existing_library_dir).flatten();
             let read = |file| dir.and_then(|d| std::fs::read(d.join(file)).ok());
             let blob = read(LIBRARY_FILE).unwrap_or_default();
-            let mut library = open(&device, blob);
-            // The pre-build's list, if it was saved with these bytes.
-            if let (Some(l), Some(list)) = (library.as_mut(), read(PREBUILT_FILE))
-                && !l._blob.is_empty()
-            {
-                l.prebuilt = listed(&list, &tag(&l._blob));
-            }
+            let library = open(&device, blob);
             if library.is_none() {
                 tracing::warn!("no host pipeline library: pipelines are not kept");
             }
@@ -286,7 +299,7 @@ fn open(device: &ID3D12Device1, blob: Vec<u8>) -> Option<Library> {
                     library,
                     _blob: blob,
                     added: 0,
-                    prebuilt: HashSet::new(),
+                    prebuilt: None,
                     prebuilt_changed: false,
                 });
             }
@@ -300,7 +313,7 @@ fn open(device: &ID3D12Device1, blob: Vec<u8>) -> Option<Library> {
         library,
         _blob: Vec::new(),
         added: 0,
-        prebuilt: HashSet::new(),
+        prebuilt: None,
         prebuilt_changed: false,
     })
 }
@@ -344,14 +357,16 @@ fn listed(list: &[u8], tag: &str) -> HashSet<String> {
 
 /// Whether the pre-build has the title pipeline `key` in the library.
 pub(crate) fn prebuilt(key: &str) -> bool {
-    library().is_some_and(|l| l.state.lock().unwrap_or_else(|e| e.into_inner()).prebuilt.contains(key))
+    library().is_some_and(|l| l.state.lock().unwrap_or_else(|e| e.into_inner()).prebuilt_keys().contains(key))
 }
 
 /// The pre-build has the title pipeline `key` in the library now.
 pub(crate) fn note_prebuilt(key: String) {
     if let Some(l) = library() {
         let mut l = l.state.lock().unwrap_or_else(|e| e.into_inner());
-        l.prebuilt_changed |= l.prebuilt.insert(key);
+        if l.prebuilt_keys().insert(key) {
+            l.prebuilt_changed = true;
+        }
     }
 }
 
@@ -475,7 +490,8 @@ fn save_library(dir: &std::path::Path, library: &Shared) {
                 let prebuilt_changed = std::mem::take(&mut l.prebuilt_changed);
                 // Kept beside the bytes it holds for (also when a run adds
                 // pipelines).
-                let prebuilt = (!l.prebuilt.is_empty()).then(|| list(&tag(&bytes), &l.prebuilt));
+                let keys = l.prebuilt_keys();
+                let prebuilt = (!keys.is_empty()).then(|| list(&tag(&bytes), keys));
                 (bytes, prebuilt, added, prebuilt_changed)
             }
             Err(e) => {
@@ -1025,6 +1041,20 @@ mod tests {
             use_pipeline_cache(root);
             let dir = library_dir().expect("cacheable driver version");
             let blob = dir.join(LIBRARY_FILE);
+            if phase == "gameplay-save" {
+                let pixels = super::super::placed_uav_tests::run_store(host, |_| {}).unwrap();
+                assert_eq!(pixels, [[1.0, 0.5, -0.25, 2.0], [0.0; 4]]);
+                let shared = library().unwrap();
+                assert!(shared.state.lock().unwrap().prebuilt.is_none());
+                let container = super::super::hot::gfx10::compute_container(128);
+                super::super::Prebuild::compute(&container).make().unwrap();
+                save(true);
+                assert!(shared.state.lock().unwrap().prebuilt_keys().contains("old-marker"));
+                return;
+            }
+            if phase == "hit" {
+                assert!(prebuilt("old-marker"));
+            }
             if phase == "damaged" {
                 assert!(blob.is_file());
                 std::fs::write(&blob, b"invalid host pipeline library").unwrap();
@@ -1044,7 +1074,7 @@ mod tests {
         }
 
         let root = tempfile::tempdir().unwrap();
-        for phase in ["empty", "late", "hit", "damaged", "repaired"] {
+        for phase in ["empty", "late", "gameplay-save", "hit", "damaged", "repaired"] {
             let child = std::process::Command::new(std::env::current_exe().unwrap())
                 .args(["--exact", "pipeline::library::tests::reopened_library_loads_then_recovers_a_rejected_blob", "--ignored", "--nocapture"])
                 .env(PHASE, phase)
