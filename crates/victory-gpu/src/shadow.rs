@@ -2128,6 +2128,43 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn one_cpu_store_crosses_two_gpu_written_pages() {
+        let Some(h) = host() else { return };
+        let p = crate::watch::tests::pool(2);
+        let len = 2 * PAGE;
+        let (resource, data) = h.shared_buffer(len as u64).unwrap();
+        let copy = Shadow::new(resource, data, 0, p as u64, len as u64);
+        copy.update(p, len);
+        copy.writing(p, len, true);
+        let edge = p + PAGE;
+        copy.write_host((edge - 3) as u64, &[0xa1]);
+        copy.write_host((edge + 2) as u64, &[0xa2]);
+        std::thread::spawn(move || {
+            // SAFETY: all four bytes are inside the allocation. On x64,
+            // issue a single store that faults on both guarded pages.
+            unsafe {
+                #[cfg(target_arch = "x86_64")]
+                core::arch::asm!(
+                    "mov dword ptr [{at}], {value:e}",
+                    at = in(reg) edge - 2,
+                    value = in(reg) 0xbebafecau32,
+                    options(nostack, preserves_flags),
+                );
+                #[cfg(not(target_arch = "x86_64"))]
+                ((edge - 2) as *mut u32).write_unaligned(0xbebafeca);
+            }
+        })
+        .join()
+        .unwrap();
+        copy.copy_back_marked(p, 2);
+        let mut bytes = [0; 6];
+        assert!(crate::host::read_into((edge - 3) as *const u8, &mut bytes));
+        assert_eq!(bytes, [0xa1, 0xca, 0xfe, 0xba, 0xbe, 0xa2]);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
+
+    #[test]
     fn overlapping_snapshot_does_not_replay_cpu_bytes_from_a_marked_page() {
         let Some(h) = host() else { return };
         let p = crate::watch::tests::pool(1);
