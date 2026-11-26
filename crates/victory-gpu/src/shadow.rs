@@ -754,7 +754,13 @@ impl Shadow {
                 // A whole piece is compared once per submission, whichever
                 // declared ranges overlap it: then what the GPU wrote there
                 // went back.
-                if n == PIECE && !compared.insert(start + at) {
+                let page = (start + at) & !(PIECE - 1);
+                let done = if n == PIECE {
+                    !compared.insert(page)
+                } else {
+                    compared.contains(&page)
+                };
+                if done {
                     at += n;
                     continue;
                 }
@@ -886,6 +892,22 @@ impl Shadow {
             }
             if a == p * PAGE && b == (p + 1) * PAGE {
                 taken.push(p);
+            }
+        }
+        // A snapshot declaration can overlap a marked view. After this pass
+        // the host also contains the CPU's bytes. Comparing them to the old
+        // snapshot would put them back over later CPU writes. Each synced
+        // range covers every byte of this shadow in that title page.
+        {
+            let mut snapshot = self.before.lock().unwrap_or_else(|e| e.into_inner());
+            let (segments, compared) = &mut *snapshot;
+            if !segments.is_empty() {
+                for &(a, b) in &synced {
+                    let i = segments.partition_point(|(at, bytes)| at + bytes.len() <= a - start);
+                    if segments.get(i).is_some_and(|(at, _)| *at < b - start) {
+                        compared.insert(a & !(PAGE - 1));
+                    }
+                }
             }
         }
         if changed.is_empty() && synced.iter().all(|&(a, _)| !t.changed(a / PAGE)) {
@@ -2103,6 +2125,31 @@ pub(crate) mod tests {
                 )
             };
         }
+    }
+
+    #[test]
+    fn overlapping_snapshot_does_not_replay_cpu_bytes_from_a_marked_page() {
+        let Some(h) = host() else { return };
+        let p = crate::watch::tests::pool(1);
+        let (resource, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(resource, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p + 2, 8, false);
+        copy.writing(p, PAGE, true);
+        copy.write_host((p + 2) as u64, &[0xa1]);
+        // SAFETY: this byte is inside the live title allocation.
+        unsafe { ((p + 3) as *mut u8).write_volatile(0xc1) };
+        copy.copy_back_marked(p, 1);
+        // The marked pass reconciled 0xc1 into the copy. The snapshot must
+        // not misidentify it as a GPU write after a second CPU store.
+        // SAFETY: the same live byte, guarded again after the marked pass.
+        unsafe { ((p + 3) as *mut u8).write_volatile(0xc2) };
+        copy.copy_back(p + 2, 8);
+        let mut bytes = [0; 2];
+        assert!(crate::host::read_into((p + 2) as *const u8, &mut bytes));
+        assert_eq!(bytes, [0xa1, 0xc2]);
+        drop(copy);
+        crate::watch::tests::free(p);
     }
 
     #[test]
