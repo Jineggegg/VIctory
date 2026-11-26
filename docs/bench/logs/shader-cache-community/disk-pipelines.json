@@ -1,0 +1,15 @@
+{
+  "name": "disk-pipelines",
+  "test": "pipeline::hot::shader_bench::disk",
+  "timings": [
+    "pso_fresh_us",
+    "pso_disk_hit_us",
+    "early_only_save_us"
+  ],
+  "workload": [
+    "prebuild_count"
+  ],
+  "env": {
+    "VICTORY_BENCH_DISK": "pipelines"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "disk-shaders",
+  "test": "pipeline::hot::shader_bench::disk",
+  "timings": [
+    "cache_cold_open_us",
+    "cache_cold_ready_us",
+    "cache_cold_saved_us",
+    "cache_warm_open_us",
+    "cache_warm_ready_us",
+    "cache_warm_saved_us"
+  ],
+  "workload": [
+    "shader_count",
+    "shader_digest"
+  ],
+  "env": {
+    "VICTORY_BENCH_DISK": "shaders"
+  }
+}
