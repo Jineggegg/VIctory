@@ -344,43 +344,69 @@ thread_local! {
         const { std::cell::Cell::new(None) };
 }
 
-/// Writes the library and the early list if pipelines were added since the
-/// last save and `SAVE_EVERY` has passed (or `now`).
+/// Writes the changed early list and adapter library independently once
+/// `SAVE_EVERY` has passed (or `now`). The library saves only to the adapter
+/// directory selected for this adapter, driver and translator.
 pub(crate) fn save(now: bool) {
     static LAST: Mutex<Option<std::time::Instant>> = Mutex::new(None);
     const SAVE_EVERY: std::time::Duration = std::time::Duration::from_secs(20);
-    let Some(_) = DIR.get() else { return };
-    let Some(library) = library() else { return };
-    {
-        let mut last = LAST.lock().unwrap_or_else(|e| e.into_inner());
-        if !now && last.is_some_and(|t| t.elapsed() < SAVE_EVERY) {
-            return;
-        }
-        *last = Some(std::time::Instant::now());
-    }
     let Some(dir) = library_dir() else { return };
-    let (blob, prebuilt) = {
+    // Serialize complete saves so shutdown and periodic saves cannot publish
+    // a newer library and then replace it with an older snapshot.
+    let mut last = if now {
+        LAST.lock().unwrap_or_else(|e| e.into_inner())
+    } else {
+        match LAST.try_lock() {
+            Ok(last) => last,
+            Err(std::sync::TryLockError::Poisoned(e)) => e.into_inner(),
+            Err(std::sync::TryLockError::WouldBlock) => return,
+        }
+    };
+    if !now && last.is_some_and(|t| t.elapsed() < SAVE_EVERY) {
+        return;
+    }
+    *last = Some(std::time::Instant::now());
+
+    if USED_CHANGED.swap(false, Ordering::Relaxed) {
+        let used = used().as_ref().map(Used::list).unwrap_or_default();
+        let written = std::fs::create_dir_all(dir)
+            .and_then(|()| write_atomically(&dir.join(EARLY_FILE), used.join("\n").as_bytes()));
+        if let Err(e) = written {
+            USED_CHANGED.store(true, Ordering::Relaxed);
+            tracing::warn!(error = %e, "early pipeline list not saved");
+        }
+    }
+
+    let Some(library) = library() else { return };
+    save_library(dir, library);
+}
+
+fn save_library(dir: &std::path::Path, library: &Shared) {
+    let (blob, prebuilt, added, prebuilt_changed) = {
         let mut l = library.state.lock().unwrap_or_else(|e| e.into_inner());
-        if l.added == 0 && !l.prebuilt_changed && !USED_CHANGED.swap(false, Ordering::Relaxed) {
+        if l.added == 0 && !l.prebuilt_changed {
             return;
         }
         // SAFETY: a plain size query on a live library.
         let size = unsafe { l.library.GetSerializedSize() };
         let Some(mut bytes) = zeroed(size) else {
             // Left for a later save: the pipelines stay counted as added.
-            tracing::warn!(bytes = size, "no memory to serialise the host pipeline library; saved later");
+            tracing::warn!(
+                bytes = size,
+                "no memory to serialise the host pipeline library; saved later"
+            );
             return;
         };
         // SAFETY: a buffer of the size the library asks for.
         let bytes = unsafe { l.library.Serialize(&mut bytes) }.map(|()| bytes);
         match bytes {
             Ok(bytes) => {
-                l.added = 0;
-                l.prebuilt_changed = false;
+                let added = std::mem::take(&mut l.added);
+                let prebuilt_changed = std::mem::take(&mut l.prebuilt_changed);
                 // Kept beside the bytes it holds for (also when a run adds
                 // pipelines).
                 let prebuilt = (!l.prebuilt.is_empty()).then(|| list(&tag(&bytes), &l.prebuilt));
-                (bytes, prebuilt)
+                (bytes, prebuilt, added, prebuilt_changed)
             }
             Err(e) => {
                 tracing::warn!(error = %e, "host pipeline library not serialised");
@@ -388,20 +414,17 @@ pub(crate) fn save(now: bool) {
             }
         }
     };
-    let used = used().as_ref().map(Used::list).unwrap_or_default();
-    let written = std::fs::create_dir_all(dir)
-        .and_then(|()| write_atomically(&dir.join(LIBRARY_FILE), &blob))
-        .and_then(|()| write_atomically(&dir.join(EARLY_FILE), used.join("\n").as_bytes()))
-        .and_then(|()| match &prebuilt {
-            Some(list) => write_atomically(&dir.join(PREBUILT_FILE), list.as_bytes()),
-            None => Ok(()),
-        });
+    let written = write_cache(dir, &blob, prebuilt.as_deref());
+    if written.is_err() {
+        let mut l = library.state.lock().unwrap_or_else(|e| e.into_inner());
+        l.added += added;
+        l.prebuilt_changed |= prebuilt_changed;
+    }
     let (created, distinct) = created();
     let (shaders_cached, shaders_translated) = crate::shader_cache::counts();
     match written {
         Ok(()) => tracing::info!(
             bytes = blob.len(),
-            early = used.len(),
             made = MADE.load(Ordering::Relaxed),
             loaded = LOADED.load(Ordering::Relaxed),
             started_early = EARLY.load(Ordering::Relaxed),
@@ -413,6 +436,15 @@ pub(crate) fn save(now: bool) {
         ),
         Err(e) => tracing::warn!(error = %e, "host pipeline library not saved"),
     }
+}
+
+fn write_cache(dir: &std::path::Path, blob: &[u8], prebuilt: Option<&str>) -> std::io::Result<()> {
+    std::fs::create_dir_all(dir)?;
+    write_atomically(&dir.join(LIBRARY_FILE), blob)?;
+    if let Some(list) = prebuilt {
+        write_atomically(&dir.join(PREBUILT_FILE), list.as_bytes())?;
+    }
+    Ok(())
 }
 
 /// `n` zero bytes, or `None` when the host has no memory for them. The
