@@ -3338,15 +3338,32 @@ mod tests {
             list.list.Dispatch(1, 1, 1);
         }
         list.close();
-        let run = |expected| {
-            device.execute(&[&list]);
+        // This test needs only D3D12 descriptor reads. Use a private queue:
+        // running a title submission would also consume other tests' global
+        // shader write marks and page-read feedback.
+        use windows::core::Interface;
+        // SAFETY: our device creates a direct queue and a private fence.
+        let (queue, fence): (ID3D12CommandQueue, ID3D12Fence) = unsafe {
+            (device.device.CreateCommandQueue(&D3D12_COMMAND_QUEUE_DESC {
+                Type: D3D12_COMMAND_LIST_TYPE_DIRECT, ..Default::default()
+            }).unwrap(), device.device.CreateFence(0, D3D12_FENCE_FLAG_NONE).unwrap())
+        };
+        let commands = [Some(list.list.cast::<ID3D12CommandList>().unwrap())];
+        let run = |sequence, expected| {
+            // SAFETY: the list is closed and all referenced objects remain
+            // alive. A null event waits for the native fence synchronously.
+            unsafe {
+                queue.ExecuteCommandLists(&commands);
+                queue.Signal(&fence, sequence).unwrap();
+                fence.SetEventOnCompletion(sequence, Default::default()).unwrap();
+            }
             // SAFETY: execution has completed and the buffer contains two dwords.
             assert_eq!(unsafe { data.cast::<[u32; 2]>().read_unaligned() }, [11, expected]);
         };
         // Same id and generation, a bad tag: comparing a key alone would miss it.
         records[0][0] ^= 1;
         heap.sync_slots(0, 1, start, 32);
-        run(0);
+        run(1, 0);
         // A newer byte copy arrives after the diff has picked the old constant.
         records[0] = records[1];
         let replacement = records[2];
@@ -3356,10 +3373,10 @@ mod tests {
         });
         heap.sync_slots(0, 1, start, 32);
         crate::shadow::unregister(pools[0], pools[0] as u64);
-        run(12);
+        run(2, 12);
         records[0][2] = records[0][2].wrapping_add(1);
         heap.sync_slots(0, 1, records.as_ptr() as u64, 32);
-        run(0);
+        run(3, 0);
         drop(list);
         drop(heap);
         crate::shadow::unregister(pools[1], pools[1] as u64);
