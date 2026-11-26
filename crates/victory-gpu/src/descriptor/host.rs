@@ -102,6 +102,12 @@ pub(crate) struct HostHeap {
 pub(crate) fn view_pages() -> bool {
     static PAGED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *PAGED.get_or_init(|| {
+        #[cfg(all(test, feature = "diagnostics"))]
+        match std::env::var("VICTORY_BENCH_HEAP").as_deref() {
+            Ok("flat") => return false,
+            Ok("small") => return true,
+            _ => {}
+        }
         if std::env::var_os("VICTORY_VIEW_PAGES").is_some_and(|v| v == "1") {
             return true;
         }
@@ -214,7 +220,12 @@ impl HostHeap {
         let (heap, count, extra) = if paged {
             // Every slot is virtual: the host heap as large as it takes,
             // its pages for the title's slots but the few dynamic ones.
-            match make(PORTABLE_VIEWS) {
+            let capacity = PORTABLE_VIEWS;
+            #[cfg(all(test, feature = "diagnostics"))]
+            let capacity = if std::env::var("VICTORY_BENCH_HEAP").as_deref() == Ok("small") {
+                MIN_DYNAMIC + (2 + 64) * PAGE
+            } else { capacity };
+            match make(capacity) {
                 Ok(heap) => (heap, count, MIN_DYNAMIC),
                 Err(e) => {
                     tracing::warn!(error = %e, count, "no host descriptor heap");

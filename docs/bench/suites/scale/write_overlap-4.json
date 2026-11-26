@@ -1,0 +1,14 @@
+{
+  "name": "victory-write_overlap-4-v1",
+  "test": "pipeline::hot::contention::write_overlap",
+  "timings": [
+    "overlap_merge_us"
+  ],
+  "workload": [
+    "threads",
+    "merged_bytes"
+  ],
+  "env": {
+    "VICTORY_BENCH_THREADS": "4"
+  }
+}

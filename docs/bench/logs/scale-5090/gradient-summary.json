@@ -1,0 +1,572 @@
+{
+  "observations_per_group": 15,
+  "groups": {
+    "gradient-large": {
+      "shadow_refresh_us": {
+        "median": 141470.3,
+        "p95": 212362.8,
+        "min": 137560.9,
+        "max": 212362.8
+      },
+      "marked_writeback_frame_us": {
+        "median": 320771.5,
+        "p95": 410263.6,
+        "min": 306860.5,
+        "max": 410263.6
+      },
+      "shadow_refresh_bytes": {
+        "median": 1073741824.0,
+        "p95": 1073741824.0,
+        "min": 1073741824.0,
+        "max": 1073741824.0
+      },
+      "writeback_bytes": {
+        "median": 1006632960.0,
+        "p95": 1006632960.0,
+        "min": 1006632960.0,
+        "max": 1006632960.0
+      },
+      "writeback_withheld_bytes": {
+        "median": 67108864.0,
+        "p95": 67108864.0,
+        "min": 67108864.0,
+        "max": 67108864.0
+      },
+      "submit_256_us": {
+        "median": 35293.1,
+        "p95": 74300.4,
+        "min": 30562.8,
+        "max": 74300.4
+      },
+      "submit_count": {
+        "median": 256.0,
+        "p95": 256.0,
+        "min": 256.0,
+        "max": 256.0
+      },
+      "submit_fence_wait_us": {
+        "median": 13918.3,
+        "p95": 30548.4,
+        "min": 10704.1,
+        "max": 30548.4
+      },
+      "submit_prepare_us": {
+        "median": 187.0,
+        "p95": 635.0,
+        "min": 100.0,
+        "max": 635.0
+      },
+      "submit_queue_and_fence_us": {
+        "median": 19105.0,
+        "p95": 42662.0,
+        "min": 15121.0,
+        "max": 42662.0
+      },
+      "descriptors_100000_us": {
+        "median": 65780.5,
+        "p95": 76581.4,
+        "min": 60987.6,
+        "max": 76581.4
+      },
+      "descriptors_100000_scanned": {
+        "median": 131072.0,
+        "p95": 131072.0,
+        "min": 131072.0,
+        "max": 131072.0
+      },
+      "descriptors_100000_changed": {
+        "median": 100000.0,
+        "p95": 100000.0,
+        "min": 100000.0,
+        "max": 100000.0
+      },
+      "texture_full_us": {
+        "median": 197617.9,
+        "p95": 411113.6,
+        "min": 178965.0,
+        "max": 411113.6
+      },
+      "texture_full_bytes": {
+        "median": 1426063360.0,
+        "p95": 1426063360.0,
+        "min": 1426063360.0,
+        "max": 1426063360.0
+      },
+      "texture_full_subresources": {
+        "median": 256.0,
+        "p95": 256.0,
+        "min": 256.0,
+        "max": 256.0
+      },
+      "texture_partial_us": {
+        "median": 219310.0,
+        "p95": 289572.8,
+        "min": 211113.8,
+        "max": 289572.8
+      },
+      "texture_partial_bytes": {
+        "median": 268435456.0,
+        "p95": 268435456.0,
+        "min": 268435456.0,
+        "max": 268435456.0
+      },
+      "texture_partial_subresources": {
+        "median": 64.0,
+        "p95": 64.0,
+        "min": 64.0,
+        "max": 64.0
+      },
+      "texture_title_patch_bytes": {
+        "median": 65536.0,
+        "p95": 65536.0,
+        "min": 65536.0,
+        "max": 65536.0
+      },
+      "shader_batch_translate_us": {
+        "median": 300745.6,
+        "p95": 336426.2,
+        "min": 219323.7,
+        "max": 336426.2
+      },
+      "shader_batch_cold_us": {
+        "median": 2017060.0,
+        "p95": 3040663.7,
+        "min": 1322472.7,
+        "max": 3040663.7
+      },
+      "shader_batch_hot_us": {
+        "median": 195526.2,
+        "p95": 249586.4,
+        "min": 106766.0,
+        "max": 249586.4
+      },
+      "prebuild_1996_cold_us": {
+        "median": 883901.0,
+        "p95": 1362279.3,
+        "min": 733262.5,
+        "max": 1362279.3
+      },
+      "prebuild_1996_hot_us": {
+        "median": 16088.1,
+        "p95": 17804.9,
+        "min": 13315.3,
+        "max": 17804.9
+      },
+      "prebuild_count": {
+        "median": 1996.0,
+        "p95": 1996.0,
+        "min": 1996.0,
+        "max": 1996.0
+      },
+      "shader_digest": "75caf52f0bc53030ac6ac6fba3e7b8b6aafe1b0075cd21f9d7ecbe62cbb4ad51",
+      "shader_count": {
+        "median": 2000.0,
+        "p95": 2000.0,
+        "min": 2000.0,
+        "max": 2000.0
+      },
+      "shader_dxil_bytes": {
+        "median": 8625937.0,
+        "p95": 8625937.0,
+        "min": 8625937.0,
+        "max": 8625937.0
+      },
+      "verified": {
+        "median": 1.0,
+        "p95": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "process_test_s": {
+        "median": 7.35,
+        "p95": 9.98,
+        "min": 6.2,
+        "max": 9.98
+      }
+    },
+    "gradient-medium": {
+      "shadow_refresh_us": {
+        "median": 34964.7,
+        "p95": 39305.6,
+        "min": 34122.5,
+        "max": 39305.6
+      },
+      "marked_writeback_frame_us": {
+        "median": 79856.0,
+        "p95": 85729.4,
+        "min": 76574.5,
+        "max": 85729.4
+      },
+      "shadow_refresh_bytes": {
+        "median": 268435456.0,
+        "p95": 268435456.0,
+        "min": 268435456.0,
+        "max": 268435456.0
+      },
+      "writeback_bytes": {
+        "median": 251658240.0,
+        "p95": 251658240.0,
+        "min": 251658240.0,
+        "max": 251658240.0
+      },
+      "writeback_withheld_bytes": {
+        "median": 16777216.0,
+        "p95": 16777216.0,
+        "min": 16777216.0,
+        "max": 16777216.0
+      },
+      "submit_32_us": {
+        "median": 4676.2,
+        "p95": 7155.3,
+        "min": 4130.1,
+        "max": 7155.3
+      },
+      "submit_count": {
+        "median": 32.0,
+        "p95": 32.0,
+        "min": 32.0,
+        "max": 32.0
+      },
+      "submit_fence_wait_us": {
+        "median": 1370.4,
+        "p95": 2135.6,
+        "min": 989.9,
+        "max": 2135.6
+      },
+      "submit_prepare_us": {
+        "median": 29.0,
+        "p95": 88.0,
+        "min": 11.0,
+        "max": 88.0
+      },
+      "submit_queue_and_fence_us": {
+        "median": 2671.0,
+        "p95": 4324.0,
+        "min": 2260.0,
+        "max": 4324.0
+      },
+      "descriptors_1300_us": {
+        "median": 947.1,
+        "p95": 1387.8,
+        "min": 920.6,
+        "max": 1387.8
+      },
+      "descriptors_1300_scanned": {
+        "median": 22528.0,
+        "p95": 22528.0,
+        "min": 22528.0,
+        "max": 22528.0
+      },
+      "descriptors_1300_changed": {
+        "median": 1300.0,
+        "p95": 1300.0,
+        "min": 1300.0,
+        "max": 1300.0
+      },
+      "descriptors_14400_us": {
+        "median": 9541.0,
+        "p95": 10181.1,
+        "min": 9040.3,
+        "max": 10181.1
+      },
+      "descriptors_14400_scanned": {
+        "median": 32768.0,
+        "p95": 32768.0,
+        "min": 32768.0,
+        "max": 32768.0
+      },
+      "descriptors_14400_changed": {
+        "median": 14400.0,
+        "p95": 14400.0,
+        "min": 14400.0,
+        "max": 14400.0
+      },
+      "texture_full_us": {
+        "median": 34922.6,
+        "p95": 52185.4,
+        "min": 31203.2,
+        "max": 52185.4
+      },
+      "texture_full_bytes": {
+        "median": 178257920.0,
+        "p95": 178257920.0,
+        "min": 178257920.0,
+        "max": 178257920.0
+      },
+      "texture_full_subresources": {
+        "median": 32.0,
+        "p95": 32.0,
+        "min": 32.0,
+        "max": 32.0
+      },
+      "texture_partial_us": {
+        "median": 8708.6,
+        "p95": 10602.8,
+        "min": 8182.1,
+        "max": 10602.8
+      },
+      "texture_partial_bytes": {
+        "median": 33554432.0,
+        "p95": 33554432.0,
+        "min": 33554432.0,
+        "max": 33554432.0
+      },
+      "texture_partial_subresources": {
+        "median": 8.0,
+        "p95": 8.0,
+        "min": 8.0,
+        "max": 8.0
+      },
+      "texture_title_patch_bytes": {
+        "median": 8192.0,
+        "p95": 8192.0,
+        "min": 8192.0,
+        "max": 8192.0
+      },
+      "shader_batch_translate_us": {
+        "median": 25989.9,
+        "p95": 29855.6,
+        "min": 23997.0,
+        "max": 29855.6
+      },
+      "shader_batch_cold_us": {
+        "median": 142961.9,
+        "p95": 205755.4,
+        "min": 136676.6,
+        "max": 205755.4
+      },
+      "shader_batch_hot_us": {
+        "median": 11673.9,
+        "p95": 13776.4,
+        "min": 11091.3,
+        "max": 13776.4
+      },
+      "prebuild_196_cold_us": {
+        "median": 79125.0,
+        "p95": 88489.8,
+        "min": 75954.9,
+        "max": 88489.8
+      },
+      "prebuild_196_hot_us": {
+        "median": 1186.0,
+        "p95": 1395.1,
+        "min": 1137.8,
+        "max": 1395.1
+      },
+      "prebuild_count": {
+        "median": 196.0,
+        "p95": 196.0,
+        "min": 196.0,
+        "max": 196.0
+      },
+      "shader_digest": "529717ec2c74d49ff03d10542458a0729bb77ffdd402b2d074707f97fc6d43d2",
+      "shader_count": {
+        "median": 200.0,
+        "p95": 200.0,
+        "min": 200.0,
+        "max": 200.0
+      },
+      "shader_dxil_bytes": {
+        "median": 864337.0,
+        "p95": 864337.0,
+        "min": 864337.0,
+        "max": 864337.0
+      },
+      "verified": {
+        "median": 1.0,
+        "p95": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "process_test_s": {
+        "median": 1.2,
+        "p95": 1.41,
+        "min": 1.18,
+        "max": 1.41
+      }
+    },
+    "gradient-small": {
+      "shadow_refresh_us": {
+        "median": 2164.3,
+        "p95": 2353.5,
+        "min": 2027.5,
+        "max": 2353.5
+      },
+      "marked_writeback_frame_us": {
+        "median": 5816.1,
+        "p95": 7195.8,
+        "min": 5587.9,
+        "max": 7195.8
+      },
+      "shadow_refresh_bytes": {
+        "median": 16777216.0,
+        "p95": 16777216.0,
+        "min": 16777216.0,
+        "max": 16777216.0
+      },
+      "writeback_bytes": {
+        "median": 15728640.0,
+        "p95": 15728640.0,
+        "min": 15728640.0,
+        "max": 15728640.0
+      },
+      "writeback_withheld_bytes": {
+        "median": 1048576.0,
+        "p95": 1048576.0,
+        "min": 1048576.0,
+        "max": 1048576.0
+      },
+      "submit_1_us": {
+        "median": 838.1,
+        "p95": 1164.6,
+        "min": 693.9,
+        "max": 1164.6
+      },
+      "submit_count": {
+        "median": 1.0,
+        "p95": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "submit_fence_wait_us": {
+        "median": 0.5,
+        "p95": 0.6,
+        "min": 0.4,
+        "max": 0.6
+      },
+      "submit_prepare_us": {
+        "median": 5.0,
+        "p95": 6.0,
+        "min": 4.0,
+        "max": 6.0
+      },
+      "submit_queue_and_fence_us": {
+        "median": 708.0,
+        "p95": 1054.0,
+        "min": 582.0,
+        "max": 1054.0
+      },
+      "descriptors_100_us": {
+        "median": 120.6,
+        "p95": 146.2,
+        "min": 113.4,
+        "max": 146.2
+      },
+      "descriptors_100_scanned": {
+        "median": 2048.0,
+        "p95": 2048.0,
+        "min": 2048.0,
+        "max": 2048.0
+      },
+      "descriptors_100_changed": {
+        "median": 100.0,
+        "p95": 100.0,
+        "min": 100.0,
+        "max": 100.0
+      },
+      "texture_full_us": {
+        "median": 12818.9,
+        "p95": 14391.7,
+        "min": 11999.3,
+        "max": 14391.7
+      },
+      "texture_full_bytes": {
+        "median": 22282240.0,
+        "p95": 22282240.0,
+        "min": 22282240.0,
+        "max": 22282240.0
+      },
+      "texture_full_subresources": {
+        "median": 4.0,
+        "p95": 4.0,
+        "min": 4.0,
+        "max": 4.0
+      },
+      "texture_partial_us": {
+        "median": 1185.8,
+        "p95": 1656.2,
+        "min": 1100.9,
+        "max": 1656.2
+      },
+      "texture_partial_bytes": {
+        "median": 4194304.0,
+        "p95": 4194304.0,
+        "min": 4194304.0,
+        "max": 4194304.0
+      },
+      "texture_partial_subresources": {
+        "median": 1.0,
+        "p95": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "texture_title_patch_bytes": {
+        "median": 1024.0,
+        "p95": 1024.0,
+        "min": 1024.0,
+        "max": 1024.0
+      },
+      "shader_batch_translate_us": {
+        "median": 3176.6,
+        "p95": 3980.6,
+        "min": 2944.8,
+        "max": 3980.6
+      },
+      "shader_batch_cold_us": {
+        "median": 14824.1,
+        "p95": 23772.7,
+        "min": 13554.2,
+        "max": 23772.7
+      },
+      "shader_batch_hot_us": {
+        "median": 2224.2,
+        "p95": 2695.4,
+        "min": 1147.4,
+        "max": 2695.4
+      },
+      "prebuild_16_cold_us": {
+        "median": 9255.2,
+        "p95": 11574.6,
+        "min": 8708.6,
+        "max": 11574.6
+      },
+      "prebuild_16_hot_us": {
+        "median": 104.5,
+        "p95": 135.4,
+        "min": 98.5,
+        "max": 135.4
+      },
+      "prebuild_count": {
+        "median": 16.0,
+        "p95": 16.0,
+        "min": 16.0,
+        "max": 16.0
+      },
+      "shader_digest": "a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8",
+      "shader_count": {
+        "median": 20.0,
+        "p95": 20.0,
+        "min": 20.0,
+        "max": 20.0
+      },
+      "shader_dxil_bytes": {
+        "median": 88177.0,
+        "p95": 88177.0,
+        "min": 88177.0,
+        "max": 88177.0
+      },
+      "verified": {
+        "median": 1.0,
+        "p95": 1.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "process_test_s": {
+        "median": 0.39,
+        "p95": 0.43,
+        "min": 0.37,
+        "max": 0.43
+      }
+    }
+  }
+}
