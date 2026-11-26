@@ -1,0 +1,13 @@
+2026-11-26T22:57:10Z
+$env:VICTORY_WARP='1'; $env:VICTORY_D3D12_WARP='1'; cargo test --locked -p victory-gpu --lib --features diagnostics watch::tests::a_retake -- --test-threads=1; exit $LASTEXITCODE
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-edf6be784a9cb342.exe)
+
+running 2 tests
+test watch::tests::a_retake_marks_buffer_copies_alone ... ok
+test watch::tests::a_retake_marks_the_copies_and_keeps_the_guard ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.00s
+
+
+exit=0

@@ -1,0 +1,127 @@
+2026-11-26T22:56:05Z
+VICTORY_WARP=1 VICTORY_D3D12_WARP=1 cargo clippy --workspace --all-targets --locked -- -D warnings
+    Checking victory-shader v0.1.0 (E:\Projects\GTA-build\integ-r1\crates\victory-shader)
+    Checking victory-gpu v0.1.0 (E:\Projects\GTA-build\integ-r1\crates\victory-gpu)
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\library.rs:154:8
+    |
+154 |     if unsafe { device.GetNodeCount() } == 1 && let Some(name) = hardware_namespace(luid) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+    = note: `-D clippy::undocumented-unsafe-blocks` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::undocumented_unsafe_blocks)]`
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\library.rs:192:12
+    |
+192 |         if unsafe { kind.Anonymous.Value } & SOFTWARE_DEVICE != 0 {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: this `if` statement can be collapsed
+   --> crates\victory-gpu\src\shader_cache.rs:199:9
+    |
+199 | /         if suffix.len() == 6 && suffix.bytes().all(|c| c.is_ascii_alphanumeric())
+200 | |             && let Ok(meta) = entry.metadata()
+201 | |             && meta.is_file() && !meta.file_type().is_symlink()
+202 | |             && let Ok(age) = meta.modified().and_then(|t| now.duration_since(t).map_err(io::Error::other))
+...   |
+208 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+203 ~             && age >= Duration::from_secs(3600)
+204 ~             && let Err(error) = std::fs::remove_file(entry.path()) {
+205 |                 tracing::debug!(%error, "could not remove abandoned shader staging file");
+206 ~             }
+    |
+
+error: could not compile `victory-gpu` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: unsafe block missing a safety comment
+  --> crates\victory-shader\src\emit\lower\marks\tests.rs:85:9
+   |
+85 |         unsafe { CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)) }.unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+   = note: `-D clippy::undocumented-unsafe-blocks` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::undocumented_unsafe_blocks)]`
+
+error: unsafe block missing a safety comment
+  --> crates\victory-shader\src\emit\lower\marks\tests.rs:87:28
+   |
+87 |         let Ok(adapter) = (unsafe { factory.EnumAdapters1(i) }) else {
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-shader\src\emit\lower\marks\tests.rs:90:20
+   |
+90 |         let desc = unsafe { adapter.GetDesc1() }.unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-shader\src\emit\lower\marks\tests.rs:95:12
+   |
+95 |         if unsafe { D3D12CreateDevice(&adapter, D3D_FEATURE_LEVEL_12_0, &mut device) }.is_err() {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: using `chunks_exact` with a constant chunk size
+    --> crates\victory-gpu\src\descriptor\host.rs:3438:19
+     |
+3438 |             words.chunks_exact(2).fold(K ^ 32, |hash, pair| {
+     |                   ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<2>().0.iter()`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+     = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
+
+error: manual implementation of `.is_multiple_of()`
+    --> crates\victory-gpu\src\descriptor\host.rs:3686:22
+     |
+3686 |                 _ if (index / SLOTS) % 2 == 0 => &new,
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `(index / SLOTS).is_multiple_of(2)`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#manual_is_multiple_of
+     = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\texture\readback_tests.rs:187:39
+    |
+187 |     let memory = (0..16).find_map(|_| unsafe {
+    |                                       ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\texture\readback_tests.rs:210:5
+    |
+210 |     unsafe { ((memory + page) as *mut u8).write_bytes(0x37, page) };
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: could not compile `victory-shader` (lib test) due to 4 previous errors
+error: could not compile `victory-gpu` (lib test) due to 7 previous errors
+exit=101

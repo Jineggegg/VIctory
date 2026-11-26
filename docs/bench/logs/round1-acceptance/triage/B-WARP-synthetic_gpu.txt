@@ -1,0 +1,24 @@
+2026-11-26T22:58:08Z
+$env:VICTORY_WARP='1'; $env:VICTORY_D3D12_WARP='1'; $env:VICTORY_BENCH_MODE='check'; $env:VICTORY_BENCH_ADAPTER='Microsoft Basic Render Driver'; cargo test --locked --profile diag -p victory-gpu --lib --features diagnostics pipeline::baseline::synthetic_gpu -- --exact --ignored --nocapture --test-threads=1; exit $LASTEXITCODE
+    Finished `diag` profile [optimized + debuginfo] target(s) in 0.07s
+     Running unittests src\lib.rs (target\diag\deps\victory_gpu-c324b3e76f1e7291.exe)
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ...
+thread 'pipeline::baseline::synthetic_gpu' (20224) panicked at crates\victory-gpu\src\pipeline\baseline.rs:68:5:
+assertion `left == right` failed
+  left: 2
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    pipeline::baseline::synthetic_gpu
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`
+
+exit=101
