@@ -209,10 +209,13 @@ function Get-Target($dir) {
 function Read-QuietWindow {
     # gpu-quiet emits its accepted idle snapshot before starting this driver.
     # The WSL tee may still be flushing that line across the Windows mount.
-    $path = Join-Path $OutDir window.txt
     $snapshot = [ordered]@{status_line=$null; tolerated_background=$null}
     for ($i=0; $i -lt 10; $i++) {
-        $line = [IO.File]::ReadAllLines($path) | Where-Object { $_ -match '\| 3D/Compute=' } | Select-Object -Last 1
+        # The Linux writer holds this file open. Windows ReadAllLines opens
+        # with FileShare.Read, which denies that writer on a drive mount.
+        $line = wsl.exe --distribution $Distro --cd $OutDir --exec head -n 50 window.txt |
+            Where-Object { $_ -match '\| 3D/Compute=' } | Select-Object -Last 1
+        if ($LASTEXITCODE) { throw 'Cannot read gpu-quiet window log' }
         if ($line) {
             $snapshot.status_line = Protect-Log $line.Trim()
             if ($snapshot.status_line -match '\| tolerated background=([^|]*)') {
@@ -277,17 +280,26 @@ function Invoke-Warmup($target, $row) {
     }
 }
 
-function Measure-One($target, $warmer, $report, $i, $position, $label, $log) {
+function Measure-One($target, $warmer, $report, $i, $position, $label, $log, $thermal) {
     $row = [ordered]@{index=$i; position=$position; utc=Utc-Now; ok=$false; polls=[Collections.ArrayList]::new()}
     [void]$report.runs.Add($row)
     try {
         if (!$report.formal -and [IO.File]::Exists($QuietState)) { throw 'GPU reserved for formal sampling' }
-        if ($report.formal) {
-            Invoke-Warmup $warmer $row
-        }
         $row.pre = Get-Gpu
         [void]$row.polls.Add($row.pre)
-        if ($report.formal -and ($row.warm_stable_ms -lt 3000 -or !(Warm-Ready $row.pre))) {
+        $row.warm_reused = $false
+        $stable = $true
+        if ($report.formal) {
+            $row.warm_reused = $thermal.ready -and (Warm-Ready $row.pre)
+            if (!$row.warm_reused) {
+                Invoke-Warmup $warmer $row
+                $stable = $row.warm_stable_ms -ge 3000
+                $row.pre = Get-Gpu
+                [void]$row.polls.Add($row.pre)
+            }
+        }
+        if ($report.formal -and (!$stable -or !(Warm-Ready $row.pre))) {
+            $thermal.ready = $false
             $row.error = 'GPU did not hold the required clocks and link before the sample'
             $row.post = Get-Gpu
             $report.invalid_count++
@@ -320,6 +332,7 @@ function Measure-One($target, $warmer, $report, $i, $position, $label, $log) {
             throw 'DXIL changed within arm'
         }
         $row.ok = $true
+        if ($report.formal) { $thermal.ready = Warm-Ready $row.post }
         return $true
     } catch {
         $row.error = Protect-Log $_.Exception.Message
@@ -394,6 +407,7 @@ function Sample {
     $log.AutoFlush = $true
     $quietWindow = $null
     if ($Mode -ne 'smoke') { $quietWindow = Read-QuietWindow }
+    $thermal = @{ready=$false}
     $reports = @{}
     $paths = @{}
     try {
@@ -401,7 +415,7 @@ function Sample {
             $reports[$label] = New-Report $targets[$label] $system $gpu
             if ($Mode -ne 'smoke') {
                 $reports[$label].quiet_window = $quietWindow
-                $reports[$label].warmup = [ordered]@{binary=$warmer.binary; stable_ms=3000; timeout_ms=12000;
+                $reports[$label].warmup = [ordered]@{binary=$warmer.binary; reuse='previous post and current pre both qualified'; stable_ms=3000; timeout_ms=12000;
                     pstate=@('P0','P1'); min_graphics_mhz=2500; min_memory_mhz=13000; pcie_gen=5; pcie_width=16;
                     trace_fields=@('elapsed_ms','pstate','graphics_mhz','memory_mhz','pcie_gen','pcie_width')}
             }
@@ -418,7 +432,7 @@ function Sample {
                 $position++
                 do {
                     try {
-                        $valid = Measure-One $targets[$label] $warmer $reports[$label] $i $position $label $log
+                        $valid = Measure-One $targets[$label] $warmer $reports[$label] $i $position $label $log $thermal
                         if ($paired -and $valid -and $position -eq 2) {
                             Assert-Keys $reports.A.runs[-1].values.Keys $reports.B.runs[-1].values.Keys "A/B pair $i"
                         }
