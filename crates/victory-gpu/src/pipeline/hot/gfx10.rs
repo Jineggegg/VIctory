@@ -578,9 +578,41 @@ pub fn compute_container(width: u32) -> Vec<u8> {
     container(5, &p, &[])
 }
 
+#[derive(Clone, Copy)]
+pub(super) enum WaveCase {
+    View { scatter: u32 },
+    StraddlingPair,
+    Lookup,
+    VariableLoop,
+    Title { scatter: u32 },
+}
+
+impl WaveCase {
+    pub(super) fn scatter(self) -> u32 {
+        match self {
+            Self::View { scatter } | Self::Title { scatter } => scatter,
+            _ => 0,
+        }
+    }
+}
+
 /// A Wave32 raw store, optionally preceded by eight dependent title-address
 /// loads inside a scalar loop. One group covers 64 consecutive dwords.
 pub(super) fn wave_container(source: Option<u64>) -> Vec<u8> {
+    wave_scenario(
+        source,
+        if source.is_some() {
+            WaveCase::Lookup
+        } else {
+            WaveCase::View { scatter: 0 }
+        },
+    )
+}
+
+/// A rotation of the 18-bit thread index spreads adjacent lanes over
+/// 2^scatter pages while still visiting each destination exactly once.
+pub(super) fn wave_scenario(source: Option<u64>, case: WaveCase) -> Vec<u8> {
+    let scatter = case.scatter();
     let mut a = Asm::default();
     a.table(4, 0);
     a.smem(2, 8, 4, 0);
@@ -593,18 +625,46 @@ pub(super) fn wave_container(source: Option<u64>) -> Vec<u8> {
             a.s_mov(reg, LITERAL);
             a.0.push(word);
         }
-        a.s_movk(16, 8);
-        let head = a.0.len();
-        a.0.extend([0xdc30_8000, 0x030e_0003]); // global_load_dword v3, v3, s[14:15]
-        a.wait_vector();
-        a.sop2(1, 16, 16, ONE); // s_sub_u32 s16,s16,1
-        a.0.push(0xbf07_8010); // s_cmp_lg_u32 s16,0
-        let back = head as i32 - (a.0.len() as i32 + 1);
-        a.sopp(5, back as u16); // s_cbranch_scc1
+        if matches!(case, WaveCase::Lookup | WaveCase::VariableLoop) {
+            if matches!(case, WaveCase::VariableLoop) {
+                a.sop2(0x0e, 16, 1, 128 + 63); // s_and_b32, low six bits of group id
+                a.sop2(0, 16, 16, ONE); // 1..64 dependent loads
+            } else {
+                a.s_movk(16, 8);
+            }
+            let head = a.0.len();
+            a.0.extend([0xdc30_8000, 0x030e_0003]); // global_load_dword v3, v3, s[14:15]
+            a.wait_vector();
+            a.sop2(1, 16, 16, ONE); // s_sub_u32 s16,s16,1
+            a.0.push(0xbf07_8010); // s_cmp_lg_u32 s16,0
+            let back = head as i32 - (a.0.len() as i32 + 1);
+            a.sopp(5, back as u16); // s_cbranch_scc1
+        }
     }
     a.vop2(0x25, 3, ONE, 3);
     a.wait_scalar();
-    a.0.extend([0xe070_1000, 0x8002_0302]); // buffer_store_dword v3,v2,s[8:11],0 offen
+    if scatter != 0 {
+        a.vop2(0x1b, 5, 128 + ((1 << scatter) - 1), 1);
+        a.vop2(0x1a, 5, 128 + 18 - scatter, 5);
+        a.vop2(0x16, 2, 128 + scatter, 1);
+        a.vop2(0x1c, 2, v(5), 2);
+        a.vop2(0x1a, 2, 128 + 2, 2);
+    }
+    if matches!(case, WaveCase::Title { .. }) {
+        a.vop2(0x1b, 5, ONE, 1); // id & 1
+        a.0.push(0x7daa_0a80); // v_cmpx_ne_u32 0,v5: odd lanes participate
+        a.0.extend([0xdc70_8000, 0x000e_0302]); // global_store_dword v2,v3,s[14:15]
+    }
+    if matches!(case, WaveCase::StraddlingPair) {
+        // Disjoint, dword-aligned pairs at offsets 4, 12, ... . One
+        // pair per 64 KiB crosses a boundary; both words must return.
+        a.vop2(0x1a, 2, 128 + 1, 2);
+        a.vop2(0x25, 2, 128 + 4, 2);
+        a.vop2(0x25, 4, ONE, 3);
+        a.0.extend([0xe074_1000, 0x8002_0302]); // buffer_store_dwordx2
+    } else {
+        a.0.extend([0xe070_1000, 0x8002_0302]); // buffer_store_dword
+    }
     a.end();
     let mut stage = vec![0; 0x40];
     put(&mut stage, 0x24, &(2u32 | 1 << 7).to_le_bytes());
@@ -623,5 +683,69 @@ pub(super) fn wave_container(source: Option<u64>) -> Vec<u8> {
             stage_data: stage,
         },
         &[],
+    )
+}
+
+/// A marked raw UAV store. The stored word comes from the horizontal
+/// neighbour, so rasterizing a single pixel still needs its helper lane.
+pub(super) fn pixel_marks(page_shift: u32) -> Vec<u8> {
+    let mut a = Asm::default();
+    a.table(4, 0);
+    a.smem(2, 8, 4, 0);
+    a.wait_scalar();
+    a.vop1(7, 1, v(0)); // truncated SV_Position.x
+    a.0.extend([0x7e04_02fa, 0xff08_b101]); // v_mov_b32_dpp v2,v1 quad_perm:[1,0,3,2]
+    a.vop2(0x25, 2, ONE, 2);
+    a.vop2(0x1a, 1, 128 + page_shift, 1);
+    a.0.extend([0xe070_1000, 0x8002_0201]);
+    a.end();
+    let mut data = vec![0; 0x14c + 8 * 404];
+    put(&mut data, 0x134, &(1u32 << 8).to_le_bytes()); // position x in v0
+    for i in 0..8 {
+        put(&mut data, 0x14c + i * 404, &u32::MAX.to_le_bytes());
+    }
+    let ps = Program {
+        stage: PS,
+        code: a.0,
+        vgprs: 3,
+        sgprs: 12,
+        layout: vec![(0, 0)],
+        used: vec![(3, 0, 0, 0, 0, 4)],
+        stage_data: data,
+    };
+    let inputs = signature(&[Element("SV_Position", 1, 0, 15)], true);
+    container(0, &ps, &[(b"ISG1", inputs)])
+}
+
+/// Full-screen triangle with positions (-1,1), (3,1), (-1,-3).
+pub(super) fn fullscreen() -> Vec<u8> {
+    let mut a = Asm::default();
+    a.vop2(0x1b, 1, ONE, 0);
+    a.vop2(0x16, 2, ONE, 0);
+    for (reg, scale, bias) in [(1, 246, 243), (2, 247, F1)] {
+        a.vop1(6, reg, v(reg));
+        a.mul(v(reg), scale, reg);
+        a.add(v(reg), bias, reg);
+    }
+    a.vop1(1, 3, ZERO);
+    a.vop1(1, 4, F1);
+    a.export(12, 15, true, false, [1, 2, 3, 4]);
+    a.end();
+    let program = Program {
+        stage: VS,
+        code: a.0,
+        vgprs: 5,
+        sgprs: 0,
+        layout: vec![],
+        used: vec![],
+        stage_data: vec![0; 0x190],
+    };
+    container(
+        1,
+        &program,
+        &[(
+            b"OSG1",
+            signature(&[Element("SV_Position", 1, 0, 15)], false),
+        )],
     )
 }

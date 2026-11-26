@@ -1,4 +1,17 @@
+mod pixel;
+
 use super::*;
+
+pub(super) fn run(host: &Host) {
+    scenarios(host, false);
+}
+
+/// Run in a fresh process so every sample includes fresh host bitmaps.
+#[test]
+#[ignore = "dedicated GPU timing window"]
+fn wave_scenarios() {
+    scenarios(crate::host::host().unwrap(), true);
+}
 
 /// Two hosts may share the same disk cache. The key and the pipeline name
 /// must change only when the generated shader changes.
@@ -44,7 +57,7 @@ fn wave_mark_capability_selects_its_cached_dxil() {
     assert_ne!(outputs[0].1, outputs[1].1);
 }
 
-pub(super) fn run(host: &Host) {
+fn scenarios(host: &Host, extended: bool) {
     use windows_sys::Win32::System::Memory::{
         MEM_COMMIT, MEM_RESERVE, PAGE_READWRITE, VirtualAlloc,
     };
@@ -75,17 +88,36 @@ pub(super) fn run(host: &Host) {
     }
     crate::shadow::register(src, src as u64, BYTES as u64);
     let src_copy = crate::shadow::find(src as u64, BYTES as u64).unwrap();
-    for (source, name) in [
-        (None, "wave_page_marks"),
-        (Some(src as u64), "loop_page_lookup"),
-    ] {
-        let dst = pool(BYTES / PAGE);
+    use super::gfx10::WaveCase::*;
+    let cases = [
+        ("wave_page_marks", View { scatter: 0 }),
+        ("loop_page_lookup", Lookup),
+        ("wave_two_pages", View { scatter: 1 }),
+        ("wave_sixteen_pages", View { scatter: 4 }),
+        ("wave_straddling_pairs", StraddlingPair),
+        ("loop_early_exit", VariableLoop),
+        ("title_odd_lanes", Title { scatter: 0 }),
+        ("title_scattered_odd_lanes", Title { scatter: 4 }),
+    ];
+    let cases = if extended { &cases[..] } else { &cases[..2] };
+    for &(name, case) in cases {
+        let scatter = case.scatter();
+        let cross = matches!(case, StraddlingPair);
+        let title_store = matches!(case, Title { .. });
+        let source = matches!(case, Lookup | VariableLoop | Title { .. }).then_some(src as u64);
+        let count = if cross { 2 * WORDS + 1 } else { WORDS };
+        let dst = pool((count * 4).div_ceil(PAGE));
+        if title_store {
+            // Start each title-write fixture with a known sentinel; the
+            // readback checks that no inactive lane overwrote it.
+            unsafe { std::ptr::write_bytes(src as *mut u32, 0, WORDS) };
+        }
         let resource = [
             1,
             0,
             0,
             0,
-            BYTES as u32,
+            (count * 4) as u32,
             0,
             1,
             1 | 1 << 16,
@@ -112,14 +144,21 @@ pub(super) fn run(host: &Host) {
             0
         );
         let r = Guest(r);
-        let bounds = crate::shadow::find(dst as u64, BYTES as u64).unwrap();
+        let bounds = crate::shadow::find(dst as u64, (count * 4) as u64).unwrap();
         assert!(bounds.marked());
         let h = heap(16, 0);
         let table = crate::descriptor::heap(h.0).start;
-        let raw = [39, 1, 0, 0, WORDS as u32, 0, 0, 0, 1, 0];
+        let raw = [39, 1, 0, 0, count as u32, 0, 0, 0, 1, 0];
         crate::descriptor::create_uav(std::ptr::null(), r.0, std::ptr::null(), &raw, table);
-        let shader = super::super::shader("compute", &super::gfx10::wave_container(source));
+        let shader = super::super::shader("compute", &super::gfx10::wave_scenario(source, case));
         let translated = &shader.translated().expect("translate synthetic wave").host;
+        if let Some(dir) = std::env::var_os("VICTORY_EMIT_DUMP") {
+            std::fs::write(
+                std::path::Path::new(&dir).join(format!("{name}.dxil")),
+                &translated.dxil,
+            )
+            .unwrap();
+        }
         assert!(translated.view_marks);
         assert_eq!(translated.memory, source.is_some());
         let mut pso = std::ptr::null();
@@ -162,6 +201,14 @@ pub(super) fn run(host: &Host) {
                 .ResolveQueryData(&query, D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, &readback, 0);
         }
         list.close();
+        if extended {
+            // Repeat the closed command list. The normal host submission
+            // resets and collects the marks before the next iteration.
+            let start = Instant::now();
+            while start.elapsed().as_secs_f32() < 1.5 {
+                host.execute(&[&list]);
+            }
+        }
         host.execute(&[&list]);
         let times = unsafe { data.cast::<[u64; 2]>().read_unaligned() };
         assert!(times[1] > times[0]);
@@ -171,13 +218,39 @@ pub(super) fn run(host: &Host) {
             (times[1] - times[0]) as f64 * 1e6 / freq as f64
         );
         println!("BENCH {name}_lanes={WORDS}");
-        if source.is_some() {
+        if matches!(case, Lookup) {
             println!("BENCH loop_global_loads={}", 8 * WORDS);
         }
-        let out = unsafe { std::slice::from_raw_parts(dst as *const u32, WORDS) };
-        let steps = if source.is_some() { 8 } else { 0 };
-        for (i, &v) in out.iter().enumerate() {
-            assert_eq!(v, (4 * ((i + steps) % WORDS) + 1) as u32, "{name} lane {i}");
+        let out = unsafe { std::slice::from_raw_parts(dst as *const u32, count) };
+        if cross {
+            assert_eq!(out[0], 0);
+        }
+        for i in 0..WORDS {
+            let steps = match case {
+                VariableLoop => 1 + (i / 64) % 64,
+                Lookup => 8,
+                _ => 0,
+            };
+            let offset = ((i & ((1 << scatter) - 1)) << (18 - scatter)) | (i >> scatter);
+            let expected = (4 * ((i + steps) % WORDS) + 1) as u32;
+            let expected = if title_store && i & 1 == 0 {
+                0
+            } else {
+                expected
+            };
+            if title_store {
+                assert_eq!(
+                    unsafe { (src as *const u32).add(offset).read() },
+                    expected,
+                    "{name} title lane {i}"
+                );
+            }
+            if cross {
+                assert_eq!(out[2 * offset + 1], expected, "{name} lane {i}");
+                assert_eq!(out[2 * offset + 2], expected + 1, "{name} lane {i} high");
+            } else {
+                assert_eq!(out[offset], expected, "{name} lane {i}");
+            }
         }
         drop((state, list, h, bounds, r));
         crate::watch::tests::free(dst);
