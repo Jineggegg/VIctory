@@ -48,7 +48,17 @@ static DIR: OnceLock<PathBuf> = OnceLock::new();
 
 /// Keeps the pipeline library and the early list in `dir` from now on.
 pub fn use_pipeline_cache(dir: PathBuf) {
-    let _ = DIR.set(dir);
+    let _ = DIR.set(translator_dir(dir, crate::shader_cache::build()));
+}
+
+fn translator_dir(root: PathBuf, translator: &[u8; 32]) -> PathBuf {
+    root.join(&blake3::Hash::from(*translator).to_hex()[..16])
+}
+
+/// There are no blobs or early hints to read for a new translator. Avoid
+/// constructing a DXGI factory on the first pipeline request in that case.
+fn existing_library_dir() -> Option<&'static PathBuf> {
+    DIR.get()?.is_dir().then(library_dir).flatten()
 }
 
 /// Keep compiled blobs from different translators, adapters and driver
@@ -64,18 +74,17 @@ fn library_dir() -> Option<&'static PathBuf> {
             let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(device.GetAdapterLuid()).ok()?;
             (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
         };
-        Some(root.join(namespace(&desc, driver, crate::shader_cache::build())))
+        Some(root.join(namespace(&desc, driver)))
     }).as_ref()
 }
 
-fn namespace(desc: &DXGI_ADAPTER_DESC1, driver: Option<i64>, translator: &[u8; 32]) -> String {
+fn namespace(desc: &DXGI_ADAPTER_DESC1, driver: Option<i64>) -> String {
     // Some software adapters do not expose a UMD version. Their directory
     // is still distinct and the driver remains authoritative on blob load.
     let driver = driver.map_or_else(|| "unknown".to_owned(), |v| format!("{v:016x}"));
     let kind = if desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 == 0 { "hw" } else { "sw" };
-    format!("{kind}-{:08x}-{:08x}-{:08x}-{:08x}-{driver}-{}",
-        desc.VendorId, desc.DeviceId, desc.SubSysId, desc.Revision,
-        &blake3::Hash::from(*translator).to_hex()[..16])
+    format!("{kind}-{:08x}-{:08x}-{:08x}-{:08x}-{driver}",
+        desc.VendorId, desc.DeviceId, desc.SubSysId, desc.Revision)
 }
 
 /// Host pipelines created, loaded from the library, and title pipelines
@@ -169,7 +178,7 @@ fn library() -> Option<&'static Shared> {
     LIBRARY
         .get_or_init(|| {
             let device = crate::host::host()?.device.cast::<ID3D12Device1>().ok()?;
-            let dir = library_dir();
+            let dir = existing_library_dir();
             let read = |file| dir.and_then(|d| std::fs::read(d.join(file)).ok());
             let blob = read(LIBRARY_FILE).unwrap_or_default();
             let mut library = open(&device, blob);
@@ -337,7 +346,8 @@ thread_local! {
 pub(crate) fn save(now: bool) {
     static LAST: Mutex<Option<std::time::Instant>> = Mutex::new(None);
     const SAVE_EVERY: std::time::Duration = std::time::Duration::from_secs(20);
-    let (Some(dir), Some(library)) = (library_dir(), library()) else { return };
+    let Some(_) = DIR.get() else { return };
+    let Some(library) = library() else { return };
     {
         let mut last = LAST.lock().unwrap_or_else(|e| e.into_inner());
         if !now && last.is_some_and(|t| t.elapsed() < SAVE_EVERY) {
@@ -345,6 +355,7 @@ pub(crate) fn save(now: bool) {
         }
         *last = Some(std::time::Instant::now());
     }
+    let Some(dir) = library_dir() else { return };
     let (blob, prebuilt) = {
         let mut l = library.state.lock().unwrap_or_else(|e| e.into_inner());
         if l.added == 0 && !l.prebuilt_changed && !USED_CHANGED.swap(false, Ordering::Relaxed) {
@@ -484,7 +495,7 @@ static USED_CHANGED: AtomicBool = AtomicBool::new(false);
 fn used() -> std::sync::MutexGuard<'static, Option<Used>> {
     let mut used = USED.lock().unwrap_or_else(|e| e.into_inner());
     if used.is_none() {
-        let listed = library_dir()
+        let listed = existing_library_dir()
             .and_then(|d| std::fs::read_to_string(d.join(EARLY_FILE)).ok())
             .unwrap_or_default();
         let read = Used::read(&listed);
@@ -839,16 +850,16 @@ mod tests {
     #[test]
     fn libraries_are_separate_across_translator_driver_and_adapter() {
         let hardware = DXGI_ADAPTER_DESC1 { DeviceId: 0x2b85, ..Default::default() };
-        let base = namespace(&hardware, Some(1), &[2; 32]);
-        assert_ne!(base, namespace(&hardware, Some(2), &[2; 32]));
-        assert_ne!(base, namespace(&hardware, None, &[2; 32]));
-        assert_ne!(base, namespace(&hardware, Some(1), &[3; 32]));
+        let base = namespace(&hardware, Some(1));
+        assert_ne!(base, namespace(&hardware, Some(2)));
+        assert_ne!(base, namespace(&hardware, None));
+        assert_ne!(translator_dir("pso".into(), &[2; 32]), translator_dir("pso".into(), &[3; 32]));
         let mut other = hardware;
         other.DeviceId += 1;
-        assert_ne!(base, namespace(&other, Some(1), &[2; 32]));
+        assert_ne!(base, namespace(&other, Some(1)));
         let mut warp = hardware;
         warp.Flags |= DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32;
-        assert_ne!(base, namespace(&warp, Some(1), &[2; 32]));
+        assert_ne!(base, namespace(&warp, Some(1)));
     }
 
     #[test]
