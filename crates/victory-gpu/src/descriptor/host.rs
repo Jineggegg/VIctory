@@ -1156,7 +1156,11 @@ impl HostHeap {
             self.mirror(last - 1, at(last - 1), false);
         }
         let last = last.min(self.count);
-        let mut scratch = vec![0u8; SCAN_BYTES.min((last.saturating_sub(first) as usize).saturating_mul(step as usize))];
+        if first >= last {
+            return 0;
+        }
+        let bytes = (last - first) as usize * step as usize;
+        let mut scratch = vec![0u8; SCAN_BYTES.min(bytes)];
         let mut changed = Vec::new();
         let mut constants = Vec::new();
         let mut scanned = 0;
@@ -1193,9 +1197,12 @@ impl HostHeap {
                     }
                 });
             }
-            first = batch.end;
             self.sync_constants(&mut constants, &mut changed, &mut batch);
+            first = batch.end;
             for index in changed.drain(..) {
+                if index >= first {
+                    continue;
+                }
                 let handle = at(index);
                 self.mirror_with(index, handle, false, || {
                     let mut record = [0; RECORD_BYTES];
@@ -1229,8 +1236,14 @@ impl HostHeap {
         slots.retain_mut(|slot| {
             // Constant views have permanent VIEWS entries. A recorder or a
             // byte copy can still replace the slot while preparation runs.
+            if slot.index >= batch.end {
+                return false;
+            }
             let Some(record) = batch.record(slot.index) else { return false };
             if record != slot.record {
+                // Mirror this replacement before placing any later virtual
+                // page. The next scan picks up the deferred later records.
+                batch.end = batch.end.min(slot.index - slot.index % PAGE + PAGE);
                 retry.push(slot.index);
                 return false;
             }
@@ -3633,6 +3646,7 @@ mod tests {
         };
         let old = record(buffer as u64);
         let new = record(buffer as u64 + 256);
+        let replacement = record(buffer as u64 + 512);
         let endpoints = (0..5).flat_map(|page| [page * SLOTS, (page + 1) * SLOTS - 1]);
         let write = |words: [u32; 8]| {
             for index in endpoints.clone() {
@@ -3653,6 +3667,10 @@ mod tests {
                 OS_PAGE_BYTES, MEM_DECOMMIT) }, 0);
         };
         decommit(1);
+        on_prepare(memory as u64, move || {
+            // SAFETY: the first page stays committed throughout both scans.
+            unsafe { (memory as *mut [u32; 8]).write(replacement) };
+        });
         let (sent, fired) = std::sync::mpsc::channel();
         on_prepare((memory + 3 * OS_PAGE_BYTES) as u64, move || {
             decommit(3);
@@ -3661,7 +3679,11 @@ mod tests {
         sync_dirty(&state, memory as u64);
         fired.try_recv().expect("the fourth page was unmapped during preparation");
         for index in endpoints {
-            let expected = if (index / SLOTS) % 2 == 0 { &new } else { &old };
+            let expected = match index {
+                0 => &replacement,
+                _ if (index / SLOTS) % 2 == 0 => &new,
+                _ => &old,
+            };
             assert!(heap.made_from(index as u32, expected.as_ptr() as u64), "slot {index}");
         }
         drop(state);
