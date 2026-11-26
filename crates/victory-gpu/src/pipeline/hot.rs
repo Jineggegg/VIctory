@@ -57,6 +57,7 @@ fn descriptors(count: usize) {
     let mut records = [[0u32; 8]; 256];
     for (i, r) in records.iter_mut().enumerate() {
         let a = (constants + 256 * i) as u64;
+        // SAFETY: The page is writable and each of the 256 aligned words is inside it.
         unsafe { (a as *mut u32).write(0x12340000 + i as u32) };
         crate::descriptor::create_cbv(
             std::ptr::null(),
@@ -114,6 +115,8 @@ fn descriptors(count: usize) {
     let (root, pso) = crate::draw::tests::compile_cs(&source);
     let (output, data) = device.shared_buffer((4 * count) as u64).unwrap();
     let list = device.new_list().unwrap();
+    // SAFETY: The open list binds the matching root and PSO, and the heap and buffers live
+    // through execute.
     unsafe {
         list.list.SetDescriptorHeaps(&[Some(host.heap.clone())]);
         list.list.SetComputeRootSignature(&root);
@@ -131,6 +134,7 @@ fn descriptors(count: usize) {
     device.execute(&[&list]);
     for i in 0..count {
         assert_eq!(
+            // SAFETY: execute has finished writing the count aligned words in the mapped output.
             unsafe { data.cast::<u32>().add(i).read() },
             0x12340000 + (i % 256) as u32
         );
@@ -145,6 +149,7 @@ fn descriptors(count: usize) {
 fn writeback(host: &Host, pages: usize) {
     let len = pages * PAGE;
     let addr = pool(pages);
+    // SAFETY: The writable allocation returned by pool spans len bytes.
     unsafe { std::ptr::write_bytes(addr as *mut u8, 0x35, len) };
     crate::shadow::register(addr, addr as u64, len as u64);
     let copy = crate::shadow::find(addr as u64, len as u64).unwrap();
@@ -186,9 +191,9 @@ fn writeback(host: &Host, pages: usize) {
     let original = vec![0x35; PAGE];
     // SAFETY: the entire allocation is live and the submission has completed.
     let title = unsafe { std::slice::from_raw_parts(addr as *const u8, len) };
-    for (i, page) in title.chunks_exact(PAGE).enumerate() {
+    for (i, page) in title.as_chunks::<PAGE>().0.iter().enumerate() {
         assert!(
-            page == if i / 8 % 16 == 0 { &original } else { &pattern },
+            page.as_slice() == if i / 8 % 16 == 0 { &original } else { &pattern },
             "page {i}"
         );
     }
@@ -415,12 +420,13 @@ fn hot_paths() {
         cb: size_of::<PROCESS_MEMORY_COUNTERS>() as u32,
         ..Default::default()
     };
-    // SAFETY: current process with a writable, sized buffer.
     assert_ne!(
+        // SAFETY: current process with a writable, sized buffer.
         unsafe { K32GetProcessMemoryInfo(GetCurrentProcess(), &mut c, c.cb) },
         0
     );
     println!("BENCH peak_working_set_bytes={}", c.PeakWorkingSetSize);
+    // SAFETY: The device is live for this status query.
     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
     println!("BENCH verified=1");
 }

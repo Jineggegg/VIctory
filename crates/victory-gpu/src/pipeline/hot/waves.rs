@@ -86,6 +86,8 @@ fn scenarios(host: &Host, extended: bool) {
     let src = (32..64usize)
         .find_map(|i| {
             let addr = i << 32;
+            // SAFETY: The aligned address is a reservation hint. Windows checks availability and
+            // returns null on failure.
             let p = unsafe {
                 VirtualAlloc(
                     addr as *const _,
@@ -98,6 +100,7 @@ fn scenarios(host: &Host, extended: bool) {
         })
         .unwrap();
     for i in 0..WORDS {
+        // SAFETY: The successful reservation is aligned, writable and holds WORDS u32s.
         unsafe {
             (src as *mut u32)
                 .add(i)
@@ -128,6 +131,8 @@ fn scenarios(host: &Host, extended: bool) {
         if title_store {
             // Start each title-write fixture with a known sentinel; the
             // readback checks that no inactive lane overwrote it.
+            // SAFETY: src is a live writable allocation of WORDS u32s and any earlier submission
+            // has finished.
             unsafe { std::ptr::write_bytes(src as *mut u32, 0, WORDS) };
         }
         let resource = [
@@ -203,6 +208,7 @@ fn scenarios(host: &Host, extended: bool) {
         if matches!(case, Lookup) {
             println!("BENCH loop_global_loads={}", 8 * WORDS);
         }
+        // SAFETY: time_commands finished copy-back, and the aligned pool covers count words.
         let out = unsafe { std::slice::from_raw_parts(dst as *const u32, count) };
         if cross {
             assert_eq!(out[0], 0);
@@ -222,6 +228,8 @@ fn scenarios(host: &Host, extended: bool) {
             };
             if title_store {
                 assert_eq!(
+                    // SAFETY: offset permutes the 18 lane bits within WORDS, and GPU copy-back to
+                    // src has completed.
                     unsafe { (src as *const u32).add(offset).read() },
                     expected,
                     "{name} title lane {i}"
@@ -246,6 +254,7 @@ fn scenarios(host: &Host, extended: bool) {
 fn time_commands(host: &Host, list: &crate::host::HostList, commands: impl FnOnce()) -> f64 {
     let mut query: Option<ID3D12QueryHeap> = None;
     let (readback, data) = list.readback(host, 16).unwrap();
+    // SAFETY: The device is live and query is writable storage for the two-entry timestamp heap.
     unsafe {
         host.device
             .CreateQueryHeap(
@@ -259,8 +268,10 @@ fn time_commands(host: &Host, list: &crate::host::HostList, commands: impl FnOnc
             .unwrap();
     }
     let query = query.unwrap();
+    // SAFETY: The open list and timestamp heap are live and index zero is within the heap.
     unsafe { list.list.EndQuery(&query, D3D12_QUERY_TYPE_TIMESTAMP, 0) };
     commands();
+    // SAFETY: The two valid timestamp slots fit in the live 16-byte readback buffer.
     unsafe {
         list.list.EndQuery(&query, D3D12_QUERY_TYPE_TIMESTAMP, 1);
         list.list
@@ -269,6 +280,8 @@ fn time_commands(host: &Host, list: &crate::host::HostList, commands: impl FnOnc
     list.close();
     // One dispatch between timestamps; the sampler warms the device separately.
     host.execute(&[list]);
+    // SAFETY: execute completed the resolve of two u64 timestamps and readback still owns the
+    // mapping.
     let times = unsafe { data.cast::<[u64; 2]>().read_unaligned() };
     assert!(times[1] > times[0]);
     let freq = crate::host::bench_timestamp_frequency();

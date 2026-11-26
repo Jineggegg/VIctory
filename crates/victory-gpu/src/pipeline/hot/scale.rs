@@ -21,6 +21,7 @@ fn gradient() {
     }
     textures::run(host, textures);
     shaders(cache.path(), shader_count);
+    // SAFETY: The device is live for this status query.
     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
     println!("BENCH verified=1");
 }

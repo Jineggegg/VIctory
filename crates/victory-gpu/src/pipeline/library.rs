@@ -151,6 +151,7 @@ fn adapter_namespace(device: &ID3D12Device) -> Option<String> {
     let luid = unsafe { device.GetAdapterLuid() };
     // The kernel query describes physical node zero. For linked devices use
     // the logical adapter and driver identity supplied by DXGI.
+    // SAFETY: GetNodeCount queries the same live device.
     if unsafe { device.GetNodeCount() } == 1 && let Some(name) = hardware_namespace(luid) {
         return Some(name);
     }
@@ -187,8 +188,9 @@ fn hardware_namespace(luid: windows::Win32::Foundation::LUID) -> Option<String> 
     let result = (|| {
         let mut kind = D3DKMT_ADAPTERTYPE::default();
         read(KMTQAITYPE_ADAPTERTYPE, (&raw mut kind).cast(), size_of_val(&kind) as u32)?;
-        // SAFETY: Value is the WDK's unsigned representation of the flags.
         const SOFTWARE_DEVICE: u32 = 1 << 2;
+        // SAFETY: the successful adapter-type query initialized these flags, also readable as
+        // Value.
         if unsafe { kind.Anonymous.Value } & SOFTWARE_DEVICE != 0 {
             return None;
         }

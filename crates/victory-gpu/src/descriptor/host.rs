@@ -2577,6 +2577,13 @@ fn null_view(at: D3D12_CPU_DESCRIPTOR_HANDLE) {
     };
 }
 
+#[cfg(all(test, feature = "diagnostics"))]
+impl HostHeap {
+    pub(crate) fn bench_slot_keys(&self) -> Vec<u64> {
+        self.made.lock().unwrap().to_vec()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3435,7 +3442,7 @@ mod tests {
         // records for different resources give exactly the same fingerprint.
         let mix = |words: &[u32]| {
             const K: u64 = 0x9e37_79b9_7f4a_7c15;
-            words.chunks_exact(2).fold(K ^ 32, |hash, pair| {
+            words.as_chunks::<2>().0.iter().fold(K ^ 32, |hash, pair| {
                 let word = u64::from(pair[0]) | u64::from(pair[1]) << 32;
                 let next = (hash ^ word).wrapping_mul(K);
                 next ^ (next >> 29)
@@ -3683,7 +3690,7 @@ mod tests {
         for index in endpoints {
             let expected = match index {
                 0 => &replacement,
-                _ if (index / SLOTS) % 2 == 0 => &new,
+                _ if (index / SLOTS).is_multiple_of(2) => &new,
                 _ => &old,
             };
             assert!(heap.made_from(index as u32, expected.as_ptr() as u64), "slot {index}");
@@ -3749,12 +3756,5 @@ mod tests {
 
         crate::shadow::unregister(pool, base);
         crate::watch::tests::free(pool);
-    }
-}
-
-#[cfg(all(test, feature = "diagnostics"))]
-impl HostHeap {
-    pub(crate) fn bench_slot_keys(&self) -> Vec<u64> {
-        self.made.lock().unwrap().to_vec()
     }
 }

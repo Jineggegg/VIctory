@@ -10,6 +10,8 @@ fn headroom_mib() -> f64 {
 // DXGI can resize this process's budget by several GiB at once. Use board
 // free memory for feedback and log the separate per-process WDDM headroom.
 fn board_free_mib(device: &Host) -> f64 {
+    // SAFETY: The factory and device are live and the device LUID selects the adapter being
+    // queried.
     let name = unsafe {
         let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).unwrap();
         let adapter: IDXGIAdapter1 = factory
@@ -120,6 +122,7 @@ fn video_memory() {
         println!("BENCH final_{name}_mb={}", current[i].0);
         println!("BENCH final_{name}_budget_mb={}", current[i].1);
     }
+    // SAFETY: The device is live for this status query.
     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
     drop(filler);
     println!("BENCH verified=1");
@@ -137,6 +140,7 @@ fn heap_capacity() {
     let owner = heap(count as u32, table);
     let h = crate::descriptor::heap(owner.0).host().unwrap();
     let tex = pool(1);
+    // SAFETY: pool allocated one writable page at tex.
     unsafe { std::ptr::write_bytes(tex as *mut u8, 0x7b, PAGE) };
     let words: [u32; 14] = [3, 0, 0, 0, 4, 0, 1, 1 | 1 << 16, 28, 1, 0, 0x100, 0, 0];
     let mut view = [0u32; 16];
@@ -167,6 +171,8 @@ fn heap_capacity() {
     let sample = || {
         let list = device.new_list().unwrap();
         let (out, data) = device.shared_buffer(4).unwrap();
+        // SAFETY: The mapped output holds one aligned word. The open list binds the matching
+        // heap, root and PSO.
         unsafe {
             data.cast::<u32>().write(u32::MAX);
             list.list.SetComputeRootSignature(&root);
@@ -180,6 +186,7 @@ fn heap_capacity() {
         }
         list.close();
         device.execute(&[&list]);
+        // SAFETY: execute completed the write to the mapped word while out is still live.
         unsafe { data.cast::<u32>().read() }
     };
     assert_eq!(sample(), 0x7b);
@@ -213,6 +220,7 @@ fn heap_capacity() {
     });
     let restored = sample();
     assert_eq!(restored, 0x7b);
+    // SAFETY: The descriptor heap owner stays live through this query.
     println!("BENCH physical_slots={}", unsafe {
         h.heap.GetDesc().NumDescriptors
     });

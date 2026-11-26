@@ -1932,6 +1932,16 @@ pub(crate) fn near(va: u64) -> String {
     text
 }
 
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn bench_mark(first: usize, pages: usize) {
+    let bits = bitmap(false).unwrap().data as *mut u32;
+    assert!(first + pages < victory_shader::emit::VIEW_WRITE_BITS as usize);
+    for bit in first..first + pages {
+        // SAFETY: a bounded mark in the mapped bitmap, while the GPU is idle.
+        unsafe { *bits.add(bit / 32) |= 1 << (bit % 32) };
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
@@ -2760,15 +2770,5 @@ pub(crate) mod tests {
         assert_eq!(m.take(5), Some(0));
         assert_eq!(pages(0x1_fff0, 0x20), 2, "a range across a page boundary");
         assert_eq!(pages(0x2_0000, 0x1_0000), 1);
-    }
-}
-
-#[cfg(all(test, feature = "diagnostics"))]
-pub(crate) fn bench_mark(first: usize, pages: usize) {
-    let bits = bitmap(false).unwrap().data as *mut u32;
-    assert!(first + pages < victory_shader::emit::VIEW_WRITE_BITS as usize);
-    for bit in first..first + pages {
-        // SAFETY: a bounded mark in the mapped bitmap, while the GPU is idle.
-        unsafe { *bits.add(bit / 32) |= 1 << (bit % 32) };
     }
 }

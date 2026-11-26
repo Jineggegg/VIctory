@@ -1,0 +1,15 @@
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+exit=0
+   Compiling victory-shader v0.1.0 (<checkout>\target\clippy-proof\63bcca4\crates\victory-shader)
+    Checking windows-core v0.62.2
+    Checking victory-core v0.1.0 (<checkout>\target\clippy-proof\63bcca4\crates\victory-core)
+    Checking victory-loader v0.1.0 (<checkout>\target\clippy-proof\63bcca4\crates\victory-loader)
+    Checking victory-pipeline v0.1.0 (<checkout>\target\clippy-proof\63bcca4\crates\victory-pipeline)
+    Checking windows-collections v0.3.2
+    Checking windows-numerics v0.3.1
+    Checking windows-future v0.3.2
+    Checking windows v0.62.2
+    Checking victory-gpu v0.1.0 (<checkout>\target\clippy-proof\63bcca4\crates\victory-gpu)
+    Checking victory-hle v0.1.0 (<checkout>\target\clippy-proof\63bcca4\crates\victory-hle)
+    Checking victory v0.1.0 (<checkout>\target\clippy-proof\63bcca4\apps\victory)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.73s

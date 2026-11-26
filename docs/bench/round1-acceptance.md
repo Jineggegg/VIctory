@@ -96,3 +96,26 @@ A、B 的 30 分钟浸泡均未启动，分钟样本为 0。工作集、显存�
 2. 按逐条对照表处理 Clippy，先修优化分支新增项，再清理全特性基线遗留项。将报告和脱敏日志加入暂存区后，Windows 原生资产策略复核通过，共 1,422 个文件。
 3. 正确性恢复后，先测 30 对默认场景。在三次硬件冒烟中，标记页回写中位 41.62 ms、完整纹理上传 22.86 ms、副本刷新 20.62 ms。可按这个顺序在合并版做正式剖析，再用小、中、大档确认规模变化；这些合成耗时不能推出整款游戏的优化优先级。
 4. 单列描述符两个槽位规模和 256 次提交准备的配对区间；冷 PSO 的 16 项预建在三次冒烟中最大值达 247.26 ms，正式测试需保留首样本和驱动缓存状态。完成正式组后再跑每分钟记录线程数的浸泡，并补装图形工具后复查 D3D12 验证层。
+
+## Clippy 修复复核
+
+在 Windows 原生 Rust 1.98.1 上，按 CI 顺序执行 `cargo clippy --workspace --all-targets --locked -- -D warnings` 和 `cargo clippy --workspace --all-targets --all-features --locked -- -D warnings`。各版本使用独立构建产物，计数只含有源位置的诊断。
+
+| 被测版本 | 默认 | 全特性 |
+|---|---:|---:|
+| 上游 `63bcca4` | 通过，0 | 通过，0 |
+| 正确性修复和基准完成、五项优化之前 `6b1e408` | 通过，0 | 失败，45 |
+| 验收副本 `d883dde` | 失败，11 | 失败，58 |
+| 本分支代码 `3905671` | 失败，2，均属纹理 | 失败，6，均属纹理 |
+
+全特性 58 条包含默认的全部 11 条。按源行和诊断对照，39 条来自优化前的本地热点基准，19 条来自本轮方向，其中 GPU 页标记 11 条、着色器与 PSO 缓存 3 条、描述符 2 条、纹理 3 条。优化前另外 6 条诊断在验收版中已无相同源行。归因到具体告警行，58 条都由本地改动触发，上游原有及直接移植的社区告警各 0 条。[逐条来源、提交与修法](logs/round1-acceptance/clippy-fix/diagnostics.md) · [八次 Windows 静态检查输出](logs/round1-acceptance/clippy-fix/)
+
+本分支修复 52 条，包括 43 处 unsafe 安全说明、4 处固定长度分块、3 处测试辅助项位置、1 处整除判断和 1 处嵌套条件。分块继续忽略不完整尾块；清理过期文件继续依次检查文件名、类型及年龄，删除失败时保留原日志。未添加 allow，未修改 CI 和 Clippy 配置。两轮尚余的诊断都缺少 unsafe 安全说明：`texture/readback_tests.rs` 的 187、210 行在两轮均出现；`pipeline/hot/textures.rs` 的 26、45、48、153 行仅在全特性出现。行号相对 `crates/victory-gpu/src`。纹理子线程负责这 6 处。
+
+四个本地代码提交依次为 `0a30197`（GPU 页标记测试）、`9e9f0b1`（着色器及 PSO 缓存）、`23fd491`（描述符）、`3905671`（热点基准及辅助函数）。着色器 crate 的变更仅涉及测试中的四行注释。其构建脚本对测试源码也取哈希，实测翻译器源码指纹由 `496f5cea908debe7` 变为 `8e5bb056362e4a4d`；GPU 缓存键还包含整个 `shader_cache.rs` 的内容。切换到本版会使用新的磁盘缓存目录，首次运行需重新预热。
+
+RTX 5090 热点冒烟的 20 个着色器共输出 94,025 字节，按原顺序计算 DXIL 的 BLAKE3 为 `5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2`。修前三次、修后一次的数量、总字节及摘要全部相同，修后 `verified=1`。该用例也直接比较了新译、冷缓存和热缓存三组字节。[修前三次](logs/round1-acceptance/hardware-smoke/run.txt) · [修后硬件冒烟](logs/round1-acceptance/clippy-fix/after-smoke.txt)
+
+按原命令在硬件上并行运行，默认与修前一样，在 GPU 库的 RGBA8 纹理子资源 3 第 0 行遇错停止，已结算 **395 通过、1 失败、8 忽略**。diagnostics 已结算 **410 通过、2 失败、24 忽略**，同一纹理失败，另有 `shadow::tests::partial_refresh_under_marked_range_updates_saved_bytes` 读回第二页两个字节时得到 `[0,119]`，期望 `[187,119]`。修前验收的 diagnostics GPU 测试程序在第 31 次对照复跑时，以 24 个测试线程重现同一断言、同一预期和实测值，GPU 库也同为 313 通过、2 失败、19 忽略。摘要计数排除了测试用例启动子进程产生的重复结果。这两项并行失败均可在修前触发；首份修前 diagnostics 日志中的另外两项页跟踪失败此次未触发。[默认并行](logs/round1-acceptance/clippy-fix/after-test.txt) · [diagnostics 并行](logs/round1-acceptance/clippy-fix/after-test-diag.txt) · [修前回写复现](logs/round1-acceptance/clippy-fix/baseline-shadow-31.txt) · [31 次对照的筛选、线程数与结果](logs/round1-acceptance/clippy-fix/baseline-shadow-trials.txt)
+
+在硬件上加 `--no-fail-fast -- --test-threads=1` 补跑完整工作区，两种特性各完成 29 个顶层目标。默认 **953 通过、0 失败、12 忽略**；diagnostics **971 通过、0 失败、28 忽略**，与修前 diagnostics 串行记录一致。GPU 库分别为 299 和 315 项通过。最后将本次报告与日志纳入 Windows 资产策略检查，`cargo xtask policy` 通过。[默认串行](logs/round1-acceptance/clippy-fix/after-test-serial.txt) · [diagnostics 串行](logs/round1-acceptance/clippy-fix/after-test-diag-serial.txt) · [修前 diagnostics 串行](logs/round1-acceptance/triage/B-serial-workspace-0.txt) · [资产策略](logs/round1-acceptance/clippy-fix/after-policy.txt)

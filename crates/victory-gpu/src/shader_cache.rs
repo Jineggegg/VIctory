@@ -201,10 +201,9 @@ fn remove_stale_temps(dir: &Path) {
             && meta.is_file() && !meta.file_type().is_symlink()
             && let Ok(age) = meta.modified().and_then(|t| now.duration_since(t).map_err(io::Error::other))
             && age >= Duration::from_secs(3600)
+            && let Err(error) = std::fs::remove_file(entry.path())
         {
-            if let Err(error) = std::fs::remove_file(entry.path()) {
-                tracing::debug!(%error, "could not remove abandoned shader staging file");
-            }
+            tracing::debug!(%error, "could not remove abandoned shader staging file");
         }
     }
 }
