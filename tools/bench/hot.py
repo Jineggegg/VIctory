@@ -203,12 +203,16 @@ def quiet_build_slots():
                 try:
                     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 except BlockingIOError:
+                    busy = state / f"slot{i}.lock"
                     break
             else:
                 print(f"Reserved {len(slot_ids)} build slots for GPU sampling", flush=True)
                 yield len(slot_ids)
                 return
-        time.sleep(1)
+        # Wake on unlock even between two back-to-back builds. Release all partial
+        # reservations before blocking so two benchmark runners cannot deadlock.
+        with busy.open("a") as waiter:
+            fcntl.flock(waiter, fcntl.LOCK_EX)
 
 
 def main():
