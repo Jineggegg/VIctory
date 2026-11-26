@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "prebuild-states",
+  "test": "pipeline::hot::shader_bench::prebuild",
+  "parameters": { },
+  "family_size": 2,
+  "pairs": 15,
+  "a_commit": "42151090eb15115604b18fe284e3113477fdcedb",
+  "b_commit": "21cda97f32a3f251f26da82bcdbf91194dba79e4",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 17:06:06Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=3756\/32607 MiB | power=22.49 W | temp=40.07 C | graphics=262 MHz | memory=405 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=none",
+    "tolerated_background": "none"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [
+    "depth_matched",
+    "raster_matched"
+  ],
+  "pointwise_excludes_zero": [ ],
+  "family_excludes_zero": [ ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "depth_matched": {
+      "a_median": 0,
+      "b_median": 0,
+      "change_pct": null,
+      "ci95_pct": null,
+      "family95_pct": null
+    },
+    "raster_matched": {
+      "a_median": 0,
+      "b_median": 1,
+      "change_pct": null,
+      "ci95_pct": null,
+      "family95_pct": null
+    },
+    "key_count": {
+      "a_median": 4000,
+      "b_median": 4000,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "pack_match_us": {
+      "a_median": 61343.8,
+      "b_median": 61820,
+      "change_pct": 0.98835643876458157,
+      "ci95_pct": [
+        -1.381713725839484,
+        1.5447086196420434
+      ],
+      "family95_pct": [
+        -1.381713725839484,
+        1.5447086196420434
+      ]
+    },
+    "pack_records": {
+      "a_median": 1,
+      "b_median": 1,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "prebuild_keys_us": {
+      "a_median": 188596.1,
+      "b_median": 179796.4,
+      "change_pct": -5.898343630539415,
+      "ci95_pct": [
+        -10.389748851849312,
+        2.6498678263835451
+      ],
+      "family95_pct": [
+        -10.389748851849312,
+        3.7508198737937759
+      ]
+    }
+  }
+}
