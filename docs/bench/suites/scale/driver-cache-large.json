@@ -4,9 +4,15 @@
   "timings": [
     "driver_fresh_us",
     "driver_replay_us",
+    "driver_fresh_first_us",
+    "driver_replay_first_us",
     "driver_fresh_peak_bytes",
     "driver_replay_peak_bytes"
   ],
-  "workload": ["driver_psos"],
-  "env": {"VICTORY_BENCH_DRIVER_COUNT": "1996"}
+  "workload": [
+    "driver_psos"
+  ],
+  "env": {
+    "VICTORY_BENCH_DRIVER_COUNT": "1996"
+  }
 }

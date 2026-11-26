@@ -4,7 +4,9 @@ use crate::pipeline::{Prebuild, gfx10, pipeline_counts};
 use std::collections::{HashSet, VecDeque};
 use std::hash::{BuildHasher, RandomState};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
 use std::sync::{Condvar, Mutex};
+use windows::Win32::Graphics::Dxgi::*;
 use std::time::Instant;
 use windows_sys::Win32::System::{ProcessStatus::*, Threading::GetCurrentProcess};
 
@@ -28,6 +30,13 @@ fn compile_one_process() {
     let dir = tempfile::tempdir().unwrap();
     crate::pipeline::library::use_pipeline_cache(dir.path().to_owned());
     let host = crate::host::host().expect("hardware D3D12");
+    // SAFETY: enumerate the live device's exact adapter before the timer.
+    let adapter = unsafe {
+        let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).unwrap();
+        let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(host.device.GetAdapterLuid()).unwrap();
+        adapter.GetDesc1().unwrap()
+    };
+    assert_eq!(adapter.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32, 0);
     let mut hashes = HashSet::new();
     let mut digest = blake3::Hasher::new();
     let mut jobs = VecDeque::with_capacity(count);
@@ -57,6 +66,7 @@ fn compile_one_process() {
     let queue = Mutex::new((jobs, 0usize));
     let finished = Condvar::new();
     assert_eq!(pipeline_counts(), (0, 0));
+    let first = AtomicU64::new(u64::MAX);
     let start = Instant::now();
     std::thread::scope(|scope| {
         for _ in 0..workers.min(count) {
@@ -78,6 +88,7 @@ fn compile_one_process() {
                 };
                 drop(state);
                 let result = job.make();
+                first.fetch_min(start.elapsed().as_micros() as u64, Relaxed);
                 if budget != 0 {
                     let mut state = queue.lock().unwrap();
                     state.1 -= cost;
@@ -89,6 +100,8 @@ fn compile_one_process() {
         }
     });
     let elapsed = start.elapsed().as_micros();
+    let first = first.load(Relaxed);
+    assert!(u128::from(first) <= elapsed);
     assert_eq!(pipeline_counts(), (count as u64, 0));
     let mut memory = PROCESS_MEMORY_COUNTERS {
         cb: size_of::<PROCESS_MEMORY_COUNTERS>() as u32,
@@ -98,7 +111,9 @@ fn compile_one_process() {
     assert_ne!(unsafe { K32GetProcessMemoryInfo(GetCurrentProcess(), &mut memory, memory.cb) }, 0);
     let pixels = crate::pipeline::placed_uav_tests::run_store_with_salt(host, Some(seed), |_| {}).unwrap();
     assert_eq!(pixels, [[1., 0.5, -0.25, 2.], [0.; 4]]);
-    println!("DRIVER_RESULT {} {bytes} {elapsed} {} {count} {workers} {largest}",
+    let name = String::from_utf16_lossy(&adapter.Description);
+    println!("DRIVER_ADAPTER {}", name.trim_end_matches('\0'));
+    println!("DRIVER_RESULT {} {bytes} {elapsed} {} {count} {workers} {largest} {first}",
         digest.finalize().to_hex(), memory.PeakWorkingSetSize);
 }
 
@@ -116,17 +131,23 @@ fn fresh_and_replayed() {
             .output().unwrap();
         let stdout = String::from_utf8(out.stdout).unwrap();
         assert!(out.status.success(), "{stdout}\n{}", String::from_utf8_lossy(&out.stderr));
+        let (_, adapter) = stdout.split_once("DRIVER_ADAPTER ").expect(&stdout);
         let (_, fields) = stdout.split_once("DRIVER_RESULT ").expect(&stdout);
-        fields.lines().next().unwrap().split_whitespace().map(str::to_owned).collect::<Vec<_>>()
+        let values = fields.lines().next().unwrap().split_whitespace().map(str::to_owned).collect::<Vec<_>>();
+        (adapter.lines().next().unwrap().to_owned(), values)
     };
-    let fresh = sample();
-    let replay = sample();
-    assert_eq!(fresh.len(), 7);
-    assert_eq!(replay.len(), 7);
+    let (adapter, fresh) = sample();
+    let (replay_adapter, replay) = sample();
+    assert_eq!(adapter, replay_adapter);
+    assert_eq!(fresh.len(), 8);
+    assert_eq!(replay.len(), 8);
     assert_eq!(fresh[..2], replay[..2], "both processes must compile identical bytes");
-    assert_eq!(fresh[4..], replay[4..], "workload and worker count");
+    assert_eq!(fresh[4..7], replay[4..7], "workload and worker count");
     println!("driver seed={seed} digest={} DXIL bytes={} workers={}", fresh[0], fresh[1], fresh[5]);
+    println!("BENCH adapter={adapter}");
     println!("BENCH driver_seed={seed}");
+    println!("BENCH driver_fresh_first_us={}", fresh[7]);
+    println!("BENCH driver_replay_first_us={}", replay[7]);
     println!("BENCH driver_largest_dxil_bytes={}", fresh[6]);
     println!("BENCH driver_total_dxil_bytes={}", fresh[1]);
     println!("BENCH driver_fresh_us={}", fresh[2]);
