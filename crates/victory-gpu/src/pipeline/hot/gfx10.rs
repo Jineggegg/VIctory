@@ -280,6 +280,10 @@ pub fn pixel() -> Vec<u32> {
 /// 64 bytes; four floats per pixel, row after row). The group id arrives
 /// in s1-s2, the thread id in v0-v1. A neighbour past the edge reads 0.
 pub fn compute(width: u32) -> Vec<u32> {
+    compute_with_salt(width, None)
+}
+
+fn compute_with_salt(width: u32, salt: Option<u32>) -> Vec<u32> {
     let mut a = Asm::default();
     a.table(4, 0);
     a.smem(3, 8, 4, 0); // s_load_dwordx8 s[8:15]: the frame
@@ -311,9 +315,28 @@ pub fn compute(width: u32) -> Vec<u32> {
         u16::try_from(width).expect("a frame at most 65,535 pixels wide"),
     );
     a.vop3(0x143, 24, v(3), 30, v(2)); // v_mad_u32_u24 v24, y, width, x
+    if let Some(salt) = salt {
+        a.0.extend(salted_identity(24, 25, salt));
+    }
     a.vop2(0x1a, v(24), 4 + 128, 24); // v_lshlrev_b32 v24, 4, v24
     a.store4(20, 24, 24);
     a.end();
+    a.0
+}
+
+/// An unsigned, bit-exact identity with a literal on the live value path.
+pub(super) fn salted_identity(dst: u32, scratch: u32, salt: u32) -> Vec<u32> {
+    let mut a = Asm::default();
+    // The identity holds modulo 2^32, including wraparound.
+    // ((x + s) - 2 * (x & s)) ^ s == (x ^ s) ^ s == x.
+    a.vop2(0x1b, v(scratch), LITERAL, dst);
+    a.0.push(salt);
+    a.vop2(0x1a, v(scratch), ONE, scratch);
+    a.vop2(0x25, v(dst), LITERAL, dst);
+    a.0.push(salt);
+    a.vop2(0x26, v(dst), v(dst), scratch);
+    a.vop2(0x1d, v(dst), LITERAL, dst);
+    a.0.push(salt);
     a.0
 }
 
@@ -558,6 +581,14 @@ pub fn pixel_container() -> Vec<u8> {
 }
 
 pub fn compute_container(width: u32) -> Vec<u8> {
+    compute_program_container(compute(width))
+}
+
+pub(super) fn salted_compute_container(width: u32, salt: u32) -> Vec<u8> {
+    compute_program_container(compute_with_salt(width, Some(salt)))
+}
+
+fn compute_program_container(code: Vec<u32>) -> Vec<u8> {
     let mut data = vec![0u8; 0x40];
     // COMPUTE_PGM_RSRC2: one user SGPR, group ids x and y, thread ids x
     // and y.
@@ -568,7 +599,7 @@ pub fn compute_container(width: u32) -> Vec<u8> {
     }
     let p = Program {
         stage: CS,
-        code: compute(width),
+        code,
         vgprs: 32,
         sgprs: 32,
         layout: vec![(0, 0)],

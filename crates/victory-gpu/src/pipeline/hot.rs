@@ -1,6 +1,7 @@
 //! Each sample is a fresh Windows process, with isolated application caches.
 use super::gfx10;
 mod contention;
+mod driver_cache;
 mod pressure;
 mod scale;
 mod soak;
