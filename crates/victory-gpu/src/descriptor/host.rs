@@ -26,6 +26,48 @@ use crate::host::host;
 #[path = "overlap_test.rs"]
 mod overlap_test;
 
+// Windows x64 protects and decommits memory in 4 KiB pages, independently
+// of the 64 KiB dirty tracker and the host heap's 256-slot virtual pages.
+const OS_PAGE_BYTES: usize = 4096;
+const RECORD_BYTES: usize = size_of::<[u32; 3]>();
+
+struct SlotBatch<'a> {
+    first: u32,
+    end: u32,
+    address: u64,
+    step: usize,
+    bytes: &'a mut [u8],
+}
+
+impl<'a> SlotBatch<'a> {
+    fn new(first: u32, last: u32, start: u64, step: u64, scratch: &'a mut [u8]) -> Self {
+        let address = start + u64::from(first) * step;
+        let remaining = OS_PAGE_BYTES - address as usize % OS_PAGE_BYTES;
+        // A record straddling an OS page is read alone. Failure must not
+        // discard complete readable records on either side of it.
+        let records = 1 + remaining.saturating_sub(RECORD_BYTES) / step as usize;
+        let count = (last - first).min(PAGE - first % PAGE).min(records as u32);
+        let len = (count as usize - 1) * step as usize + RECORD_BYTES;
+        Self {
+            first, end: first + count, address, step: step as usize, bytes: &mut scratch[..len],
+        }
+    }
+
+    fn refresh(&mut self) -> bool {
+        crate::host::read_into(self.address as *const u8, self.bytes)
+    }
+
+    fn record(&self, index: u32) -> [u32; 3] {
+        let offset = (index - self.first) as usize * self.step;
+        decode_record(self.bytes[offset..].first_chunk().expect("record fits in batch"))
+    }
+}
+
+fn decode_record(bytes: &[u8; RECORD_BYTES]) -> [u32; 3] {
+    // SAFETY: callers pass exactly one copied record; its address need not be aligned.
+    unsafe { bytes.as_ptr().cast::<[u32; 3]>().read_unaligned() }
+}
+
 #[derive(Clone, Copy)]
 struct ConstantSlot {
     index: u32,
@@ -1075,59 +1117,56 @@ impl HostHeap {
             .collect()
     }
 
-    /// Single-range wrapper around [`HostHeap::sync_ranges`].
-    pub(crate) fn sync_slots(&self, first: u32, last: u32, start: u64, step: u64) {
-        self.sync_ranges(&[(first, last)], start, step);
-    }
-
-    /// Mirrors changed records from readable slot ranges. Compare their full
-    /// keys against the live view table and host slots one virtual page at a
-    /// time, retaining only the records that need work.
-    pub(crate) fn sync_ranges(&self, ranges: &[(u32, u32)], start: u64, step: u64) {
+    /// Mirrors dirty records in batches contained in one virtual descriptor
+    /// page. Return the count of records actually read from title memory.
+    pub(crate) fn sync_slots(&self, mut first: u32, last: u32, start: u64, step: u64) -> u64 {
         let at = |i: u32| start + u64::from(i) * step;
-        // The caller coalesces readable pages in increasing address order.
-        // Bound the scratch space and the time a recorder waits on a batch.
+        if last > self.count && first < last {
+            self.mirror(last - 1, at(last - 1), false);
+        }
+        let last = last.min(self.count);
+        let mut scratch = [0u8; OS_PAGE_BYTES];
         let mut changed = Vec::new();
         let mut constants = Vec::new();
-        for &(first, last) in ranges {
-            if last > self.count {
-                self.mirror(last - 1, at(last - 1), false);
-            }
-            let last = last.min(self.count);
-            // Finish a virtual page before starting the next one. If only one
-            // physical page remains, the first changed page still gets it.
-            for page in (first / PAGE)..last.div_ceil(PAGE) {
-                let begin = (page * PAGE).max(first);
-                let end = (page * PAGE).saturating_add(PAGE).min(last);
-                {
-                    let made = self.made.lock().unwrap_or_else(|e| e.into_inner());
-                    with_views(|views| {
-                        for index in begin..end {
-                            // SAFETY: the caller probed the pages containing the records.
-                            let raw @ [tag, id, generation] =
-                                unsafe { (at(index) as *const [u32; 3]).read_unaligned() };
-                            let entry = views.get(id as usize)
-                                .filter(|(_, g)| tag == VIEW_TAG && *g == generation);
-                            let key = entry.map_or(0, |_| u64::from(generation) << 32 | u64::from(id));
-                            if made[index as usize] == key {
-                                continue;
-                            }
-                            if !self.sampler && let Some((View::Constant(address, size), _)) = entry {
-                                constants.push(ConstantSlot {
-                                    index, record: raw, address: *address, size: *size,
-                                });
-                            } else {
-                                changed.push(index);
-                            }
+        let mut scanned = 0;
+        while first < last {
+            let mut batch = SlotBatch::new(first, last, start, step, &mut scratch);
+            first = batch.end;
+            {
+                let made = self.made.lock().unwrap_or_else(|e| e.into_inner());
+                if !batch.refresh() {
+                    continue;
+                }
+                scanned += u64::from(batch.end - batch.first);
+                with_views(|views| {
+                    for index in batch.first..batch.end {
+                        let raw @ [tag, id, generation] = batch.record(index);
+                        let entry = views.get(id as usize)
+                            .filter(|(_, g)| tag == VIEW_TAG && *g == generation);
+                        let key = entry.map_or(0, |_| u64::from(generation) << 32 | u64::from(id));
+                        if made[index as usize] == key {
+                            continue;
                         }
-                    });
-                }
-                self.sync_constants(&mut constants, start, step, &mut changed);
-                for index in changed.drain(..) {
-                    self.mirror(index, at(index), false);
-                }
+                        if !self.sampler && let Some((View::Constant(address, size), _)) = entry {
+                            constants.push(ConstantSlot {
+                                index, record: raw, address: *address, size: *size,
+                            });
+                        } else {
+                            changed.push(index);
+                        }
+                    }
+                });
+            }
+            self.sync_constants(&mut constants, &mut changed, &mut batch);
+            for index in changed.drain(..) {
+                let handle = at(index);
+                self.mirror_with(index, handle, false, || {
+                    let mut record = [0; RECORD_BYTES];
+                    crate::host::read_into(handle as *const u8, &mut record).then(|| decode_record(&record))
+                });
             }
         }
+        scanned
     }
 
     /// Batch writes to the mapped GPU metadata before touching the resource
@@ -1136,24 +1175,27 @@ impl HostHeap {
     fn sync_constants(
         &self,
         slots: &mut Vec<ConstantSlot>,
-        start: u64,
-        step: u64,
         retry: &mut Vec<u32>,
+        batch: &mut SlotBatch<'_>,
     ) {
         if slots.is_empty() {
             return;
         }
         for slot in slots.iter() {
-            prepare(&slot.view(), start + u64::from(slot.index) * step);
+            prepare(&slot.view(), batch.address + u64::from(slot.index - batch.first) * batch.step as u64);
         }
 
         let mut made = self.made.lock().unwrap_or_else(|e| e.into_inner());
+        // Preparation may have allowed the title to unmap this OS page.
+        // Use only the checked copy, even if the original address vanishes now.
+        if !batch.refresh() {
+            slots.clear();
+            return;
+        }
         slots.retain(|slot| {
             // Constant views have permanent VIEWS entries. A recorder or a
             // byte copy can still replace the slot while preparation runs.
-            let at = start + u64::from(slot.index) * step;
-            // SAFETY: the caller probed the page and keeps the heap alive.
-            if unsafe { (at as *const [u32; 3]).read_unaligned() } != slot.record {
+            if batch.record(slot.index) != slot.record {
                 retry.push(slot.index);
                 return false;
             }
@@ -1190,6 +1232,16 @@ impl HostHeap {
     /// views are made only for draws (`for_draw`), which also copy their
     /// data: a host copy of a buffer is made on first use.
     pub(crate) fn mirror(&self, index: u32, handle: u64, for_draw: bool) -> Option<View> {
+        self.mirror_with(index, handle, for_draw, || {
+            // SAFETY: the caller supplies a live descriptor handle for this operation.
+            Some(unsafe { (handle as *const [u32; 3]).read_unaligned() })
+        })
+    }
+
+    fn mirror_with(
+        &self, index: u32, handle: u64, for_draw: bool,
+        read_record: impl Fn() -> Option<[u32; 3]> + Copy,
+    ) -> Option<View> {
         if index >= self.count {
             // Diagnostic (NVIDIA heap cap): the highest title slot past the
             // host heap seen so far.
@@ -1211,8 +1263,7 @@ impl HostHeap {
             p.place(index / PAGE);
         }
         let mut made = self.made.lock().unwrap_or_else(|e| e.into_inner());
-        // SAFETY: the handle is a descriptor slot in title memory.
-        let [tag, i, generation] = unsafe { (handle as *const [u32; 3]).read_unaligned() };
+        let [tag, i, generation] = read_record()?;
         // Generations start at 1, so a made slot's key is never 0.
         let key = u64::from(generation) << 32 | u64::from(i);
         let view = (tag == VIEW_TAG).then(|| view_at(i, generation)).flatten();
@@ -1274,12 +1325,11 @@ impl HostHeap {
             made = self.made.lock().unwrap_or_else(|e| e.into_inner());
             // The title may have written another record there meanwhile (and
             // another thread made it): that one is the slot's.
-            // SAFETY: as above.
-            if unsafe { (handle as *const [u32; 3]).read_unaligned() } != [tag, i, generation]
+            if read_record()? != [tag, i, generation]
                 || (view.resources() != [0, 0] && view_at(i, generation).is_none())
             {
                 drop(made);
-                return self.mirror(index, handle, for_draw);
+                return self.mirror_with(index, handle, for_draw, read_record);
             }
             if made[index as usize] == key && !needs_remake() {
                 return Some(view);
@@ -3507,7 +3557,9 @@ mod tests {
         heap.place_page(0);
         let remakes = heap.remakes();
         assert_eq!(remakes, [(0, PAGE)]);
-        heap.sync_ranges(&remakes, start, 32);
+        for (first, last) in remakes {
+            heap.sync_slots(first, last, start, 32);
+        }
         assert_eq!(stride(), 4, "the resident constant is a raw buffer");
         assert!(heap.kept(0));
         assert_ne!(heap.host_page_of(0), Some(NULL_PAGE));
@@ -3516,9 +3568,74 @@ mod tests {
         crate::watch::tests::free(pool);
     }
 
+    /// The dirty tracker reports a single 64 KiB range. Windows can decommit
+    /// individual 4 KiB pages both before the scan and during preparation.
+    #[test]
+    fn sync_dirty_mirrors_both_sides_of_unmapped_pages() {
+        use crate::descriptor::{HeapDesc, SyncState, create_cbv, sync_dirty};
+        use windows_sys::Win32::System::Memory::{MEM_DECOMMIT, VirtualFree};
+
+        const STEP: usize = 32;
+        const SLOTS: usize = OS_PAGE_BYTES / STEP;
+        const COUNT: usize = 5 * SLOTS;
+        let Some(heap) = HostHeap::new(false, COUNT as u32) else { return };
+        let memory = crate::watch::tests::pool(1);
+        let buffer = crate::watch::tests::pool(1);
+        crate::shadow::register(buffer, buffer as u64, crate::watch::PAGE as u64);
+        let state = SyncState {
+            desc: HeapDesc { kind: super::super::VIEWS_KIND, count: COUNT as u32, flags: super::super::SHADER_VISIBLE, nodes: 0 },
+            host: std::sync::Arc::new(std::sync::OnceLock::from(Some(heap))),
+            written: Some(crate::watch::track(memory, COUNT * STEP, true).expect("tracked heap")),
+        };
+        let heap = state.host.get().unwrap().as_ref().unwrap();
+        let record = |address: u64| {
+            let mut words = [0u32; 8];
+            create_cbv(std::ptr::null(), &[address as u32, (address >> 32) as u32, 256, 0],
+                words.as_mut_ptr() as u64);
+            words
+        };
+        let old = record(buffer as u64);
+        let new = record(buffer as u64 + 256);
+        let endpoints = (0..5).flat_map(|page| [page * SLOTS, (page + 1) * SLOTS - 1]);
+        let write = |words: [u32; 8]| {
+            for index in endpoints.clone() {
+                // SAFETY: plain byte copies to this test's still-committed slots.
+                unsafe { ((memory + index * STEP) as *mut [u32; 8]).write(words) };
+            }
+        };
+        write(old);
+        sync_dirty(&state, memory as u64);
+        for index in endpoints.clone() {
+            assert!(heap.made_from(index as u32, old.as_ptr() as u64));
+        }
+
+        write(new);
+        let decommit = move |page: usize| {
+            // SAFETY: one committed page of our still-reserved allocation.
+            assert_ne!(unsafe { VirtualFree((memory + page * OS_PAGE_BYTES) as *mut _,
+                OS_PAGE_BYTES, MEM_DECOMMIT) }, 0);
+        };
+        decommit(1);
+        let (sent, fired) = std::sync::mpsc::channel();
+        on_prepare((memory + 3 * OS_PAGE_BYTES) as u64, move || {
+            decommit(3);
+            sent.send(()).unwrap();
+        });
+        sync_dirty(&state, memory as u64);
+        fired.try_recv().expect("the fourth page was unmapped during preparation");
+        for index in endpoints {
+            let expected = if (index / SLOTS) % 2 == 0 { &new } else { &old };
+            assert!(heap.made_from(index as u32, expected.as_ptr() as u64), "slot {index}");
+        }
+        drop(state);
+        crate::shadow::unregister(buffer, buffer as u64);
+        crate::watch::tests::free(buffer);
+        crate::watch::tests::free(memory);
+    }
+
     /// Disjoint dirty ranges mirror rewrites and clears up to the host cap.
     #[test]
-    fn sync_ranges_handles_rewrites_clears_and_the_heap_cap() {
+    fn sync_slots_handles_rewrites_clears_and_the_heap_cap() {
         let Some(heap) = HostHeap::new(false, 64) else {
             return;
         };
@@ -3552,7 +3669,8 @@ mod tests {
         write_srv(&mut records, 63, 768);
 
         // Pass 1: disjoint readable ranges, including one past the host cap.
-        heap.sync_ranges(&[(0, 20), (32, 68)], start, step);
+        heap.sync_slots(0, 20, start, step);
+        heap.sync_slots(32, 68, start, step);
         assert_eq!(heap.address_at(2), Some(base));
         assert_eq!(heap.address_at(15), Some(base + 256));
         assert_eq!(heap.address_at(40), Some(base + 512));
@@ -3562,7 +3680,7 @@ mod tests {
         // Pass 2: rewrite slot 15 and clear slot 40.
         write_srv(&mut records, 15, 1024);
         records[40] = [0u32; 8];
-        heap.sync_ranges(&[(0, 45)], start, step);
+        heap.sync_slots(0, 45, start, step);
         assert_eq!(heap.address_at(2), Some(base));
         assert_eq!(heap.address_at(15), Some(base + 1024));
         assert_eq!(heap.address_at(40), Some(0));

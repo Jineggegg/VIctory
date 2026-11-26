@@ -225,34 +225,16 @@ fn sync_dirty(heap: &SyncState, start: u64) {
         return;
     };
     let step = u64::from(step);
-    let page_size = crate::watch::PAGE;
     let limit = u64::from(heap.desc.count);
-    let mut ranges: Vec<(u32, u32)> = Vec::new();
+    // The tracker coalesces dirty byte ranges at 64 KiB granularity. A
+    // range can contain 4 KiB holes or lose its backing while views prepare.
     for (from, to) in written.take(start as usize, usize::MAX) {
-        // By page: one with nothing mapped (the title unmaps heap pages
-        // too) holds no records.
-        for page in (from & !(page_size - 1)..to).step_by(page_size) {
-            let (page, end) = (page.max(from), (page + page_size).min(to));
-            if !crate::host::read_into(page as *const u8, &mut [0u8; 4]) {
-                continue;
-            }
-            let first = ((page as u64 - start) / step).min(limit) as u32;
-            let last = (end as u64 - start).div_ceil(step).min(limit) as u32;
-            if first < last {
-                match ranges.last_mut() {
-                    Some((_, end)) if first <= *end => *end = (*end).max(last),
-                    _ => ranges.push((first, last)),
-                }
-            }
-        }
+        let first = ((from as u64 - start) / step).min(limit) as u32;
+        let last = (to as u64 - start).div_ceil(step).min(limit) as u32;
+        let _scanned = host.sync_slots(first, last, start, step);
+        #[cfg(feature = "diagnostics")]
+        crate::copystat::add(crate::copystat::C::SyncSlots, _scanned);
     }
-    if ranges.is_empty() {
-        return;
-    }
-    #[cfg(feature = "diagnostics")]
-    crate::copystat::add(crate::copystat::C::SyncSlots,
-        ranges.iter().map(|&(a, b)| u64::from(b - a)).sum());
-    host.sync_ranges(&ranges, start, step);
 }
 
 /// After a submission ran (the GPU idle until the next): the view heap
@@ -288,20 +270,8 @@ pub(crate) fn turn_pages(read: &[u32], at: std::time::Instant) {
 #[cfg(windows)]
 fn remake_pages(host: &host::HostHeap, start: u64, count: u32) {
     let step = u64::from(increment(VIEWS_KIND).expect("view stride"));
-    let page_size = crate::watch::PAGE as u64;
     for (first, last) in host.remakes() {
-        let last = last.min(count);
-        let mut i = first;
-        while i < last {
-            // The slots in this page of title memory.
-            let at = start + u64::from(i) * step;
-            let end = ((at & !(page_size - 1)) + page_size - start).div_ceil(step);
-            let end = (end as u32).clamp(i + 1, last);
-            if crate::host::read_into(at as *const u8, &mut [0u8; 4]) {
-                host.sync_slots(i, end, start, step);
-            }
-            i = end;
-        }
+        host.sync_slots(first, last.min(count), start, step);
     }
 }
 
