@@ -59,3 +59,11 @@ A 与 B 的原始数据来自同一窗口，时间和内存以 B 相对 A 的逐
 | 综合平铺 → 分层 SQLite | 重开中间 20 项 | 1.422 ms | 6.385 ms | +347.12% | [+315.23%, +375.40%] | [+315.23%, +375.40%] | [15 对](tiered-reopen-screen15/paired.json) |
 | 综合平铺 → 分层 SQLite | 重开全部 2,000 项 | 72.123 ms | 72.626 ms | +0.74% | [-1.64%, +1.92%] | [-1.64%, +2.25%] | [15 对](tiered-reopen-screen15/paired.json) |
 | 综合平铺 → 分层 SQLite | 冷写工作集峰值 | 89.379 MiB | 93.879 MiB | +4.66% | [+4.00%, +5.34%] | [+2.70%, +5.34%] | [15 对](tiered-reopen-screen15/paired.json) |
+| WaveOps 基线 → WaveOps 基线＋最终方案 | 整批无缓存翻译 | 3.198 ms | 3.137 ms | -4.55% | [-6.40%, -0.76%] | [-8.30%, +2.77%] | [30 对](wave-final-default/paired.json) |
+| WaveOps 基线 → WaveOps 基线＋最终方案 | 整批冷写 | 14.433 ms | 11.766 ms | -16.99% | [-20.28%, -15.31%] | [-20.48%, -14.36%] | [30 对](wave-final-default/paired.json) |
+| WaveOps 基线 → WaveOps 基线＋最终方案 | 整批命中 | 1.135 ms | 0.734 ms | -34.96% | [-36.87%, -33.92%] | [-38.10%, -32.14%] | [30 对](wave-final-default/paired.json) |
+| WaveOps 基线 → WaveOps 基线＋最终方案 | 首次 PSO 请求 | 0.932 ms | 0.815 ms | -11.44% | [-14.62%, -9.72%] | [-16.48%, -8.91%] | [30 对](wave-final-default/paired.json) |
+| WaveOps 基线 → WaveOps 基线＋最终方案 | 进程工作集峰值 | 1106.732 MiB | 1106.670 MiB | +0.01% | [-0.75%, +0.73%] | [-1.34%, +2.32%] | [30 对](wave-final-default/paired.json) |
+| WaveOps 基线 → WaveOps 基线＋最终方案 | 整批冷写 | 2050.577 ms | 1696.583 ms | -18.01% | [-19.88%, -16.29%] | [-20.81%, -15.59%] | [30 对](wave-final-large/paired.json) |
+| WaveOps 基线 → WaveOps 基线＋最终方案 | 整批命中 | 207.771 ms | 135.511 ms | -33.97% | [-37.19%, -32.14%] | [-38.35%, -31.78%] | [30 对](wave-final-large/paired.json) |
+| WaveOps 基线 → WaveOps 基线＋最终方案 | 1,996 个 PSO 冷预建 | 909.844 ms | 813.772 ms | -9.90% | [-11.79%, -8.73%] | [-12.71%, -4.56%] | [30 对](wave-final-large/paired.json) |
