@@ -1,0 +1,33 @@
+{
+  "name": "victory-gradient-medium-v1",
+  "test": "pipeline::hot::scale::gradient",
+  "timings": [
+    "shadow_refresh_us",
+    "marked_writeback_frame_us",
+    "submit_32_us",
+    "submit_fence_wait_us",
+    "submit_prepare_us",
+    "submit_queue_and_fence_us",
+    "descriptors_1300_us",
+    "descriptors_14400_us",
+    "texture_full_us",
+    "texture_partial_us",
+    "shader_batch_translate_us",
+    "shader_batch_cold_us",
+    "shader_batch_hot_us",
+    "prebuild_196_cold_us",
+    "prebuild_196_hot_us"
+  ],
+  "workload": [
+    "submit_count",
+    "prebuild_count",
+    "shader_count",
+    "shadow_refresh_bytes",
+    "texture_title_patch_bytes",
+    "descriptors_1300_changed",
+    "descriptors_14400_changed"
+  ],
+  "env": {
+    "VICTORY_BENCH_SCALE": "medium"
+  }
+}
