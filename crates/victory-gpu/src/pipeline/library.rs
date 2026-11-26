@@ -74,7 +74,7 @@ fn library_dir() -> Option<&'static PathBuf> {
     LIBRARY_DIR.get_or_init(|| {
         let device = &crate::host::host()?.device;
         let adapter = adapter_namespace(device)?;
-        Some(translator_dir(root.join(adapter), crate::shader_cache::build()))
+        Some(translator_dir(root.join(adapter), crate::shader_cache::build(crate::shader_cache::options())))
     }).as_ref()
 }
 

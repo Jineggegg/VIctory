@@ -1,0 +1,21 @@
+逐字节比较 Windows 原生转译生成的 DXIL；哈希为两端相同内容的 SHA-256。
+搬移前 b28b9e9，合并后 5d422c9。输入为同一套 11 个 GPU 场景。
+
+场景  字节  SHA-256
+loop_early_exit  4352  c814f66d4fe22e7a8707e8f6ec667ca4c76fccef730bf9b49a30b6024864fd58
+loop_page_lookup  4340  d3814c9f7ce49aeaf2e12367ce94b4be3189649dda8677b72e3c3ab646e85493
+pixel-16-false  3756  1470c26830985cdd7dda8ee8b448b01a805e561d5264a8db5fca81efc9b4bf0a
+pixel-2-false  3756  9c8eaddd31cad5fd3e5a28e9d9f82b7e6948040f4298ebfea1e1edf577deb70a
+pixel-2-true  4088  d6f54c5269ddadc4184191ac241c3ff837ccc4242ac010de38f2f56b12769dcf
+title_odd_lanes  3372  43c38d71bcaa606d171548adbb9b3744b27cfc8dcdb394417ec0693f71c2e3a3
+title_scattered_odd_lanes  3416  2d248d31d89dff43ab2bc7352d7ac707e44273b24fd50a46dd4df39be62e33f0
+wave_page_marks  3420  e23ef2eda0c9b491e277a9c0c1cafd341448822f2f77231c374f7e897dccc1bf
+wave_sixteen_pages  3464  49fb11661ff8708bef3fa2efea9ef1d3b53d00ea54d2db9283ee882cf72c6df6
+wave_straddling_pairs  3440  7ef09e427c67f3fb550eb664a993653fa60330a21748ceaaf7ffd28dfdbb5019
+wave_two_pages  3464  3b484e96221743a4776ae76d9121d7c9766f34823f945433bc0741a34ed1b862
+
+双组分页读回归的 DXC 反汇编；方括号中为 dx.op.threadId 取得的派发坐标轴。
+paged-read-branch-false-wave-false  [0, 1, 2]
+paged-read-branch-false-wave-true  [0, 1, 2]
+paged-read-branch-true-wave-false  []
+paged-read-branch-true-wave-true  []

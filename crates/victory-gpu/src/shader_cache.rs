@@ -30,7 +30,7 @@ static MISSES: AtomicU64 = AtomicU64::new(0);
 /// Keeps translated shaders in a folder of `dir` from now on: the folder
 /// of this translator, `None` if it cannot be opened.
 pub fn use_shader_cache(dir: PathBuf) -> Option<PathBuf> {
-    let dir = dir.join(&blake3::Hash::from(*build()).to_hex()[..16]);
+    let dir = dir.join(&blake3::Hash::from(*build(options())).to_hex()[..16]);
     match Cache::open(&dir) {
         Ok(cache) => {
             tracing::info!(dir = %dir.display(), "shader cache");
@@ -52,11 +52,13 @@ pub fn counts() -> (u64, u64) {
 /// (`victory_shader::SOURCE_HASH`: its sources, manifest, the lock file and
 /// the compiler), the entry's encoding (this file's text) and the
 /// translation settings (the loop limit, which a diagnostics build can
-/// change at run time, and whether view heaps are paged, which the host
-/// decides: [`options`]).
-pub(crate) fn build() -> &'static [u8; 32] {
-    static BUILD: OnceLock<[u8; 32]> = OnceLock::new();
-    BUILD.get_or_init(|| {
+/// change at run time, and host support for view paging and wave marks: [`options`]).
+pub(crate) fn build(options: victory_shader::emit::Options) -> &'static [u8; 32] {
+    // Keep the key paired with the same options passed to the translator,
+    // including a scalar translation performed before a device was available.
+    static BUILDS: [OnceLock<[u8; 32]>; 4] = [const { OnceLock::new() }; 4];
+    let index = usize::from(options.view_pages) * 2 + usize::from(options.wave_marks);
+    BUILDS[index].get_or_init(|| {
         let limit = victory_shader::emit::loop_limit();
         if limit != victory_shader::emit::DEFAULT_LOOP_LIMIT {
             tracing::warn!(
@@ -68,7 +70,8 @@ pub(crate) fn build() -> &'static [u8; 32] {
             victory_shader::SOURCE_HASH,
             ENCODING,
             limit,
-            options().view_pages,
+            options.view_pages,
+            options.wave_marks,
         )
     })
 }
@@ -82,18 +85,36 @@ pub fn options() -> victory_shader::emit::Options {
     victory_shader::emit::Options {
         view_marks: true,
         view_pages: crate::descriptor::view_pages(),
+        wave_marks: host_wave_marks(),
     }
+}
+
+fn host_wave_marks() -> bool {
+    use windows::Win32::Graphics::Direct3D12::*;
+    static CAPABLE: OnceLock<bool> = OnceLock::new();
+    let Some(host) = crate::host::host() else { return false };
+    *CAPABLE.get_or_init(|| {
+        let mut caps = D3D12_FEATURE_DATA_D3D12_OPTIONS1::default();
+        // SAFETY: the queried feature matches the structure and its size.
+        unsafe {
+            host.device.CheckFeatureSupport(
+                D3D12_FEATURE_D3D12_OPTIONS1,
+                (&raw mut caps).cast(),
+                size_of_val(&caps) as u32,
+            )
+        }.is_ok() && caps.WaveOps.as_bool()
+    })
 }
 
 /// This file, whose `encode` and `decode` define the entries.
 const ENCODING: &[u8] = include_bytes!("shader_cache.rs");
 
-fn key(translator: &str, encoding: &[u8], limit: u32, view_pages: bool) -> [u8; 32] {
+pub(crate) fn key(translator: &str, encoding: &[u8], limit: u32, view_pages: bool, wave_marks: bool) -> [u8; 32] {
     let mut h = blake3::Hasher::new();
     h.update(translator.as_bytes());
     h.update(blake3::hash(encoding).as_bytes());
     h.update(&limit.to_le_bytes());
-    h.update(&[u8::from(view_pages)]);
+    h.update(&[u8::from(view_pages), u8::from(wave_marks)]);
     *h.finalize().as_bytes()
 }
 
@@ -112,19 +133,19 @@ pub(crate) fn translated(container: &[u8]) -> (Result<Translated, String>, bool)
             .map_err(|e| e.to_string())
     };
     match CACHE.get() {
-        Some(cache) => cached(cache, build(), container, translate),
+        Some(cache) => cached(cache, build(options), container, translate),
         None => (translate(container), false),
     }
 }
 
 /// A single directory per translator. A hit needs one file open, and a
 /// miss can stage its bytes in the already existing destination directory.
-struct Cache {
+pub(crate) struct Cache {
     dir: PathBuf,
 }
 
 impl Cache {
-    fn open(dir: &Path) -> anyhow::Result<Self> {
+    pub(crate) fn open(dir: &Path) -> anyhow::Result<Self> {
         victory_core::ensure_outside_repo(dir)?;
         std::fs::create_dir_all(dir)?;
         Ok(Self {
@@ -163,7 +184,7 @@ impl Cache {
     }
 }
 
-fn cached(
+pub(crate) pub(crate) fn cached(
     cache: &Cache,
     build: &[u8; 32],
     container: &[u8],
@@ -679,19 +700,25 @@ mod tests {
     /// written before it is read.
     #[test]
     fn the_key_covers_translator_encoding_and_settings() {
-        let k = key("0123456789abcdef", b"encoding", 1 << 20, false);
-        assert_eq!(k, key("0123456789abcdef", b"encoding", 1 << 20, false));
-        assert_ne!(k, key("0123456789abcdee", b"encoding", 1 << 20, false));
-        assert_ne!(k, key("0123456789abcdef", b"encoding.", 1 << 20, false));
-        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 19, false));
-        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 20, true));
+        let k = key("0123456789abcdef", b"encoding", 1 << 20, false, false);
+        assert_eq!(k, key("0123456789abcdef", b"encoding", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdee", b"encoding", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding.", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 19, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 20, true, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 20, false, true));
+        let options = options();
+        let with_wave = build(victory_shader::emit::Options { wave_marks: true, ..options });
+        let scalar = build(victory_shader::emit::Options { wave_marks: false, ..options });
+        assert_ne!(with_wave, scalar);
         assert_eq!(
-            *build(),
+            *build(options),
             key(
                 victory_shader::SOURCE_HASH,
                 ENCODING,
                 victory_shader::emit::loop_limit(),
-                options().view_pages
+                options.view_pages,
+                options.wave_marks
             )
         );
         // The encoding part is this file as built.
