@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory, Position=0)][ValidateSet('build','smoke','sample','ab','compare')][string]$Mode,
     [Parameter(Position=1)][string]$Before,
     [Parameter(Position=2)][string]$After,
-    [string]$StatsExe, [string]$EnvFile, [string]$Distro, [int]$Runs, [string]$OutDir, [string]$QuietState
+    [string]$StatsExe, [string]$SuiteFile, [string]$EnvFile, [string]$Distro, [int]$Runs, [string]$OutDir, [string]$QuietState
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -102,13 +102,53 @@ $timings = ('pso_cold pso_hot prebuild_16_cold prebuild_16_hot shader_batch_tran
     'texture_partial wave_page_marks_gpu loop_page_lookup_gpu shadow_refresh marked_writeback_frame').Split(' ') |
     ForEach-Object { $_ + '_us' }
 
+$workload = 'shader_count','prebuild_count','submit_count','shadow_refresh_bytes','descriptors_1300_changed',
+    'descriptors_14400_changed','wave_page_marks_lanes','loop_global_loads','texture_title_patch_bytes'
+$suiteName = 'victory-hot-v1'
+$testName = 'pipeline::hot::hot_paths'
+$parameters = [ordered]@{}
+$timeoutSeconds = 180
+if ($SuiteFile) {
+    $spec = Read-Json $SuiteFile
+    $suiteName = [string]$spec.name
+    $testName = [string]$spec.test
+    if (!$suiteName -or $testName -notmatch '^\w+(::\w+)*$') { throw 'Expected a suite name and an exact Rust test name' }
+    $timings = @($spec.timings)
+    if (!$timings.Count -or @($timings | Where-Object { $_ -notmatch '^\w+$' }).Count -or
+        @($timings | Select-Object -Unique).Count -ne $timings.Count) { throw 'Expected distinct numeric timing keys' }
+    if ($spec.PSObject.Properties['timeout_seconds']) {
+        $timeoutSeconds = [int]$spec.timeout_seconds
+        if ($timeoutSeconds -lt 1 -or $timeoutSeconds -gt 2147483) { throw 'Invalid process timeout' }
+    }
+    $workload = @()
+    if ($spec.PSObject.Properties['workload']) { $workload = @($spec.workload) }
+    if ($spec.PSObject.Properties['env']) {
+        foreach ($prop in $spec.env.PSObject.Properties) {
+            if ($prop.Name -cnotmatch '^VICTORY_BENCH_[A-Z0-9_]+$') { throw "Unexpected benchmark parameter $($prop.Name)" }
+            $parameters[$prop.Name] = [string]$prop.Value
+        }
+    }
+}
+
+function Assert-Keys($expected, $actual, $context) {
+    $missing = @($expected | Where-Object { $_ -cnotin $actual })
+    $extra = @($actual | Where-Object { $_ -cnotin $expected })
+    if ($missing.Count -or $extra.Count) {
+        throw "$context metric mismatch; missing=[$($missing -join ', ')], extra=[$($extra -join ', ')]"
+    }
+}
+
 function Read-Metrics($text) {
     $values = [ordered]@{}
     foreach ($match in [regex]::Matches($text, 'BENCH (\w+)=(.*)')) {
         $key = $match.Groups[1].Value
         $raw = $match.Groups[2].Value.Trim()
         if ($values.Contains($key)) { throw "Duplicate metric $key" }
-        $values[$key] = if ($key -cin 'adapter','shader_digest') { $raw } else { [double]::Parse($raw, $culture) }
+        $values[$key] = if ($key -cin 'adapter','shader_digest') { $raw } else {
+            $number = [double]::Parse($raw, $culture)
+            if ([double]::IsNaN($number) -or [double]::IsInfinity($number)) { throw "Non-finite metric $key" }
+            $number
+        }
     }
     $values
 }
@@ -125,14 +165,15 @@ function New-Child($exe, $cwd, $test) {
 }
 function Run-Child($exe, $cwd, $test) {
     $process = New-Child $exe $cwd $test
+    foreach ($k in $parameters.Keys) { $process.StartInfo.EnvironmentVariables[$k] = $parameters[$k] }
     try {
         [void]$process.Start()
         $stdout = $process.StandardOutput.ReadToEndAsync()
         $stderr = $process.StandardError.ReadToEndAsync()
-        if (!$process.WaitForExit(180000)) {
+        if (!$process.WaitForExit($timeoutSeconds * 1000)) {
             $process.Kill()
             $process.WaitForExit()
-            throw 'Hotspot test timed out after 180s'
+            throw "Hotspot test timed out after ${timeoutSeconds}s"
         }
         @{exit=$process.ExitCode; text=$stdout.Result + $stderr.Result}
     } finally { $process.Dispose() }
@@ -185,7 +226,7 @@ function Read-QuietWindow {
 }
 
 function New-Report($target, $system, $gpu) {
-    [ordered]@{system=$system; schema=1; suite='victory-hot-v1'; formal=($Mode -ne 'smoke'); complete=$false;
+    [ordered]@{system=$system; schema=1; suite=$suiteName; test=$testName; parameters=$parameters; timing_keys=$timings; workload_keys=$workload; timeout_seconds=$timeoutSeconds; formal=($Mode -ne 'smoke'); complete=$false;
         debug_layer='pending: Windows Graphics Tools unavailable'; binary=$target.binary; requested=$Runs; utc=Utc-Now;
         gpu=$gpu; profile='diag'; runs=[Collections.ArrayList]::new(); summary=@{}; invalid_count=0; max_invalid=[int][Math]::Floor($Runs / 10); invalid_runs=[Collections.ArrayList]::new()}
 }
@@ -256,18 +297,28 @@ function Measure-One($target, $warmer, $report, $i, $position, $label, $log) {
             return $false
         }
         Write-Host "Sample $label $i/$Runs $($row.pre.pstate) $($row.pre.'clocks.gr')/$($row.pre.'clocks.mem') MHz"
-        $child = Run-Child $target.exe $target.dir 'pipeline::hot::hot_paths'
+        $child = Run-Child $target.exe $target.dir $testName
         $row.post = Get-Gpu
         $log.WriteLine((Protect-Log "`nSample $label $i, position $position`n$($child.text)`nexit $($child.exit)"))
         $row.exit = $child.exit
         $v = Read-Metrics $child.text
         $row.values = $v
-        $times = @($v.Keys | Where-Object { $_.EndsWith('_us') })
-        if ($row.exit -ne 0 -or $v['verified'] -ne 1 -or $v['adapter'] -cne $row.pre.name -or
-            !$v.Contains('shader_digest') -or !$v.Contains('peak_working_set_bytes') -or
-            !$v.Contains('sampled_local_peak_mb') -or $times.Count -ne $timings.Count -or
-            @($timings | Where-Object { $_ -cnotin $times }).Count) { throw 'Hotspot correctness check failed' }
-        if ($v.shader_digest -cne $report.runs[0].values.shader_digest) { throw 'DXIL changed within arm' }
+        if ($row.exit -ne 0 -or $v['verified'] -ne 1) { throw "Exit/verification failed for $testName" }
+        if ($v.Contains('adapter') -and $v['adapter'] -cne $row.pre.name) { throw 'Adapter identity differs' }
+        $required = @($timings) + @($workload)
+        if (!$SuiteFile) {
+            $required += 'adapter','shader_digest','peak_working_set_bytes','sampled_local_peak_mb'
+            Assert-Keys $timings @($v.Keys | Where-Object { $_.EndsWith('_us') }) 'Default suite'
+        }
+        $missing = @($required | Where-Object { !$v.Contains($_) })
+        if ($missing.Count) { throw "Missing required metrics: $($missing -join ', ')" }
+        foreach ($key in $timings) {
+            if ($v[$key] -isnot [double]) { throw "Nonnumeric timing $key" }
+        }
+        Assert-Keys $report.runs[0].values.Keys $v.Keys "Arm $label sample $i"
+        if ($v.Contains('shader_digest') -and $v.shader_digest -cne $report.runs[0].values.shader_digest) {
+            throw 'DXIL changed within arm'
+        }
         $row.ok = $true
         return $true
     } catch {
@@ -290,15 +341,14 @@ function Telemetry-Range($rows, $phase) {
 
 function Paired-Report($a, $b) {
     # Each array is indexed by chronological pair, even on BA rounds.
-    $workload = 'shader_count','prebuild_count','submit_count','shadow_refresh_bytes','descriptors_1300_changed',
-        'descriptors_14400_changed','wave_page_marks_lanes','loop_global_loads','texture_title_patch_bytes'
+    Assert-Keys $a.runs[0].values.Keys $b.runs[0].values.Keys 'A/B'
     foreach ($key in $workload) {
         $base = $a.runs[0].values[$key]
         foreach ($row in (@($a.runs) + @($b.runs))) {
             if ($null -eq $base -or $row.values[$key] -ne $base) { throw "Workload mismatch: $key" }
         }
     }
-    if (Compare-Object @($a.summary.Keys) @($b.summary.Keys) -CaseSensitive) { throw 'Metric sets differ' }
+    Assert-Keys $a.summary.Keys $b.summary.Keys 'A/B summary'
     $table = [ordered]@{}
     [string[]]$keys = @($a.summary.Keys)
     [array]::Sort($keys, [StringComparer]::Ordinal)
@@ -313,19 +363,20 @@ function Paired-Report($a, $b) {
             change_pct=$null; ci95_pct=$null; family95_pct=$null}
     }
     $keys = @($keys | Where-Object { $_ -cnotin $undefined })
-    $lines = @($keys | ForEach-Object { "$_`t$(Series $a.runs $_)`t$(Series $b.runs $_)" } | & $xtask bench-stats --paired)
+    $lines = @($keys | ForEach-Object { "$_`t$(Series $a.runs $_)`t$(Series $b.runs $_)" } | & $xtask bench-stats --paired --family-size $timings.Count)
     if ($LASTEXITCODE -ne 0 -or $lines.Count -ne $keys.Count) { throw 'Paired bootstrap failed' }
     foreach ($line in $lines) {
         $k,$m,$n,$d,$lo,$hi,$flo,$fhi = $line.Split("`t")
         $table[$k] = [ordered]@{a_median=[double]$m; b_median=[double]$n; change_pct=[double]$d;
             ci95_pct=@([double]$lo,[double]$hi); family95_pct=@([double]$flo,[double]$fhi)}
     }
-    $outside = @($timings | Where-Object { $_ -cin $undefined -or $table[$_].family95_pct[0] -gt 0 -or $table[$_].family95_pct[1] -lt 0 })
-    $nominal = @($timings | Where-Object { $_ -cin $undefined -or $table[$_].ci95_pct[0] -gt 0 -or $table[$_].ci95_pct[1] -lt 0 })
+    $estimable = @($timings | Where-Object { $_ -cnotin $undefined })
+    $outside = @($estimable | Where-Object { $table[$_].family95_pct[0] -gt 0 -or $table[$_].family95_pct[1] -lt 0 })
+    $nominal = @($estimable | Where-Object { $table[$_].ci95_pct[0] -gt 0 -or $table[$_].ci95_pct[1] -lt 0 })
     $aa = ($a.binary.sha256 -ceq $b.binary.sha256)
-    [ordered]@{schema=1; complete=$true; pairs=$Runs; a_commit=$a.binary.commit; b_commit=$b.binary.commit; a_correct=$a.complete;
+    [ordered]@{schema=1; complete=$true; suite=$suiteName; test=$testName; parameters=$parameters; family_size=$timings.Count; pairs=$Runs; a_commit=$a.binary.commit; b_commit=$b.binary.commit; a_correct=$a.complete;
         b_correct=$b.complete; quiet_window=$a.quiet_window; same_binary=$aa; order='alternating AB / BA by pair'; bootstrap_draws=5000; seed=5090;
-        undefined_percentages=$undefined; pointwise_excludes_zero=$nominal; family_excludes_zero=$outside; family_pass=(!$aa -or $outside.Count -eq 0); pass=(!$aa -or $nominal.Count -eq 0); metrics=$table}
+        undefined_percentages=$undefined; pointwise_excludes_zero=$nominal; family_excludes_zero=$outside; family_pass=(!$aa -or ($estimable.Count -eq $timings.Count -and !$outside.Count)); pass=(!$aa -or ($estimable.Count -eq $timings.Count -and !$nominal.Count)); metrics=$table}
 }
 
 function Sample {
@@ -366,7 +417,12 @@ function Sample {
             foreach ($label in $order) {
                 $position++
                 do {
-                    try { $valid = Measure-One $targets[$label] $warmer $reports[$label] $i $position $label $log }
+                    try {
+                        $valid = Measure-One $targets[$label] $warmer $reports[$label] $i $position $label $log
+                        if ($paired -and $valid -and $position -eq 2) {
+                            Assert-Keys $reports.A.runs[-1].values.Keys $reports.B.runs[-1].values.Keys "A/B pair $i"
+                        }
+                    }
                     finally { Save-Json $paths[$label] $reports[$label] }
                     if ($reports[$label].invalid_count -gt $reports[$label].max_invalid) { throw "Invalid-sample limit exceeded for $label" }
                 } until ($valid)
@@ -425,9 +481,15 @@ function Compare-Reports {
     if ($a.schema -ne $b.schema -or $a.suite -cne $b.suite) { throw '基准格式或工作负载版本不同' }
     [string[]]$keys = @($a.summary.PSObject.Properties.Name)
     [array]::Sort($keys, [StringComparer]::Ordinal)
-    if (Compare-Object $keys @($b.summary.PSObject.Properties.Name) -CaseSensitive) { throw '指标集合不同，不能逐项比较' }
-    $workload = ('shader_count prebuild_count submit_count shadow_refresh_bytes descriptors_1300_changed ' +
-        'descriptors_14400_changed wave_page_marks_lanes loop_global_loads texture_title_patch_bytes').Split(' ')
+    Assert-Keys $keys @($b.summary.PSObject.Properties.Name) 'Comparison'
+    if ($a.PSObject.Properties['workload_keys'] -and $b.PSObject.Properties['workload_keys']) {
+        Assert-Keys $a.workload_keys $b.workload_keys 'Workload'
+        Assert-Keys $a.timing_keys $b.timing_keys 'Timing'
+        if ($a.test -cne $b.test -or (ConvertTo-Json $a.parameters -Compress) -cne (ConvertTo-Json $b.parameters -Compress)) {
+            throw 'Different test or benchmark parameters'
+        }
+        $workload = $a.workload_keys
+    }
     foreach ($key in $workload) {
         $base = $a.runs[0].values.$key
         foreach ($row in ($a.runs + $b.runs)) {
@@ -437,9 +499,11 @@ function Compare-Reports {
     if ($a.gpu.name -cne $b.gpu.name -or $a.gpu.driver_version -cne $b.gpu.driver_version -or $a.formal -ne $b.formal) {
         Write-Output '两份数据的 GPU、驱动或空闲条件不同。'
     }
-    $digest = $a.runs[0].values.shader_digest
-    $changed = @($a.runs + $b.runs | Where-Object { $_.values.shader_digest -cne $digest }).Count
-    Write-Output $(if ($changed) { 'DXIL 摘要有变化，请结合输出校验解读' } else { 'DXIL 摘要一致' })
+    if ($a.runs[0].values.PSObject.Properties['shader_digest'] -and $b.runs[0].values.PSObject.Properties['shader_digest']) {
+        $digest = $a.runs[0].values.shader_digest
+        $changed = @($a.runs + $b.runs | Where-Object { $_.values.shader_digest -cne $digest }).Count
+        Write-Output $(if ($changed) { 'DXIL 摘要有变化，请结合输出校验解读' } else { 'DXIL 摘要一致' })
+    }
     Write-Output '| 指标 | 基线中位数 | 对比中位数 | 变化 | 95% 区间 | 超出噪声 |'
     Write-Output '|---|---:|---:|---:|---:|---|'
     $keys | ForEach-Object { "$_`t$(Series $a.runs $_)`t$(Series $b.runs $_)" } | & $xtask bench-stats --compare

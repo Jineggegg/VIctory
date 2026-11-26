@@ -33,6 +33,9 @@ enum Cmd {
         runs: Option<usize>,
         #[arg(long)]
         out: Option<PathBuf>,
+        /// JSON description of the exact benchmark test, parameters and metrics.
+        #[arg(long)]
+        suite: Option<PathBuf>,
         /// Prebuilt checkout or target directory for each arm of an A/B run.
         #[arg(long, requires = "b")]
         a: Option<PathBuf>,
@@ -48,6 +51,8 @@ enum Cmd {
         compare: bool,
         #[arg(long, conflicts_with = "compare")]
         paired: bool,
+        #[arg(long, default_value_t = 19)]
+        family_size: usize,
     },
     /// Point git at .githooks/ so every commit runs the policy check.
     InstallHooks,
@@ -61,11 +66,16 @@ fn main() -> Result<()> {
             mode,
             runs,
             out,
+            suite,
             a,
             b,
-        } => bench::hot(&root, mode, runs, out, a.zip(b)),
+        } => bench::hot(&root, mode, runs, out, a.zip(b), suite),
         Cmd::BenchCompare { before, after } => bench::compare(&root, &before, &after),
-        Cmd::BenchStats { compare, paired } => bench::statistics(compare, paired),
+        Cmd::BenchStats {
+            compare,
+            paired,
+            family_size,
+        } => bench::statistics(compare, paired, family_size),
         Cmd::InstallHooks => {
             let status = Command::new("git")
                 .args(["config", "core.hooksPath", ".githooks"])

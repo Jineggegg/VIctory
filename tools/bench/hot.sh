@@ -53,10 +53,13 @@ esac
 runs=30
 a=
 b=
+suite=
 [[ $mode != smoke ]] || runs=3
 out="$root/docs/bench/logs/hot-$(date +%Y%m%d-%H%M%S)"
 while (($#)); do
     case "$1" in
+        --suite) suite=$(winpath "${2:?missing suite manifest}"); shift 2 ;;
+        --suite=*) suite=$(winpath "${1#*=}"); shift ;;
         --a) a=$(winpath "${2:?missing A directory}"); shift 2 ;;
         --a=*) a=$(winpath "${1#*=}"); shift ;;
         --b=*) b=$(winpath "${1#*=}"); shift ;;
@@ -76,6 +79,7 @@ if [[ $mode == build ]]; then invoke build "${common[@]}"; exit; fi
 [[ $runs =~ ^[0-9]+$ ]] && ((10#$runs >= 1)) || { echo "invalid run count" >&2; exit 2; }
 out=$(wslpath -u "$(winpath "$out")")
 args=(-Runs "$runs" -OutDir "$(winpath "$out")" "${common[@]}")
+[[ -z $suite ]] || args+=(-SuiteFile "$suite")
 if [[ $mode == smoke ]]; then
     state="$HOME/.local/state/gpu-quiet/state.json"
     invoke smoke "${args[@]}" -QuietState "$(winpath "$state")"
