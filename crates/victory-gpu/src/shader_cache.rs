@@ -580,6 +580,48 @@ mod tests {
         );
     }
 
+    // Same contested publication as upstream #2828: an external reader
+    // permits reads but prevents replacing the winner until it exits.
+    #[cfg(windows)]
+    #[test]
+    fn a_busy_destination_only_yields_hits_for_valid_content() {
+        use std::os::windows::fs::OpenOptionsExt;
+
+        for valid in [true, false] {
+            let dir = tempfile::tempdir().unwrap();
+            let cache = Cache::open(dir.path()).unwrap();
+            let build = [7; 32];
+            let container = b"contested";
+            let key = blake3::keyed_hash(&build, container);
+            let path = dir.path().join(key.to_hex().as_str());
+            let held = OnceLock::new();
+            let (first, hit) = cached(&cache, &build, container, |_| {
+                let mut bytes = encode(&Ok(shader()));
+                let digest = blake3::keyed_hash(key.as_bytes(), &bytes);
+                bytes.extend_from_slice(digest.as_bytes());
+                if !valid {
+                    bytes[12] ^= 1;
+                }
+                std::fs::write(&path, bytes).unwrap();
+                let reader = std::fs::OpenOptions::new()
+                    .read(true)
+                    .share_mode(1)
+                    .open(&path)
+                    .unwrap();
+                held.set(reader).unwrap();
+                Ok(shader())
+            });
+            assert_eq!((first, hit), (Ok(shader()), false));
+            let reopened = Cache::open(dir.path()).unwrap();
+            let lookup = || cached(&reopened, &build, container, |_| Ok(shader()));
+            assert_eq!(lookup(), (Ok(shader()), valid));
+            drop(held);
+            assert_eq!(lookup(), (Ok(shader()), valid));
+            assert_eq!(lookup(), (Ok(shader()), true));
+            assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+        }
+    }
+
     #[test]
     fn interrupted_writer_preserves_only_published_entries() {
         const CHILD: &str = "VICTORY_TEST_INTERRUPTED_SHADER_WRITER";
