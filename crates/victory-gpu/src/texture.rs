@@ -45,6 +45,8 @@ pub(crate) struct Staging {
     size: u64,
     footprints: Vec<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>,
     rows: Vec<u32>,
+    /// Native rows match the guest plane byte-for-byte and may be copied in parts.
+    band_copies: bool,
     layout: victory_formats::texture::Layout,
     /// Mips per array slice.
     mips: u32,
@@ -468,7 +470,7 @@ fn copies(
             list.note_read(
                 || {
                     format!(
-                        "texture upload {} ({}x{}x{} f{} mips {}) sub {i} of {} from staging {gpu:#x}+{:#x}: offset {:#x} {}x{}x{} pitch {}",
+                        "texture upload {} ({}x{}x{} f{} mips {}) sub {i} of {} from staging {gpu:#x}: offset {:#x}+{len:#x} {}x{}x{} pitch {}",
                         name(),
                         d.Width,
                         d.Height,
@@ -476,7 +478,6 @@ fn copies(
                         d.Format.0,
                         d.MipLevels,
                         staging.footprints.len(),
-                        staging.size,
                         footprint.Offset,
                         f.Width,
                         f.Height,
@@ -508,8 +509,7 @@ fn copies(
     }
 }
 
-/// What a refresh gives: a staging buffer, where its space starts in it,
-/// and the subresources detiled into it.
+/// A staging buffer and the absolute footprints of its copies.
 pub(crate) type Upload = (ID3D12Resource, Vec<CopyPart>);
 
 #[derive(Clone)]
@@ -799,13 +799,8 @@ impl Staging {
         touched: &[usize],
         ranges: &[(usize, usize)],
     ) -> Option<(usize, Upload)> {
-        use victory_formats::texture::{Dimension, Swizzle};
         let l = &self.layout;
-        if l.desc.dimension != Dimension::Tex2d
-            || l.desc.block != 1
-            || !l.addressable()
-            || l.desc.swizzle == Swizzle::LINEAR
-        {
+        if !self.band_copies {
             return None;
         }
         let mut bands = Vec::with_capacity(touched.len());
@@ -1008,6 +1003,7 @@ pub(crate) fn staging(resource: This, texture: &ID3D12Resource) -> Option<Arc<St
     };
     let mut footprints = vec![D3D12_PLACED_SUBRESOURCE_FOOTPRINT::default(); count as usize];
     let mut rows = vec![0u32; count as usize];
+    let mut row_bytes = vec![0u64; count as usize];
     let mut total = 0;
     // SAFETY: outputs for `count` subresources.
     unsafe {
@@ -1018,17 +1014,36 @@ pub(crate) fn staging(resource: This, texture: &ID3D12Resource) -> Option<Arc<St
             0,
             Some(footprints.as_mut_ptr()),
             Some(rows.as_mut_ptr()),
-            None,
+            Some(row_bytes.as_mut_ptr()),
             Some(&mut total),
         );
     }
     tracing::debug!(?desc, total, "texture contents uploaded from title memory");
     let layout_size = layout.size as usize;
     let spans = spans(&layout, count, u32::from(d.MipLevels));
+    // Some guest depth formats are promoted on the host. In particular, a
+    // shortened final row must still hold all bytes D3D12 will read. Keep
+    // depth/stencil, multi-plane, and translated row sizes on native full
+    // footprints. A band uses one element per texel, one plane and one sample.
+    use victory_formats::texture::{Dimension, Swizzle};
+    let band_copies = layout.desc.dimension == Dimension::Tex2d
+        && layout.desc.block == 1
+        && layout.desc.samples == 1
+        && layout.addressable()
+        && layout.desc.swizzle != Swizzle::LINEAR
+        && !d.Flags.contains(D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+        && !matches!(d.Format.0, 19..=22 | 44..=47)
+        && row_bytes.iter().enumerate().all(|(i, &bytes)| {
+            layout.mips.get(i % usize::from(d.MipLevels)).is_some_and(|m| {
+                rows[i] == m.height
+                    && bytes == u64::from(m.width) * u64::from(layout.desc.element_bytes)
+            })
+        });
     let s = Arc::new(Staging {
         size: total,
         footprints,
         rows,
+        band_copies,
         layout,
         mips: u32::from(d.MipLevels),
         memory,
