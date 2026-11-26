@@ -751,16 +751,9 @@ impl Shadow {
                 let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(at), n) };
                 let old = &before[at - from..at - from + n];
                 let title = &mut title[..n];
-                // A whole piece is compared once per submission, whichever
-                // declared ranges overlap it: then what the GPU wrote there
-                // went back.
+                // A smaller declaration must not replay a completed full page.
                 let page = (start + at) & !(PIECE - 1);
-                let done = if n == PIECE {
-                    !compared.insert(page)
-                } else {
-                    compared.contains(&page)
-                };
-                if done {
+                if compared.contains(&page) {
                     at += n;
                     continue;
                 }
@@ -771,6 +764,10 @@ impl Shadow {
                     // between two shader writes. Never include a gap in a store.
                     if store_snapshot_changes(start + at, host, old, title) {
                         written += n;
+                    }
+                    if n == PIECE {
+                        // A failed full read leaves readable subranges eligible for retry.
+                        compared.insert(page);
                     }
                     synced.push((at, n));
                 }
@@ -2573,8 +2570,70 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn readable_partial_snapshot_retries_after_a_full_page_read_fails() {
+        use windows_sys::Win32::System::Memory::{
+            MEM_COMMIT, MEM_DECOMMIT, MEM_RESERVE, PAGE_READWRITE, VirtualAlloc, VirtualFree,
+        };
+        let Some(h) = host() else { return };
+        const BLOCK: usize = 4096;
+        const OFFSET: usize = 3 * BLOCK + 100;
+        // SAFETY: one private allocation, initially readable and writable throughout.
+        let p = unsafe {
+            VirtualAlloc(std::ptr::null(), PAGE, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE)
+        } as usize;
+        assert_ne!(p, 0);
+        let (buffer, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p, PAGE, false);
+        copy.writing(p + OFFSET, 4, false);
+        copy.write_host((p + OFFSET) as u64, &[0xa1, 0xa2, 0xa3, 0xa4]);
+        // SAFETY: only this 4 KiB block becomes inaccessible. OFFSET stays mapped.
+        assert_ne!(unsafe { VirtualFree((p + BLOCK) as *mut _, BLOCK, MEM_DECOMMIT) }, 0);
+        let mut full_read_failed = false;
+        copy.copy_back_or_not_with(p, PAGE, true, |at, bytes| {
+            let read = crate::host::read_into(at, bytes);
+            full_read_failed = !read;
+            read
+        });
+        copy.copy_back(p + OFFSET, 4);
+        let mut actual = [0; 4];
+        assert!(crate::host::read_into((p + OFFSET) as *const u8, &mut actual));
+        drop(copy);
+        crate::watch::tests::free(p);
+        assert!(full_read_failed);
+        assert_eq!(actual, [0xa1, 0xa2, 0xa3, 0xa4], "readable subrange after a failed full-page read");
+    }
+
+    #[test]
+    fn partial_snapshot_after_a_full_page_preserves_a_new_cpu_store() {
+        let Some(h) = host() else { return };
+        let p = crate::watch::tests::pool(1);
+        let (buffer, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p, PAGE, false);
+        copy.writing(p + 100, 4, false);
+        copy.write_host((p + 100) as u64, &[0xa1, 0xa2, 0xa3, 0xa4]);
+        copy.copy_back(p, PAGE);
+        let mut first = [0; 4];
+        assert!(crate::host::read_into((p + 100) as *const u8, &mut first));
+
+        // A CPU store after the full-page readback supersedes that shader byte.
+        // SAFETY: one byte of the live title allocation.
+        unsafe { ((p + 101) as *mut u8).write_volatile(0xc2) };
+        copy.copy_back(p + 100, 4);
+        let mut second = [0; 4];
+        assert!(crate::host::read_into((p + 100) as *const u8, &mut second));
+        drop(copy);
+        crate::watch::tests::free(p);
+        assert_eq!(first, [0xa1, 0xa2, 0xa3, 0xa4]);
+        assert_eq!(second, [0xa1, 0xc2, 0xa3, 0xa4], "partial snapshot replayed a completed page");
+    }
+
+    #[test]
     fn overlapping_snapshots_keep_late_cpu_stores() {
-        let h = host().expect("D3D12 adapter");
+        let Some(h) = host() else { return };
         let p = crate::watch::tests::pool(1);
         let (buffer, data) = h.shared_buffer(PAGE as u64).unwrap();
         let copy = Shadow::new(buffer, data, 0, p as u64, PAGE as u64);
@@ -2650,7 +2709,7 @@ pub(crate) mod tests {
 
     #[test]
     fn publish_valid_declaration_beside_a_withheld_write_on_one_page() {
-        let host = host().expect("D3D12 adapter");
+        let Some(host) = host() else { return };
         let p = crate::watch::tests::pool(1);
         register(p, p as u64, PAGE as u64);
         let copy = find(p as u64, PAGE as u64).unwrap();
