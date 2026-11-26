@@ -52,7 +52,7 @@ pub fn counts() -> (u64, u64) {
 /// the compiler), the entry's encoding (this file's text) and the
 /// translation settings (the loop limit, which a diagnostics build can
 /// change at run time).
-fn build() -> &'static [u8; 32] {
+pub(crate) fn build() -> &'static [u8; 32] {
     static BUILD: OnceLock<[u8; 32]> = OnceLock::new();
     BUILD.get_or_init(|| {
         let limit = victory_shader::emit::loop_limit();
@@ -83,7 +83,8 @@ pub fn host_shader(container: &[u8]) -> (Result<HostShader, String>, bool) {
     // Writes through views mark their pages: copy-backs compare only those
     // (`crate::shadow::copy_back_marks`).
     let options = victory_shader::emit::Options { view_marks: true };
-    let translate = |c: &[u8]| victory_shader::emit::translate_with(c, options).map_err(|e| e.to_string());
+    let translate =
+        |c: &[u8]| victory_shader::emit::translate_with(c, options).map_err(|e| e.to_string());
     match CACHE.get() {
         Some(cache) => cached(cache, build(), container, translate),
         None => (translate(container), false),
@@ -115,21 +116,27 @@ impl Cache {
         // Another process may have the writer lock. Return the fresh shader
         // immediately in that case, even when it cannot be persisted.
         db.busy_timeout(std::time::Duration::ZERO)?;
-        Ok(Self { dir: dir.to_owned(), db: Mutex::new(db) })
+        Ok(Self {
+            dir: dir.to_owned(),
+            db: Mutex::new(db),
+        })
     }
 
     fn read(&self, key: &[u8; 32]) -> rusqlite::Result<Option<Result<HostShader, String>>> {
         let db = self.db.lock().unwrap_or_else(|e| e.into_inner());
-        let mut query = db.prepare_cached("SELECT digest, translation FROM shaders WHERE key=?1")?;
-        let entry = query.query_row([key], |row| {
-            let digest = row.get_ref(0)?.as_blob()?;
-            let bytes = row.get_ref(1)?.as_blob()?;
-            if blake3::keyed_hash(key, bytes).as_bytes() == digest {
-                Ok(decode(bytes))
-            } else {
-                Ok(None)
-            }
-        }).optional()?;
+        let mut query =
+            db.prepare_cached("SELECT digest, translation FROM shaders WHERE key=?1")?;
+        let entry = query
+            .query_row([key], |row| {
+                let digest = row.get_ref(0)?.as_blob()?;
+                let bytes = row.get_ref(1)?.as_blob()?;
+                if blake3::keyed_hash(key, bytes).as_bytes() == digest {
+                    Ok(decode(bytes))
+                } else {
+                    Ok(None)
+                }
+            })
+            .optional()?;
         Ok(entry.flatten())
     }
 
@@ -417,10 +424,15 @@ mod tests {
         assert_eq!(runs.load(Ordering::Relaxed), 2);
 
         // A damaged entry is a miss, translated and stored again.
-        cache.db.lock().unwrap().execute(
-            "UPDATE shaders SET translation = ?1",
-            [encode(&Err("readable but wrong entry".into()))],
-        ).unwrap();
+        cache
+            .db
+            .lock()
+            .unwrap()
+            .execute(
+                "UPDATE shaders SET translation = ?1",
+                [encode(&Err("readable but wrong entry".into()))],
+            )
+            .unwrap();
         assert_eq!(
             cached(&cache, &build, container, translate),
             (Ok(shader()), false)
@@ -463,14 +475,22 @@ mod tests {
         });
         drop(caches);
         let cache = Cache::open(dir.path()).unwrap();
-        assert_eq!(cached(&cache, &[7; 32], b"same key", |_| panic!()), (Ok(shader()), true));
+        assert_eq!(
+            cached(&cache, &[7; 32], b"same key", |_| panic!()),
+            (Ok(shader()), true)
+        );
     }
 
     #[test]
     fn a_translation_is_made_once_when_its_entry_cannot_be_written() {
         let dir = tempfile::tempdir().unwrap();
         let cache = Cache::open(dir.path()).unwrap();
-        cache.db.lock().unwrap().execute_batch("PRAGMA query_only=ON").unwrap();
+        cache
+            .db
+            .lock()
+            .unwrap()
+            .execute_batch("PRAGMA query_only=ON")
+            .unwrap();
         let runs = AtomicU64::new(0);
         let translate = |_: &[u8]| {
             runs.fetch_add(1, Ordering::Relaxed);

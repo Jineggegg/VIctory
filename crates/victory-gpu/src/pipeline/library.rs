@@ -38,6 +38,10 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Condvar, Mutex, OnceLock};
 
 use windows::Win32::Graphics::Direct3D12::*;
+use windows::Win32::Graphics::Dxgi::{
+    CreateDXGIFactory2, DXGI_ADAPTER_DESC1, DXGI_ADAPTER_FLAG_SOFTWARE, DXGI_CREATE_FACTORY_FLAGS,
+    IDXGIAdapter1, IDXGIDevice, IDXGIFactory4,
+};
 use windows::core::{HSTRING, Interface, PCWSTR};
 
 static DIR: OnceLock<PathBuf> = OnceLock::new();
@@ -45,6 +49,33 @@ static DIR: OnceLock<PathBuf> = OnceLock::new();
 /// Keeps the pipeline library and the early list in `dir` from now on.
 pub fn use_pipeline_cache(dir: PathBuf) {
     let _ = DIR.set(dir);
+}
+
+/// Keep compiled blobs from different translators, adapters and driver
+/// packages side by side. The device also validates the bytes on load.
+fn library_dir() -> Option<&'static PathBuf> {
+    let root = DIR.get()?;
+    static PATH: OnceLock<Option<PathBuf>> = OnceLock::new();
+    PATH.get_or_init(|| {
+        let device = &crate::host::host()?.device;
+        // SAFETY: query the adapter that owns the existing D3D12 device.
+        let (desc, driver) = unsafe {
+            let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).ok()?;
+            let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(device.GetAdapterLuid()).ok()?;
+            (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
+        };
+        Some(root.join(namespace(&desc, driver, crate::shader_cache::build())))
+    }).as_ref()
+}
+
+fn namespace(desc: &DXGI_ADAPTER_DESC1, driver: Option<i64>, translator: &[u8; 32]) -> String {
+    // Some software adapters do not expose a UMD version. Their directory
+    // is still distinct and the driver remains authoritative on blob load.
+    let driver = driver.map_or_else(|| "unknown".to_owned(), |v| format!("{v:016x}"));
+    let kind = if desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 == 0 { "hw" } else { "sw" };
+    format!("{kind}-{:08x}-{:08x}-{:08x}-{:08x}-{driver}-{}",
+        desc.VendorId, desc.DeviceId, desc.SubSysId, desc.Revision,
+        &blake3::Hash::from(*translator).to_hex()[..16])
 }
 
 /// Host pipelines created, loaded from the library, and title pipelines
@@ -138,15 +169,15 @@ fn library() -> Option<&'static Shared> {
     LIBRARY
         .get_or_init(|| {
             let device = crate::host::host()?.device.cast::<ID3D12Device1>().ok()?;
-            let read = |file| DIR.get().and_then(|d| std::fs::read(d.join(file)).ok());
+            let dir = library_dir();
+            let read = |file| dir.and_then(|d| std::fs::read(d.join(file)).ok());
             let blob = read(LIBRARY_FILE).unwrap_or_default();
-            let tag = tag(&blob);
             let mut library = open(&device, blob);
             // The pre-build's list, if it was saved with these bytes.
             if let (Some(l), Some(list)) = (library.as_mut(), read(PREBUILT_FILE))
                 && !l._blob.is_empty()
             {
-                l.prebuilt = listed(&list, &tag);
+                l.prebuilt = listed(&list, &tag(&l._blob));
             }
             if library.is_none() {
                 tracing::warn!("no host pipeline library: pipelines are not kept");
@@ -306,7 +337,7 @@ thread_local! {
 pub(crate) fn save(now: bool) {
     static LAST: Mutex<Option<std::time::Instant>> = Mutex::new(None);
     const SAVE_EVERY: std::time::Duration = std::time::Duration::from_secs(20);
-    let (Some(dir), Some(library)) = (DIR.get(), library()) else { return };
+    let (Some(dir), Some(library)) = (library_dir(), library()) else { return };
     {
         let mut last = LAST.lock().unwrap_or_else(|e| e.into_inner());
         if !now && last.is_some_and(|t| t.elapsed() < SAVE_EVERY) {
@@ -453,8 +484,7 @@ static USED_CHANGED: AtomicBool = AtomicBool::new(false);
 fn used() -> std::sync::MutexGuard<'static, Option<Used>> {
     let mut used = USED.lock().unwrap_or_else(|e| e.into_inner());
     if used.is_none() {
-        let listed = DIR
-            .get()
+        let listed = library_dir()
             .and_then(|d| std::fs::read_to_string(d.join(EARLY_FILE)).ok())
             .unwrap_or_default();
         let read = Used::read(&listed);
@@ -804,6 +834,21 @@ mod tests {
             drop(saving);
             assert_eq!(loaded, Ok(true), "the load waited for the save");
         });
+    }
+
+    #[test]
+    fn libraries_are_separate_across_translator_driver_and_adapter() {
+        let hardware = DXGI_ADAPTER_DESC1 { DeviceId: 0x2b85, ..Default::default() };
+        let base = namespace(&hardware, Some(1), &[2; 32]);
+        assert_ne!(base, namespace(&hardware, Some(2), &[2; 32]));
+        assert_ne!(base, namespace(&hardware, None, &[2; 32]));
+        assert_ne!(base, namespace(&hardware, Some(1), &[3; 32]));
+        let mut other = hardware;
+        other.DeviceId += 1;
+        assert_ne!(base, namespace(&other, Some(1), &[2; 32]));
+        let mut warp = hardware;
+        warp.Flags |= DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32;
+        assert_ne!(base, namespace(&warp, Some(1), &[2; 32]));
     }
 
     #[test]
