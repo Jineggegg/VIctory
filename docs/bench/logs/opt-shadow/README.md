@@ -68,3 +68,5 @@ GPU 只应回写与执行前快照不同的字节。在 CPU 读取后、GPU 回�
 | a7d1360 | Retain valid marked writes beside withheld declarations (Marvisak/VIctory#1986) |
 
 完整 Windows 工作区共 936 个测试通过，0 个失败，10 个忽略。诊断版 victory-gpu 的 302 个用例均通过，另有 14 个标记忽略。D3D12 Debug Layer 需安装 Windows 图形工具后补跑。[所有验收输出](tests/README.md)
+
+审核后新增双位图同页优先级修复和整片后接局部声明的测试，独立快照分支已更新至 31626ec。[复现、修复与 Windows 验证](review/README.md)

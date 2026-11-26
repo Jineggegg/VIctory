@@ -18,3 +18,5 @@
 在 RTX 5090 上增加一次前置 CPU 写入后，可以区分 #2009 与本修复。CPU 先写 B1，第一次快照读取后再写 C1，第二次回写前写 C2。#2009 保住 C1，却在第二次回写把 C2 改回第一次读到的 B1。本修复两次都通过。这个例子同时检查是否写了正确的字节，以及重叠声明是否仍在使用过期的比较基线。[开发基线实测](prior-base.txt) · [#2009 实测](prior-2009.txt) · [独立修复实测](prior-standalone.txt)
 
 也直接测试了待提交的用例：在上游未修复的路径中只加入该用例及其读后回调，再与独立修复的原始提交比较，硬件和 WARP 都从失败变为通过。[硬件修复前](clean-snapshot-red-hardware.txt) · [硬件修复后](clean-snapshot-green-hardware.txt) · [WARP 修复前](clean-snapshot-red-warp.txt) · [WARP 修复后](clean-snapshot-green-warp.txt)
+
+独立分支后续在 31626ec 补全了整片先回写、部分片随后回写时的 CPU 写入保护。上面的 b1fb182 记录对应先前的局部重叠用例。[整片补充用例及硬件、WARP 输出](../review/README.md)
