@@ -617,6 +617,48 @@ impl Layout {
         })
     }
 
+    /// Detile consecutive whole rows of layout blocks from a non-tail 2D
+    /// mip. `tiled` begins at the first block of a row and contains the
+    /// full padded block rows; `height` counts visible rows in elements.
+    pub fn detile_block_rows(
+        &self,
+        mip: u32,
+        tiled: &[u8],
+        height: u32,
+        linear: &mut [u8],
+        pitch: usize,
+    ) -> Result<(), Error> {
+        let mut m = *self.mips.get(mip as usize).ok_or(Error::Invalid)?;
+        if self.desc.dimension != Dimension::Tex2d
+            || self.desc.swizzle == Swizzle::LINEAR
+            || !self.addressable()
+            || m.tail.is_some()
+            || height == 0
+            || height > m.height
+        {
+            return Err(Error::Invalid);
+        }
+        let row_bytes = m.width as usize * self.desc.element_bytes as usize;
+        let need = (height as usize - 1)
+            .checked_mul(pitch)
+            .and_then(|n| n.checked_add(row_bytes))
+            .ok_or(Error::TooSmall)?;
+        let block_rows = u64::from(height.div_ceil(self.block[1]));
+        if pitch < row_bytes
+            || linear.len() < need
+            || (tiled.len() as u64)
+                < block_rows * u64::from(m.pitch / self.block[0]) * self.alignment
+        {
+            return Err(Error::TooSmall);
+        }
+        m.offset = 0;
+        m.height = height;
+        self.walk_rows(&m, 0, pitch, 0, |t, l, len| {
+            linear[l..][..len].copy_from_slice(&tiled[t..][..len])
+        });
+        Ok(())
+    }
+
     /// The reverse of [`Layout::detile`]: linear rows into tiled memory.
     pub fn tile(
         &self,
@@ -642,7 +684,7 @@ impl Layout {
         linear_len: usize,
         row_pitch: usize,
         depth_pitch: usize,
-        mut copy: impl FnMut(usize, usize, usize),
+        copy: impl FnMut(usize, usize, usize),
     ) -> Result<(), Error> {
         let m = self.mips.get(mip as usize).ok_or(Error::Invalid)?;
         let depth = m.depth;
@@ -679,6 +721,21 @@ impl Layout {
         if tiled_len < self.size as usize || linear_len < need || row_pitch < bytes {
             return Err(Error::TooSmall);
         }
+        self.walk_rows(m, first, row_pitch, depth_pitch, copy);
+        Ok(())
+    }
+
+    fn walk_rows(
+        &self,
+        m: &Mip,
+        first: u32,
+        row_pitch: usize,
+        depth_pitch: usize,
+        mut copy: impl FnMut(usize, usize, usize),
+    ) {
+        let depth = m.depth;
+        let n = self.desc.element_bytes as usize;
+        let bytes = m.width as usize * n;
         let linear = self.desc.swizzle == Swizzle::LINEAR;
         // The row and depth contribute one common base to every column, so
         // the same contiguous runs repeat on every row, including mip tails.
@@ -724,7 +781,6 @@ impl Layout {
                 }
             }
         }
-        Ok(())
     }
 }
 
@@ -881,6 +937,35 @@ mod tests {
             samples: 1,
             swizzle,
         }
+    }
+
+    #[test]
+    fn final_block_rows_match_full_detile_and_check_the_last_byte() {
+        let l = Layout::new(&desc(273, 171, 3, 4, Swizzle::SW_4KB_S)).unwrap();
+        let mip = 1;
+        let m = l.mips[mip as usize];
+        let input: Vec<u8> = (0..l.size).map(|i| (i ^ (i >> 8)) as u8).collect();
+        let pitch = 4 * m.width as usize + 28;
+        let mut full = vec![0xcc; pitch * m.height as usize];
+        l.detile(&input, mip, 0, &mut full, pitch, 0).unwrap();
+        let first = (m.height - 1) / l.block[1] * l.block[1];
+        let height = m.height - first;
+        let base = l.offset(mip, 0, first, 0).unwrap() as usize;
+        let stride = (m.pitch / l.block[0]) as usize * l.alignment as usize;
+        let last = &input[base..base + stride];
+        let mut band = vec![0xcc; (height as usize - 1) * pitch + m.width as usize * 4];
+        l.detile_block_rows(mip, last, height, &mut band, pitch)
+            .unwrap();
+        assert_eq!(band, full[first as usize * pitch..][..band.len()]);
+        assert_eq!(
+            l.detile_block_rows(mip, &last[1..], height, &mut band, pitch),
+            Err(Error::TooSmall)
+        );
+        band.pop();
+        assert_eq!(
+            l.detile_block_rows(mip, last, height, &mut band, pitch),
+            Err(Error::TooSmall)
+        );
     }
 
     #[test]

@@ -27,7 +27,7 @@ pub(super) fn run(host: &Host) {
         let texture = crate::resource::host_resource(guest).unwrap();
         textures.push((base, guest, texture));
     }
-    let mut total_bytes = 0;
+    let mut previous_bytes = 0;
     for (partial, name) in [(false, "texture_full"), (true, "texture_partial")] {
         let list = host.new_list().unwrap();
         let mut copied = 0;
@@ -54,18 +54,20 @@ pub(super) fn run(host: &Host) {
             .sum();
         let count = if partial { N } else { N * MIPS as usize };
         assert_eq!(after - copied, count as u64, "{name} subresources");
-        let bytes = if partial {
-            u64::from(SIDE * SIDE)
-        } else {
-            (0..MIPS).map(|m| u64::from(4 * (SIDE >> m).pow(2))).sum()
-        } * N as u64;
-        total_bytes += bytes;
+        let total_bytes: u64 = textures
+            .iter()
+            .map(|&(_, r, _)| crate::texture::copied_bytes(r))
+            .sum();
+        let bytes = total_bytes - previous_bytes;
+        previous_bytes = total_bytes;
+        if !partial {
+            assert_eq!(bytes, 170 << 20);
+        }
         println!("BENCH {name}_bytes={bytes}");
         println!("BENCH {name}_subresources={count}");
         verify(host, &textures, partial);
     }
     println!("BENCH texture_title_patch_bytes={}", N * 32 * 8 * 4);
-    assert!(total_bytes > 200_000_000);
 }
 
 // Actual D3D12 readback of every mip after each upload. Validation runs outside timings.
