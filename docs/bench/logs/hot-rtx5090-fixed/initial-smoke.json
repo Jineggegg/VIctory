@@ -1,0 +1,513 @@
+{
+  "system": {
+    "cpu": "Intel(R) Core(TM) Ultra 9 285K",
+    "ram_bytes": 136871063552,
+    "os": "10.0.26300"
+  },
+  "schema": 1,
+  "suite": "victory-hot-v1",
+  "formal": false,
+  "complete": true,
+  "debug_layer": "pending: Windows Graphics Tools unavailable",
+  "binary": {
+    "commit": "e6ed6150d8cd33bcd5e4b0a700a46f436a67bcb0",
+    "source_delta_sha256": "6fbb4322e672e6a95cd2866db1c7572121cb7eeb6e9e55f072d80a7674393a35",
+    "executable": "target/diag/deps/victory_gpu-b3e12a1e6b92b6a6.exe",
+    "sha256": "3f2a987c6898d89c8a506543bebf45e341c1d2222fab0f36ad69713efe296c04",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.1\nLLVM version: 22.1.8"
+  },
+  "requested": 3,
+  "utc": "2026-11-26T12:42:23.020387+00:00",
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 5090",
+    "driver_version": "621.14",
+    "memory.total": "32607",
+    "utilization.gpu": "0",
+    "memory.used": "5913",
+    "temperature.gpu": "36.80",
+    "clocks.gr": "570",
+    "clocks.mem": "810",
+    "power.draw": "26.94",
+    "pstate": "P5"
+  },
+  "profile": "diag",
+  "runs": [
+    {
+      "index": 1,
+      "utc": "2026-11-26T12:42:23.058416+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "5913",
+          "temperature.gpu": "36.80",
+          "clocks.gr": "570",
+          "clocks.mem": "810",
+          "power.draw": "26.94",
+          "pstate": "P5"
+        }
+      ],
+      "exit": 0,
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "pso_cold_us": 881.1,
+        "pso_hot_us": 51.0,
+        "shader_batch_translate_us": 2801.2,
+        "shader_batch_cold_us": 14226.6,
+        "shader_batch_hot_us": 3580.2,
+        "prebuild_16_cold_us": 220225.9,
+        "prebuild_16_hot_us": 112.6,
+        "prebuild_count": 16.0,
+        "shader_digest": "a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8",
+        "shader_count": 20.0,
+        "shader_dxil_bytes": 88177.0,
+        "descriptors_1300_us": 870.4,
+        "descriptors_1300_scanned": 22528.0,
+        "descriptors_1300_changed": 1300.0,
+        "descriptors_14400_us": 8911.7,
+        "descriptors_14400_scanned": 32768.0,
+        "descriptors_14400_changed": 14400.0,
+        "submit_32_us": 3748.6,
+        "submit_count": 32.0,
+        "submit_fence_wait_us": 1230.7,
+        "submit_prepare_us": 20.0,
+        "submit_queue_and_fence_us": 1779.0,
+        "texture_full_us": 42366.4,
+        "texture_full_bytes": 178257920.0,
+        "texture_full_subresources": 32.0,
+        "texture_partial_us": 8357.6,
+        "texture_partial_bytes": 33554432.0,
+        "texture_partial_subresources": 8.0,
+        "texture_title_patch_bytes": 8192.0,
+        "wave_page_marks_gpu_us": 4988.448,
+        "wave_page_marks_lanes": 262144.0,
+        "loop_page_lookup_gpu_us": 2744.832,
+        "loop_page_lookup_lanes": 262144.0,
+        "loop_global_loads": 2097152.0,
+        "shadow_refresh_us": 29537.1,
+        "marked_writeback_frame_us": 78369.1,
+        "shadow_refresh_bytes": 268435456.0,
+        "writeback_bytes": 251658240.0,
+        "writeback_withheld_bytes": 16777216.0,
+        "sampled_local_peak_mb": 232.476672,
+        "peak_working_set_bytes": 1206345728.0,
+        "verified": 1.0
+      }
+    },
+    {
+      "index": 2,
+      "utc": "2026-11-26T12:42:24.705904+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "5913",
+          "temperature.gpu": "37.70",
+          "clocks.gr": "2572",
+          "clocks.mem": "13801",
+          "power.draw": "73.54",
+          "pstate": "P1"
+        }
+      ],
+      "exit": 0,
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "pso_cold_us": 844.8,
+        "pso_hot_us": 52.4,
+        "shader_batch_translate_us": 3245.5,
+        "shader_batch_cold_us": 13196.7,
+        "shader_batch_hot_us": 1043.4,
+        "prebuild_16_cold_us": 6904.6,
+        "prebuild_16_hot_us": 98.8,
+        "prebuild_count": 16.0,
+        "shader_digest": "a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8",
+        "shader_count": 20.0,
+        "shader_dxil_bytes": 88177.0,
+        "descriptors_1300_us": 898.0,
+        "descriptors_1300_scanned": 22528.0,
+        "descriptors_1300_changed": 1300.0,
+        "descriptors_14400_us": 9124.4,
+        "descriptors_14400_scanned": 32768.0,
+        "descriptors_14400_changed": 14400.0,
+        "submit_32_us": 3700.7,
+        "submit_count": 32.0,
+        "submit_fence_wait_us": 1212.0,
+        "submit_prepare_us": 21.0,
+        "submit_queue_and_fence_us": 1739.0,
+        "texture_full_us": 30509.9,
+        "texture_full_bytes": 178257920.0,
+        "texture_full_subresources": 32.0,
+        "texture_partial_us": 8452.0,
+        "texture_partial_bytes": 33554432.0,
+        "texture_partial_subresources": 8.0,
+        "texture_title_patch_bytes": 8192.0,
+        "wave_page_marks_gpu_us": 4423.264,
+        "wave_page_marks_lanes": 262144.0,
+        "loop_page_lookup_gpu_us": 5928.768,
+        "loop_page_lookup_lanes": 262144.0,
+        "loop_global_loads": 2097152.0,
+        "shadow_refresh_us": 30835.5,
+        "marked_writeback_frame_us": 76377.1,
+        "shadow_refresh_bytes": 268435456.0,
+        "writeback_bytes": 251658240.0,
+        "writeback_withheld_bytes": 16777216.0,
+        "sampled_local_peak_mb": 232.542208,
+        "peak_working_set_bytes": 1157480448.0,
+        "verified": 1.0
+      }
+    },
+    {
+      "index": 3,
+      "utc": "2026-11-26T12:42:26.048002+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "5913",
+          "temperature.gpu": "37.80",
+          "clocks.gr": "2610",
+          "clocks.mem": "13801",
+          "power.draw": "75.37",
+          "pstate": "P1"
+        }
+      ],
+      "exit": 0,
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "pso_cold_us": 804.0,
+        "pso_hot_us": 49.2,
+        "shader_batch_translate_us": 2893.6,
+        "shader_batch_cold_us": 13972.9,
+        "shader_batch_hot_us": 1082.0,
+        "prebuild_16_cold_us": 6956.1,
+        "prebuild_16_hot_us": 105.9,
+        "prebuild_count": 16.0,
+        "shader_digest": "a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8",
+        "shader_count": 20.0,
+        "shader_dxil_bytes": 88177.0,
+        "descriptors_1300_us": 874.5,
+        "descriptors_1300_scanned": 22528.0,
+        "descriptors_1300_changed": 1300.0,
+        "descriptors_14400_us": 9412.1,
+        "descriptors_14400_scanned": 32768.0,
+        "descriptors_14400_changed": 14400.0,
+        "submit_32_us": 3968.4,
+        "submit_count": 32.0,
+        "submit_fence_wait_us": 1441.4,
+        "submit_prepare_us": 29.0,
+        "submit_queue_and_fence_us": 1988.0,
+        "texture_full_us": 30250.6,
+        "texture_full_bytes": 178257920.0,
+        "texture_full_subresources": 32.0,
+        "texture_partial_us": 8716.8,
+        "texture_partial_bytes": 33554432.0,
+        "texture_partial_subresources": 8.0,
+        "texture_title_patch_bytes": 8192.0,
+        "wave_page_marks_gpu_us": 5463.072,
+        "wave_page_marks_lanes": 262144.0,
+        "loop_page_lookup_gpu_us": 4434.112,
+        "loop_page_lookup_lanes": 262144.0,
+        "loop_global_loads": 2097152.0,
+        "shadow_refresh_us": 30474.9,
+        "marked_writeback_frame_us": 76099.8,
+        "shadow_refresh_bytes": 268435456.0,
+        "writeback_bytes": 251658240.0,
+        "writeback_withheld_bytes": 16777216.0,
+        "sampled_local_peak_mb": 232.542208,
+        "peak_working_set_bytes": 1094459392.0,
+        "verified": 1.0
+      }
+    }
+  ],
+  "summary": {
+    "pso_cold_us": {
+      "n": 3,
+      "median": 844.8,
+      "p95": 881.1,
+      "p99": 881.1,
+      "sample_stddev": 38.57188094972814
+    },
+    "pso_hot_us": {
+      "n": 3,
+      "median": 51.0,
+      "p95": 52.4,
+      "p99": 52.4,
+      "sample_stddev": 1.6041612554021265
+    },
+    "shader_batch_translate_us": {
+      "n": 3,
+      "median": 2893.6,
+      "p95": 3245.5,
+      "p99": 3245.5,
+      "sample_stddev": 234.4404188701258
+    },
+    "shader_batch_cold_us": {
+      "n": 3,
+      "median": 13972.9,
+      "p95": 14226.6,
+      "p99": 14226.6,
+      "sample_stddev": 536.5855228510484
+    },
+    "shader_batch_hot_us": {
+      "n": 3,
+      "median": 1082.0,
+      "p95": 3580.2,
+      "p99": 3580.2,
+      "sample_stddev": 1453.6074343966918
+    },
+    "prebuild_16_cold_us": {
+      "n": 3,
+      "median": 6956.1,
+      "p95": 220225.9,
+      "p99": 220225.9,
+      "sample_stddev": 123146.24590162435
+    },
+    "prebuild_16_hot_us": {
+      "n": 3,
+      "median": 105.9,
+      "p95": 112.6,
+      "p99": 112.6,
+      "sample_stddev": 6.900966115938646
+    },
+    "prebuild_count": {
+      "n": 3,
+      "median": 16.0,
+      "p95": 16.0,
+      "p99": 16.0,
+      "sample_stddev": 0.0
+    },
+    "shader_count": {
+      "n": 3,
+      "median": 20.0,
+      "p95": 20.0,
+      "p99": 20.0,
+      "sample_stddev": 0.0
+    },
+    "shader_dxil_bytes": {
+      "n": 3,
+      "median": 88177.0,
+      "p95": 88177.0,
+      "p99": 88177.0,
+      "sample_stddev": 0.0
+    },
+    "descriptors_1300_us": {
+      "n": 3,
+      "median": 874.5,
+      "p95": 898.0,
+      "p99": 898.0,
+      "sample_stddev": 14.89306326224842
+    },
+    "descriptors_1300_scanned": {
+      "n": 3,
+      "median": 22528.0,
+      "p95": 22528.0,
+      "p99": 22528.0,
+      "sample_stddev": 0.0
+    },
+    "descriptors_1300_changed": {
+      "n": 3,
+      "median": 1300.0,
+      "p95": 1300.0,
+      "p99": 1300.0,
+      "sample_stddev": 0.0
+    },
+    "descriptors_14400_us": {
+      "n": 3,
+      "median": 9124.4,
+      "p95": 9412.1,
+      "p99": 9412.1,
+      "sample_stddev": 251.13500353395568
+    },
+    "descriptors_14400_scanned": {
+      "n": 3,
+      "median": 32768.0,
+      "p95": 32768.0,
+      "p99": 32768.0,
+      "sample_stddev": 0.0
+    },
+    "descriptors_14400_changed": {
+      "n": 3,
+      "median": 14400.0,
+      "p95": 14400.0,
+      "p99": 14400.0,
+      "sample_stddev": 0.0
+    },
+    "submit_32_us": {
+      "n": 3,
+      "median": 3748.6,
+      "p95": 3968.4,
+      "p99": 3968.4,
+      "sample_stddev": 142.7525481383784
+    },
+    "submit_count": {
+      "n": 3,
+      "median": 32.0,
+      "p95": 32.0,
+      "p99": 32.0,
+      "sample_stddev": 0.0
+    },
+    "submit_fence_wait_us": {
+      "n": 3,
+      "median": 1230.7,
+      "p95": 1441.4,
+      "p99": 1441.4,
+      "sample_stddev": 127.38952076210983
+    },
+    "submit_prepare_us": {
+      "n": 3,
+      "median": 21.0,
+      "p95": 29.0,
+      "p99": 29.0,
+      "sample_stddev": 4.932882862316247
+    },
+    "submit_queue_and_fence_us": {
+      "n": 3,
+      "median": 1779.0,
+      "p95": 1988.0,
+      "p99": 1988.0,
+      "sample_stddev": 133.71736361943925
+    },
+    "texture_full_us": {
+      "n": 3,
+      "median": 30509.9,
+      "p95": 42366.4,
+      "p99": 42366.4,
+      "sample_stddev": 6921.421318149427
+    },
+    "texture_full_bytes": {
+      "n": 3,
+      "median": 178257920.0,
+      "p95": 178257920.0,
+      "p99": 178257920.0,
+      "sample_stddev": 0.0
+    },
+    "texture_full_subresources": {
+      "n": 3,
+      "median": 32.0,
+      "p95": 32.0,
+      "p99": 32.0,
+      "sample_stddev": 0.0
+    },
+    "texture_partial_us": {
+      "n": 3,
+      "median": 8452.0,
+      "p95": 8716.8,
+      "p99": 8716.8,
+      "sample_stddev": 186.21449997247743
+    },
+    "texture_partial_bytes": {
+      "n": 3,
+      "median": 33554432.0,
+      "p95": 33554432.0,
+      "p99": 33554432.0,
+      "sample_stddev": 0.0
+    },
+    "texture_partial_subresources": {
+      "n": 3,
+      "median": 8.0,
+      "p95": 8.0,
+      "p99": 8.0,
+      "sample_stddev": 0.0
+    },
+    "texture_title_patch_bytes": {
+      "n": 3,
+      "median": 8192.0,
+      "p95": 8192.0,
+      "p99": 8192.0,
+      "sample_stddev": 0.0
+    },
+    "wave_page_marks_gpu_us": {
+      "n": 3,
+      "median": 4988.448,
+      "p95": 5463.072,
+      "p99": 5463.072,
+      "sample_stddev": 520.5608469231366
+    },
+    "wave_page_marks_lanes": {
+      "n": 3,
+      "median": 262144.0,
+      "p95": 262144.0,
+      "p99": 262144.0,
+      "sample_stddev": 0.0
+    },
+    "loop_page_lookup_gpu_us": {
+      "n": 3,
+      "median": 4434.112,
+      "p95": 5928.768,
+      "p99": 5928.768,
+      "sample_stddev": 1592.959087611899
+    },
+    "loop_page_lookup_lanes": {
+      "n": 3,
+      "median": 262144.0,
+      "p95": 262144.0,
+      "p99": 262144.0,
+      "sample_stddev": 0.0
+    },
+    "loop_global_loads": {
+      "n": 3,
+      "median": 2097152.0,
+      "p95": 2097152.0,
+      "p99": 2097152.0,
+      "sample_stddev": 0.0
+    },
+    "shadow_refresh_us": {
+      "n": 3,
+      "median": 30474.9,
+      "p95": 30835.5,
+      "p99": 30835.5,
+      "sample_stddev": 670.2417175914981
+    },
+    "marked_writeback_frame_us": {
+      "n": 3,
+      "median": 76377.1,
+      "p95": 78369.1,
+      "p99": 78369.1,
+      "sample_stddev": 1237.920418820748
+    },
+    "shadow_refresh_bytes": {
+      "n": 3,
+      "median": 268435456.0,
+      "p95": 268435456.0,
+      "p99": 268435456.0,
+      "sample_stddev": 0.0
+    },
+    "writeback_bytes": {
+      "n": 3,
+      "median": 251658240.0,
+      "p95": 251658240.0,
+      "p99": 251658240.0,
+      "sample_stddev": 0.0
+    },
+    "writeback_withheld_bytes": {
+      "n": 3,
+      "median": 16777216.0,
+      "p95": 16777216.0,
+      "p99": 16777216.0,
+      "sample_stddev": 0.0
+    },
+    "sampled_local_peak_mb": {
+      "n": 3,
+      "median": 232.542208,
+      "p95": 232.542208,
+      "p99": 232.542208,
+      "sample_stddev": 0.03783722724159993
+    },
+    "peak_working_set_bytes": {
+      "n": 3,
+      "median": 1157480448.0,
+      "p95": 1206345728.0,
+      "p99": 1206345728.0,
+      "sample_stddev": 56092217.63063992
+    }
+  }
+}
