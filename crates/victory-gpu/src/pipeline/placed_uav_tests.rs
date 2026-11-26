@@ -103,6 +103,13 @@ fn placed_uav_dispatch_writes_its_texture() {
     let Some(host) = crate::host::host() else {
         return;
     };
+    run_store(host, |_| {});
+}
+
+pub(super) fn run_store(
+    host: &crate::host::Host,
+    mut mark: impl FnMut(&'static str),
+) -> Option<[[f32; 4]; 2]> {
     let mut sm = D3D12_FEATURE_DATA_SHADER_MODEL {
         HighestShaderModel: D3D_SHADER_MODEL_6_6,
     };
@@ -116,12 +123,15 @@ fn placed_uav_dispatch_writes_its_texture() {
     };
     if shader_model.is_err() || sm.HighestShaderModel.0 < D3D_SHADER_MODEL_6_6.0 {
         eprintln!("placed UAV dispatch needs SM 6.6");
-        return;
+        return None;
     }
 
+    mark("begin");
+    let shader = store_shader();
+    mark("shader_us");
     let mut pipeline = std::ptr::null();
     assert_eq!(
-        hand_out(vec![store_shader()], None, &PIPELINE_IIDS[0], &mut pipeline),
+        hand_out(vec![shader], None, &PIPELINE_IIDS[0], &mut pipeline),
         S_OK
     );
     let pipeline = Guest(pipeline);
@@ -129,6 +139,8 @@ fn placed_uav_dispatch_writes_its_texture() {
         host_pipeline(pipeline.0).is_some(),
         "synthetic host pipeline"
     );
+
+    mark("pso_ready_us");
 
     #[repr(C)]
     struct HeapDescWithPlacement(D3D12_DESCRIPTOR_HEAP_DESC, [u64; 2]);
@@ -210,4 +222,6 @@ fn placed_uav_dispatch_writes_its_texture() {
         texels
     };
     assert_eq!(texels, [expected, [0.0; 4]], "placed UAV dispatch readback");
+    mark("dispatch_readback_us");
+    Some(texels)
 }

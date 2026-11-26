@@ -99,10 +99,14 @@ fn depth_bounds_control_a_title_draw() {
         eprintln!("skipped depth bounds render: no host D3D12 device");
         return;
     };
-    render_with_depth_bounds(host, fullscreen_vertex_shader(), None);
+    depth_draw(host);
 }
 
-fn render_with_depth_bounds(host: &crate::host::Host, shader: Arc<Shader>, ps: Option<Arc<Shader>>) {
+pub(super) fn depth_draw(host: &crate::host::Host) -> [f32; 4] {
+    render_with_depth_bounds(host, fullscreen_vertex_shader(), None)
+}
+
+fn render_with_depth_bounds(host: &crate::host::Host, shader: Arc<Shader>, ps: Option<Arc<Shader>>) -> [f32; 4] {
     let device = &host.device;
     // SAFETY: plain adapter queries on a live device.
     let adapter = unsafe {
@@ -282,4 +286,5 @@ fn render_with_depth_bounds(host: &crate::host::Host, shader: Arc<Shader>, ps: O
     for object in [list, allocator, pso] {
         assert_eq!(slot::<extern "system" fn(This) -> u32>(object, 0x10)(object), 0);
     }
+    actual
 }
