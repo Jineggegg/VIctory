@@ -1,0 +1,20 @@
+{
+  "name": "shader-pso-disk",
+  "test": "pipeline::hot::shader_bench::disk",
+  "timings": [
+    "cache_cold_open_us",
+    "cache_cold_ready_us",
+    "cache_cold_saved_us",
+    "cache_warm_open_us",
+    "cache_warm_ready_us",
+    "cache_warm_saved_us",
+    "pso_fresh_us",
+    "pso_disk_hit_us",
+    "early_only_save_us"
+  ],
+  "workload": [
+    "shader_count",
+    "prebuild_count",
+    "shader_digest"
+  ]
+}

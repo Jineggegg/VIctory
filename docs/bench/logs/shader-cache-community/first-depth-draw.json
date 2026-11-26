@@ -1,0 +1,16 @@
+{
+  "name": "first-depth-draw",
+  "test": "pipeline::depth_bounds_test::bench_first_depth_draw",
+  "timings": [
+    "ready_us",
+    "first_depth_us",
+    "all_pipelines_us"
+  ],
+  "workload": [
+    "queued_compute",
+    "verified_depth_pixels"
+  ],
+  "env": {
+    "VICTORY_BENCH_DEPTH_QUEUE": "1"
+  }
+}

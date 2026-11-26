@@ -1,0 +1,12 @@
+{
+  "name": "prebuild-states",
+  "test": "pipeline::hot::shader_bench::prebuild",
+  "timings": [
+    "prebuild_keys_us",
+    "pack_match_us"
+  ],
+  "workload": [
+    "key_count",
+    "pack_records"
+  ]
+}
