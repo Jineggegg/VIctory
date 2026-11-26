@@ -76,17 +76,18 @@ fn library_dir() -> Option<&'static PathBuf> {
             let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(device.GetAdapterLuid()).ok()?;
             (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
         };
-        Some(translator_dir(root.join(namespace(&desc, driver)), crate::shader_cache::build()))
+        let adapter = namespace(&desc, driver)?;
+        Some(translator_dir(root.join(adapter), crate::shader_cache::build()))
     }).as_ref()
 }
 
-fn namespace(desc: &DXGI_ADAPTER_DESC1, driver: Option<i64>) -> String {
-    // Some software adapters do not expose a UMD version. Their directory
-    // is still distinct and the driver remains authoritative on blob load.
-    let driver = driver.map_or_else(|| "unknown".to_owned(), |v| format!("{v:016x}"));
+fn namespace(desc: &DXGI_ADAPTER_DESC1, driver: Option<i64>) -> Option<String> {
+    // If DXGI cannot identify the installed driver, use the in-memory
+    // library for this run. An unknown driver cannot name a disk cache.
+    let driver = driver?;
     let kind = if desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 == 0 { "hw" } else { "sw" };
-    format!("{kind}-{:08x}-{:08x}-{:08x}-{:08x}-{driver}",
-        desc.VendorId, desc.DeviceId, desc.SubSysId, desc.Revision)
+    Some(format!("{kind}-{:08x}-{:08x}-{:08x}-{:08x}-{driver:016x}",
+        desc.VendorId, desc.DeviceId, desc.SubSysId, desc.Revision))
 }
 
 /// Host pipelines created, loaded from the library, and title pipelines
@@ -854,7 +855,8 @@ mod tests {
         let hardware = DXGI_ADAPTER_DESC1 { DeviceId: 0x2b85, ..Default::default() };
         let base = namespace(&hardware, Some(1));
         assert_ne!(base, namespace(&hardware, Some(2)));
-        assert_ne!(base, namespace(&hardware, None));
+        assert!(base.is_some());
+        assert!(namespace(&hardware, None).is_none());
         assert_ne!(translator_dir("pso".into(), &[2; 32]), translator_dir("pso".into(), &[3; 32]));
         let mut other = hardware;
         other.DeviceId += 1;
