@@ -93,7 +93,7 @@ function Get-Gpu {
     $csv = @(nvidia-smi -i 0 "--query-gpu=$($gpuFields -join ',')" --format=csv,noheader,nounits)
     if ($LASTEXITCODE -or $csv.Count -ne 1) { throw 'Cannot query adapter 0' }
     $row = $csv[0] | ConvertFrom-Csv -Header $gpuFields
-    $gpu = [ordered]@{}
+    $gpu = [ordered]@{utc=Utc-Now}
     foreach ($field in $gpuFields) { $gpu[$field] = $row.$field.Trim() }
     $gpu
 }
@@ -112,7 +112,7 @@ function Read-Metrics($text) {
     }
     $values
 }
-function Run-Child($exe, $cwd, $test) {
+function New-Child($exe, $cwd, $test) {
     $process = [Diagnostics.Process]::new()
     $start = $process.StartInfo
     $start.FileName = $exe
@@ -121,6 +121,10 @@ function Run-Child($exe, $cwd, $test) {
     $start.UseShellExecute = $false
     $start.RedirectStandardOutput = $start.RedirectStandardError = $true
     $start.StandardOutputEncoding = $start.StandardErrorEncoding = $utf8
+    $process
+}
+function Run-Child($exe, $cwd, $test) {
+    $process = New-Child $exe $cwd $test
     try {
         [void]$process.Start()
         $stdout = $process.StandardOutput.ReadToEndAsync()
@@ -164,20 +168,53 @@ function Get-Target($dir) {
 function New-Report($target, $system, $gpu) {
     [ordered]@{system=$system; schema=1; suite='victory-hot-v1'; formal=($Mode -ne 'smoke'); complete=$false;
         debug_layer='pending: Windows Graphics Tools unavailable'; binary=$target.binary; requested=$Runs; utc=Utc-Now;
-        gpu=$gpu; profile='diag'; runs=[Collections.ArrayList]::new(); summary=@{}; invalid_count=0; max_invalid=0}
+        gpu=$gpu; profile='diag'; runs=[Collections.ArrayList]::new(); summary=@{}; invalid_count=0; max_invalid=[int][Math]::Floor($Runs / 10); invalid_runs=[Collections.ArrayList]::new()}
 }
 
 function Warm-Ready($gpu) {
-    # GPU Boost changes individual bins with temperature. Require the high
-    # performance P-state, the full negotiated link and near-boost clocks.
-    foreach ($key in 'clocks.gr','clocks.mem','clocks.max.gr','clocks.max.mem','pcie.link.gen.current',
-            'pcie.link.gen.max','pcie.link.width.current','pcie.link.width.max') {
-        if ($gpu[$key] -notmatch '^\d+$' -or [double]$gpu[$key] -le 0) { return $false }
+    foreach ($key in 'clocks.gr','clocks.mem','pcie.link.gen.current','pcie.link.width.current') {
+        if ($gpu[$key] -notmatch '^\d+$') { return $false }
     }
-    ($gpu.pstate -in 'P0','P2' -and [double]$gpu.'clocks.gr' -ge 0.80 * [double]$gpu.'clocks.max.gr' -and
-        [double]$gpu.'clocks.mem' -ge 0.90 * [double]$gpu.'clocks.max.mem' -and
-        $gpu.'pcie.link.gen.current' -eq $gpu.'pcie.link.gen.max' -and
-        $gpu.'pcie.link.width.current' -eq $gpu.'pcie.link.width.max')
+    ($gpu.pstate -in 'P0','P1' -and [int]$gpu.'clocks.gr' -ge 2500 -and [int]$gpu.'clocks.mem' -ge 13000 -and
+        [int]$gpu.'pcie.link.gen.current' -eq 5 -and [int]$gpu.'pcie.link.width.current' -eq 16)
+}
+
+function Invoke-Warmup($target, $row) {
+    $process = New-Child $target.exe $target.dir 'pipeline::hot::warm_adapter'
+    $process.StartInfo.RedirectStandardInput = $true
+    $row.warm_trace = [Collections.ArrayList]::new()
+    $started = $false
+    try {
+        $started = $process.Start()
+        $errors = $process.StandardError.ReadToEndAsync()
+        do {
+            $read = $process.StandardOutput.ReadLineAsync()
+            if (!$read.Wait(10000) -or $null -eq $read.Result) { throw 'Warmup dispatch failed to start' }
+        } until ($read.Result.Contains('WARMUP active'))
+        $output = $process.StandardOutput.ReadToEndAsync()
+        $timer = [Diagnostics.Stopwatch]::StartNew()
+        $since = $null
+        $row.warm_stable_ms = 0
+        do {
+            $g = Get-Gpu
+            $now = $timer.ElapsedMilliseconds
+            [void]$row.warm_trace.Add(@($now,$g.pstate,$g.'clocks.gr',$g.'clocks.mem',$g.'pcie.link.gen.current',$g.'pcie.link.width.current'))
+            if (Warm-Ready $g) {
+                if ($null -eq $since) { $since = $now }
+                $row.warm_stable_ms = $now - $since
+                if ($row.warm_stable_ms -ge 3000) { break }
+            } else { $since = $null; $row.warm_stable_ms = 0 }
+            Start-Sleep -Milliseconds 200
+        } while ($now -lt 12000 -and !$process.HasExited)
+        $process.StandardInput.Close()
+        if (!$process.WaitForExit(5000)) { throw 'Warmup process did not release the GPU' }
+        if ($process.ExitCode -ne 0 -or $output.Result -notmatch 'WARMUP completed') {
+            throw (Protect-Log "Warmup dispatch failed: $($errors.Result)")
+        }
+    } finally {
+        if ($started -and !$process.HasExited) { $process.Kill(); $process.WaitForExit() }
+        $process.Dispose()
+    }
 }
 
 function Measure-One($target, $warmer, $report, $i, $position, $label, $log) {
@@ -186,19 +223,18 @@ function Measure-One($target, $warmer, $report, $i, $position, $label, $log) {
     try {
         if (!$report.formal -and [IO.File]::Exists($QuietState)) { throw 'GPU reserved for formal sampling' }
         if ($report.formal) {
-            for ($attempt=1; $attempt -le 2; $attempt++) {
-                $warm = Run-Child $warmer.exe $warmer.dir 'pipeline::hot::warm_adapter'
-                if ($warm.exit -ne 0 -or $warm.text -notmatch 'WARMUP completed') {
-                    throw (Protect-Log "GPU warmup failed: $($warm.text)")
-                }
-                $row.pre = Get-Gpu
-                [void]$row.polls.Add($row.pre)
-                if (Warm-Ready $row.pre) { break }
-            }
-            if (!(Warm-Ready $row.pre)) { throw 'GPU clocks or PCIe link below the warmup gate' }
-        } else {
-            $row.pre = Get-Gpu
-            [void]$row.polls.Add($row.pre)
+            Invoke-Warmup $warmer $row
+        }
+        $row.pre = Get-Gpu
+        [void]$row.polls.Add($row.pre)
+        if ($report.formal -and ($row.warm_stable_ms -lt 3000 -or !(Warm-Ready $row.pre))) {
+            $row.error = 'GPU did not hold the required clocks and link before the sample'
+            $row.post = Get-Gpu
+            $report.invalid_count++
+            $report.runs.RemoveAt($report.runs.Count - 1)
+            [void]$report.invalid_runs.Add($row)
+            Write-Host "Invalid warmup for $label pair $i ($($report.invalid_count)/$($report.max_invalid) allowed)"
+            return $false
         }
         Write-Host "Sample $label $i/$Runs $($row.pre.pstate) $($row.pre.'clocks.gr')/$($row.pre.'clocks.mem') MHz"
         $child = Run-Child $target.exe $target.dir 'pipeline::hot::hot_paths'
@@ -214,6 +250,7 @@ function Measure-One($target, $warmer, $report, $i, $position, $label, $log) {
             @($timings | Where-Object { $_ -cnotin $times }).Count) { throw 'Hotspot correctness check failed' }
         if ($v.shader_digest -cne $report.runs[0].values.shader_digest) { throw 'DXIL changed within arm' }
         $row.ok = $true
+        return $true
     } catch {
         $row.error = Protect-Log $_.Exception.Message
         $report.invalid_count++
@@ -255,9 +292,9 @@ function Paired-Report($a, $b) {
     $outside = @($timings | Where-Object { $table[$_].family95_pct[0] -gt 0 -or $table[$_].family95_pct[1] -lt 0 })
     $nominal = @($timings | Where-Object { $table[$_].ci95_pct[0] -gt 0 -or $table[$_].ci95_pct[1] -lt 0 })
     $aa = ($a.binary.sha256 -ceq $b.binary.sha256)
-    [ordered]@{schema=1; pairs=$Runs; a_commit=$a.binary.commit; b_commit=$b.binary.commit; a_correct=$a.complete;
+    [ordered]@{schema=1; complete=$true; pairs=$Runs; a_commit=$a.binary.commit; b_commit=$b.binary.commit; a_correct=$a.complete;
         b_correct=$b.complete; same_binary=$aa; order='alternating AB / BA by pair'; bootstrap_draws=5000; seed=5090;
-        pointwise_excludes_zero=$nominal; family_excludes_zero=$outside; pass=(!$aa -or $outside.Count -eq 0); metrics=$table}
+        pointwise_excludes_zero=$nominal; family_excludes_zero=$outside; pointwise_pass=(!$aa -or $nominal.Count -eq 0); pass=(!$aa -or $outside.Count -eq 0); metrics=$table}
 }
 
 function Sample {
@@ -279,8 +316,9 @@ function Sample {
         foreach ($label in $targets.Keys) {
             $reports[$label] = New-Report $targets[$label] $system $gpu
             if ($Mode -ne 'smoke') {
-                $reports[$label].warmup = [ordered]@{binary=$warmer.binary; seconds=2; max_attempts=2;
-                    pstate=@('P0','P2'); min_graphics_fraction=0.80; min_memory_fraction=0.90; full_link=$true}
+                $reports[$label].warmup = [ordered]@{binary=$warmer.binary; stable_ms=3000; timeout_ms=12000;
+                    pstate=@('P0','P1'); min_graphics_mhz=2500; min_memory_mhz=13000; pcie_gen=5; pcie_width=16;
+                    trace_fields=@('elapsed_ms','pstate','graphics_mhz','memory_mhz','pcie_gen','pcie_width')}
             }
             $dir = if ($paired) { Join-Path $OutDir $label } else { $OutDir }
             [void][IO.Directory]::CreateDirectory($dir)
@@ -293,8 +331,11 @@ function Sample {
             $position = 0
             foreach ($label in $order) {
                 $position++
-                try { Measure-One $targets[$label] $warmer $reports[$label] $i $position $label $log }
-                finally { Save-Json $paths[$label] $reports[$label] }
+                do {
+                    try { $valid = Measure-One $targets[$label] $warmer $reports[$label] $i $position $label $log }
+                    finally { Save-Json $paths[$label] $reports[$label] }
+                    if ($reports[$label].invalid_count -gt $reports[$label].max_invalid) { throw "Invalid-sample limit exceeded for $label" }
+                } until ($valid)
             }
         }
         foreach ($label in $targets.Keys) {
@@ -307,6 +348,11 @@ function Sample {
         if ($paired) {
             $result = Paired-Report $reports.A $reports.B
             Save-Json (Join-Path $OutDir paired.json) $result
+            Write-Host "Correctness: A $($result.a_correct), B $($result.b_correct). Median paired change [pointwise 95%]:"
+            foreach ($k in $result.metrics.Keys) {
+                $v = $result.metrics[$k]
+                Write-Host ('{0}: {1:+0.00;-0.00;0.00}% [{2:F2}%, {3:F2}%]' -f $k,$v.change_pct,$v.ci95_pct[0],$v.ci95_pct[1])
+            }
             if (!$result.pass) { throw 'A/A family interval excludes zero; inspect paired.json' }
             Write-Host "Paired bootstrap: $Runs pairs; see paired.json"
         }

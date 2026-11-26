@@ -359,7 +359,17 @@ fn warm_adapter() {
     }
     list.close();
     let start = Instant::now();
-    while start.elapsed() < std::time::Duration::from_secs(2) {
+    host.execute(&[&list]);
+    println!("WARMUP active");
+    // The driver releases the load only after observing three continuous
+    // seconds at benchmark clocks. EOF and the deadline also release it.
+    let stop = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let stopped = stop.clone();
+    std::thread::spawn(move || {
+        let _ = std::io::stdin().read_line(&mut String::new());
+        stopped.store(true, Relaxed);
+    });
+    while !stop.load(Relaxed) && start.elapsed() < std::time::Duration::from_secs(20) {
         host.execute(&[&list]);
     }
     // SAFETY: the completed dispatch wrote nonzero xorshift(1) to word zero.
