@@ -63,6 +63,63 @@ fn writeback_merge_matches_bytewise_oracle() {
     }
 }
 
+/// Copies one disjoint part per callback on the Windows process thread pool.
+/// Wait before publishing the copy or inspecting it for a pending snapshot.
+fn refresh_run(dst: *mut u8, src: usize, len: usize) {
+    use windows_sys::Win32::System::Threading::{
+        CloseThreadpoolWork, CreateThreadpoolWork, PTP_CALLBACK_INSTANCE, PTP_WORK,
+        SubmitThreadpoolWork, WaitForThreadpoolWorkCallbacks,
+    };
+    const PIECE: usize = 2 << 20;
+    if len < 4 * PIECE {
+        crate::host::copy_mapped(dst, src as *const u8, len, false);
+        return;
+    }
+    struct Run {
+        dst: usize,
+        src: usize,
+        len: usize,
+        next: std::sync::atomic::AtomicUsize,
+    }
+    impl Run {
+        fn copy_pieces(&self) {
+            loop {
+                let offset = self.next.fetch_add(PIECE, std::sync::atomic::Ordering::Relaxed);
+                if offset >= self.len {
+                    break;
+                }
+                crate::host::copy_mapped(
+                    (self.dst + offset) as *mut u8,
+                    (self.src + offset) as *const u8,
+                    PIECE.min(self.len - offset),
+                    false,
+                );
+            }
+        }
+    }
+    unsafe extern "system" fn worker(_: PTP_CALLBACK_INSTANCE, context: *mut std::ffi::c_void, _: PTP_WORK) {
+        // SAFETY: the caller joins all callbacks before dropping this run.
+        unsafe { &*context.cast::<Run>() }.copy_pieces();
+    }
+    let run = Run { dst: dst as usize, src, len, next: 0.into() };
+    // SAFETY: the context outlives all callbacks. Each piece is claimed once.
+    unsafe {
+        let work = CreateThreadpoolWork(Some(worker), std::ptr::from_ref(&run).cast_mut().cast(), std::ptr::null());
+        if work != 0 {
+            static WORKERS: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+            let workers = WORKERS.get_or_init(|| std::thread::available_parallelism().map_or(1, usize::from).min(8) - 1);
+            for _ in 0..(*workers).min(len.div_ceil(PIECE) - 1) {
+                SubmitThreadpoolWork(work);
+            }
+            run.copy_pieces();
+            WaitForThreadpoolWorkCallbacks(work, 0);
+            CloseThreadpoolWork(work);
+        } else {
+            run.copy_pieces();
+        }
+    }
+}
+
 /// Write contiguous shader changes without replaying adjacent CPU bytes.
 fn store_snapshot_changes(at: usize, gpu: &[u8], old: &[u8], title: &[u8]) -> bool {
     let mut guard = None;
@@ -721,7 +778,7 @@ impl Shadow {
         let (from, to) = (from.max(start), to.min(end));
         // SAFETY: inside the mapping (`from` and `to` are within the buffer).
         let at = unsafe { self.data.add(from - start) };
-        crate::host::copy_mapped(at, from as *const u8, to - from, false);
+        refresh_run(at, from, to - from);
         if let Some(t) = &self.tracked {
             // SAFETY: `to - from` bytes inside the mapping, just copied.
             t.refreshed(from, unsafe { std::slice::from_raw_parts(at, to - from) });
