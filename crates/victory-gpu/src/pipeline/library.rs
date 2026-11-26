@@ -48,7 +48,9 @@ static DIR: OnceLock<PathBuf> = OnceLock::new();
 
 /// Keeps the pipeline library and the early list in `dir` from now on.
 pub fn use_pipeline_cache(dir: PathBuf) {
-    let _ = DIR.set(translator_dir(dir, crate::shader_cache::build()));
+    // Computing the full translation settings probes the D3D descriptor
+    // heap. Keep configuration independent of device creation.
+    let _ = DIR.set(dir.join(victory_shader::SOURCE_HASH));
 }
 
 fn translator_dir(root: PathBuf, translator: &[u8; 32]) -> PathBuf {
@@ -74,7 +76,7 @@ fn library_dir() -> Option<&'static PathBuf> {
             let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(device.GetAdapterLuid()).ok()?;
             (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
         };
-        Some(root.join(namespace(&desc, driver)))
+        Some(translator_dir(root.join(namespace(&desc, driver)), crate::shader_cache::build()))
     }).as_ref()
 }
 
