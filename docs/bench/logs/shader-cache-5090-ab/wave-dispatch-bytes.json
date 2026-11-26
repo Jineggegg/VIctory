@@ -1,0 +1,73 @@
+{
+  "workload": "pipeline::hot::hot_paths",
+  "order": [
+    "A",
+    "B",
+    "B",
+    "A"
+  ],
+  "gpu_pixels_verified": true,
+  "exact_bytes_across_all_four": true,
+  "runs": [
+    {
+      "arm": "wave-baseline",
+      "run": 1,
+      "binary": "da8be58cb7f2f9458e8b9492b6a1a23580575be85412cd28d516ff3479566bf5",
+      "captured": {
+        "loop_page_lookup.dxil": {
+          "sha256": "d3814c9f7ce49aeaf2e12367ce94b4be3189649dda8677b72e3c3ab646e85493",
+          "bytes": 4340
+        },
+        "wave_page_marks.dxil": {
+          "sha256": "e23ef2eda0c9b491e277a9c0c1cafd341448822f2f77231c374f7e897dccc1bf",
+          "bytes": 3420
+        }
+      }
+    },
+    {
+      "arm": "wave-lazy",
+      "run": 1,
+      "binary": "7b1c2d8841bcfd5f9c627eafbb7a55e3f0562f2a0bda0bddde8665b7cf76c35d",
+      "captured": {
+        "loop_page_lookup.dxil": {
+          "sha256": "d3814c9f7ce49aeaf2e12367ce94b4be3189649dda8677b72e3c3ab646e85493",
+          "bytes": 4340
+        },
+        "wave_page_marks.dxil": {
+          "sha256": "e23ef2eda0c9b491e277a9c0c1cafd341448822f2f77231c374f7e897dccc1bf",
+          "bytes": 3420
+        }
+      }
+    },
+    {
+      "arm": "wave-lazy",
+      "run": 2,
+      "binary": "7b1c2d8841bcfd5f9c627eafbb7a55e3f0562f2a0bda0bddde8665b7cf76c35d",
+      "captured": {
+        "loop_page_lookup.dxil": {
+          "sha256": "d3814c9f7ce49aeaf2e12367ce94b4be3189649dda8677b72e3c3ab646e85493",
+          "bytes": 4340
+        },
+        "wave_page_marks.dxil": {
+          "sha256": "e23ef2eda0c9b491e277a9c0c1cafd341448822f2f77231c374f7e897dccc1bf",
+          "bytes": 3420
+        }
+      }
+    },
+    {
+      "arm": "wave-baseline",
+      "run": 2,
+      "binary": "da8be58cb7f2f9458e8b9492b6a1a23580575be85412cd28d516ff3479566bf5",
+      "captured": {
+        "loop_page_lookup.dxil": {
+          "sha256": "d3814c9f7ce49aeaf2e12367ce94b4be3189649dda8677b72e3c3ab646e85493",
+          "bytes": 4340
+        },
+        "wave_page_marks.dxil": {
+          "sha256": "e23ef2eda0c9b491e277a9c0c1cafd341448822f2f77231c374f7e897dccc1bf",
+          "bytes": 3420
+        }
+      }
+    }
+  ]
+}

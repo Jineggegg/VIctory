@@ -1,0 +1,12 @@
+Windows 原生预检，6b1e408。每组大档在同一进程逐字节比较无缓存、冷写和全命中三条路径。
+scale-baseline  shader_count=2000, prebuild_count=1996, shader_dxil_bytes=8625937, shader_digest=75caf52f0bc53030ac6ac6fba3e7b8b6aafe1b0075cd21f9d7ecbe62cbb4ad51, verified=1
+scale-flat  shader_count=2000, prebuild_count=1996, shader_dxil_bytes=8625937, shader_digest=75caf52f0bc53030ac6ac6fba3e7b8b6aafe1b0075cd21f9d7ecbe62cbb4ad51, verified=1
+scale-combined  shader_count=2000, prebuild_count=1996, shader_dxil_bytes=8625937, shader_digest=75caf52f0bc53030ac6ac6fba3e7b8b6aafe1b0075cd21f9d7ecbe62cbb4ad51, verified=1
+scale-tiered  shader_count=2000, prebuild_count=1996, shader_dxil_bytes=8625937, shader_digest=75caf52f0bc53030ac6ac6fba3e7b8b6aafe1b0075cd21f9d7ecbe62cbb4ad51, verified=1
+scale-combined  bfe76174  hot.sh smoke 3/3  a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+scale-tiered  1b9944c4  hot.sh smoke 3/3  a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+scale-combined  bfe76174  CheckOnly -SkipValidation  passed  skipped by request
+scale-tiered  1b9944c4  CheckOnly -SkipValidation  passed  skipped by request
+
+分层缓存 1b9944c4，本机同一工具链。
+ok. 11 passed; 0 failed; 0 ignored; 0 measured; 285 filtered out; finished in 0.56s

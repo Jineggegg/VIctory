@@ -1,0 +1,19 @@
+新 WaveOps 基线与集成候选的 Windows 原生正确性复核。两边均在标准场景及 gradient-large 中逐字节比较无磁盘、空目录冷写及全命中三组输出。以下计时来自普通构建间隙，各组仅运行一次。
+
+wave-baseline  177ee686ddd84526936b5849bd8f090ce9e0344d
+原生测试程序 SHA-256 da8be58cb7f2f9458e8b9492b6a1a23580575be85412cd28d516ff3479566bf5
+prebuild_count=16 shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2 shader_count=20 shader_dxil_bytes=94025 verified=1
+prebuild_count=1996 shader_digest=20473c42839d9df07d82a5489a8d023920ae7fb2d74ebe660a8f6591f065ef8b shader_count=2000 shader_dxil_bytes=9186185 verified=1
+BENCH prebuild_1996_cold_us=40810868.200
+BENCH prebuild_1996_hot_us=17546.300
+
+wave-lazy  7e4e6a7444ca9a7d3f7203f60a6bd4146dd85ad6
+原生测试程序 SHA-256 7b1c2d8841bcfd5f9c627eafbb7a55e3f0562f2a0bda0bddde8665b7cf76c35d
+prebuild_count=16 shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2 shader_count=20 shader_dxil_bytes=94025 verified=1
+prebuild_count=1996 shader_digest=20473c42839d9df07d82a5489a8d023920ae7fb2d74ebe660a8f6591f065ef8b shader_count=2000 shader_dxil_bytes=9186185 verified=1
+BENCH prebuild_1996_cold_us=37730169.700
+BENCH prebuild_1996_hot_us=17655.500
+
+这组单次本机数据证明输出与计数一致，性能结论仍以相同代码基线的交替 A/B 为准。
+
+集成候选 7e4e6a74 的 Windows 原生全测包括 victory、victory-shader、victory-game、victory-gpu 和 victory-pipeline。diag 配置启用 victory-gpu/diagnostics，测试按单线程运行，含文档测试，共 636 项通过、0 项失败、20 项默认忽略。

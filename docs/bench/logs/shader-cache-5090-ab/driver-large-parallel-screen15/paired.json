@@ -1,0 +1,226 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "victory-driver-cache-large-v1",
+  "test": "pipeline::hot::driver_cache::fresh_and_replayed",
+  "parameters": {
+    "VICTORY_BENCH_DRIVER_COUNT": "1996"
+  },
+  "family_size": 6,
+  "pairs": 15,
+  "a_commit": "f554b815cc91724eb14a3b0c860481bcf58304e6",
+  "b_commit": "0c7fb667301c17331f792c367c86d3f4fb45591b",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 21:28:56Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=7% | VRAM=5096\/32607 MiB | power=70.05 W | temp=37.33 C | graphics=1327 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=7%",
+    "tolerated_background": "chrome(pid=60252) 3D=7%"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [
+    "driver_fresh_us",
+    "driver_replay_us",
+    "driver_fresh_first_us",
+    "driver_replay_first_us",
+    "driver_fresh_peak_bytes",
+    "driver_replay_peak_bytes"
+  ],
+  "family_excludes_zero": [
+    "driver_fresh_us",
+    "driver_replay_us",
+    "driver_fresh_first_us",
+    "driver_replay_first_us",
+    "driver_fresh_peak_bytes",
+    "driver_replay_peak_bytes"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "driver_fresh_first_us": {
+      "a_median": 130364,
+      "b_median": 208378,
+      "change_pct": 83.336316235339041,
+      "ci95_pct": [
+        53.4273500392457,
+        120.55399979756403
+      ],
+      "family95_pct": [
+        20.514496232078507,
+        126.87935319566752
+      ]
+    },
+    "driver_fresh_inflight_bytes": {
+      "a_median": 4632,
+      "b_median": 111168,
+      "change_pct": 2300,
+      "ci95_pct": [
+        2300,
+        2300
+      ],
+      "family95_pct": [
+        2300,
+        2300
+      ]
+    },
+    "driver_fresh_inflight_jobs": {
+      "a_median": 1,
+      "b_median": 24,
+      "change_pct": 2300,
+      "ci95_pct": [
+        2300,
+        2300
+      ],
+      "family95_pct": [
+        2300,
+        2300
+      ]
+    },
+    "driver_fresh_peak_bytes": {
+      "a_median": 624410624,
+      "b_median": 874614784,
+      "change_pct": 35.917297105666265,
+      "ci95_pct": [
+        32.9455127507132,
+        42.080279440521863
+      ],
+      "family95_pct": [
+        32.792348351371771,
+        42.698235750290813
+      ]
+    },
+    "driver_fresh_us": {
+      "a_median": 39385722,
+      "b_median": 5913264,
+      "change_pct": -84.913512346178,
+      "ci95_pct": [
+        -85.105609940363209,
+        -84.5967742154118
+      ],
+      "family95_pct": [
+        -85.114258802313643,
+        -84.147896902690178
+      ]
+    },
+    "driver_largest_dxil_bytes": {
+      "a_median": 4632,
+      "b_median": 4632,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "driver_psos": {
+      "a_median": 1996,
+      "b_median": 1996,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "driver_replay_first_us": {
+      "a_median": 994,
+      "b_median": 81578,
+      "change_pct": 7033.2576617480145,
+      "ci95_pct": [
+        6586.7570385818562,
+        7757.856494096276
+      ],
+      "family95_pct": [
+        5987.13389121339,
+        8165.2482269503553
+      ]
+    },
+    "driver_replay_inflight_bytes": {
+      "a_median": 4632,
+      "b_median": 111168,
+      "change_pct": 2300,
+      "ci95_pct": [
+        2300,
+        2300
+      ],
+      "family95_pct": [
+        2300,
+        2300
+      ]
+    },
+    "driver_replay_inflight_jobs": {
+      "a_median": 1,
+      "b_median": 24,
+      "change_pct": 2300,
+      "ci95_pct": [
+        2300,
+        2300
+      ],
+      "family95_pct": [
+        2300,
+        2300
+      ]
+    },
+    "driver_replay_peak_bytes": {
+      "a_median": 341553152,
+      "b_median": 386441216,
+      "change_pct": 13.526261957764273,
+      "ci95_pct": [
+        10.728676964405647,
+        14.399226887147009
+      ],
+      "family95_pct": [
+        10.485133020344284,
+        14.462576022159324
+      ]
+    },
+    "driver_replay_us": {
+      "a_median": 525664,
+      "b_median": 212088,
+      "change_pct": -60.151351433615389,
+      "ci95_pct": [
+        -62.432924338842433,
+        -53.014650638617589
+      ],
+      "family95_pct": [
+        -62.432924338842433,
+        -49.074609659617906
+      ]
+    },
+    "driver_seed": {
+      "a_median": 1594641012,
+      "b_median": 736071690,
+      "change_pct": -23.977723232683246,
+      "ci95_pct": [
+        -56.60067003626277,
+        0.57836210970829693
+      ],
+      "family95_pct": [
+        -65.6380343991805,
+        34.13662804308202
+      ]
+    },
+    "driver_total_dxil_bytes": {
+      "a_median": 9245472,
+      "b_median": 9245472,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}

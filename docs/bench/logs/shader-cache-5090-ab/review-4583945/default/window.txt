@@ -1,0 +1,85 @@
+Local build-queue slots reserved: 4
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-26 22:14:38Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=4456/32607 MiB | power=41.24 W | temp=35.20 C | graphics=255 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.7s, 10 samples, max GPU=0%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Sample A 1/15 P0 2910/14001 MHz
+Sample B 1/15 P0 2662/14001 MHz
+Sample B 2/15 P0 2640/14001 MHz
+Sample A 2/15 P0 2647/14001 MHz
+Sample A 3/15 P0 2647/14001 MHz
+Sample B 3/15 P0 2647/14001 MHz
+Sample B 4/15 P0 2655/14001 MHz
+Sample A 4/15 P0 2647/14001 MHz
+Sample A 5/15 P0 2655/14001 MHz
+Sample B 5/15 P0 2647/14001 MHz
+Sample B 6/15 P0 2647/14001 MHz
+Sample A 6/15 P0 2647/14001 MHz
+Sample A 7/15 P0 2647/14001 MHz
+Sample B 7/15 P0 2647/14001 MHz
+Sample B 8/15 P0 2647/14001 MHz
+Sample A 8/15 P0 2647/14001 MHz
+Sample A 9/15 P0 2647/14001 MHz
+Sample B 9/15 P0 2655/14001 MHz
+Sample B 10/15 P0 2647/14001 MHz
+Sample A 10/15 P0 2647/14001 MHz
+Sample A 11/15 P0 2647/14001 MHz
+Sample B 11/15 P0 2647/14001 MHz
+Sample B 12/15 P0 2647/14001 MHz
+Sample A 12/15 P0 2647/14001 MHz
+Sample A 13/15 P0 2640/14001 MHz
+Sample B 13/15 P0 2655/14001 MHz
+Sample B 14/15 P0 2647/14001 MHz
+Sample A 14/15 P0 2655/14001 MHz
+Sample A 15/15 P0 2647/14001 MHz
+Sample B 15/15 P0 2655/14001 MHz
+Correctness: A True, B True. Median paired change [pointwise 95%]:
+descriptors_1300_changed: 0.00% [0.00%, 0.00%]
+descriptors_1300_scanned: 0.00% [0.00%, 0.00%]
+descriptors_1300_us: -0.20% [-3.52%, 1.21%]
+descriptors_14400_changed: 0.00% [0.00%, 0.00%]
+descriptors_14400_scanned: 0.00% [0.00%, 0.00%]
+descriptors_14400_us: +0.18% [-2.45%, 2.86%]
+loop_global_loads: 0.00% [0.00%, 0.00%]
+loop_page_lookup_gpu_us: -6.91% [-13.00%, 4.97%]
+loop_page_lookup_lanes: 0.00% [0.00%, 0.00%]
+marked_writeback_frame_us: +0.38% [-0.96%, 1.89%]
+peak_working_set_bytes: +0.62% [-1.58%, 5.88%]
+prebuild_16_cold_us: -0.72% [-6.87%, 7.85%]
+prebuild_16_hot_us: +2.24% [-8.12%, 8.11%]
+prebuild_count: 0.00% [0.00%, 0.00%]
+pso_cold_us: +2.53% [-3.64%, 7.62%]
+pso_hot_us: -0.73% [-11.07%, 5.53%]
+sampled_local_peak_mb: 0.00% [0.00%, 0.00%]
+shader_batch_cold_us: -2.06% [-8.05%, 0.91%]
+shader_batch_hot_us: -6.58% [-14.89%, -0.31%]
+shader_batch_translate_us: +5.09% [0.39%, 10.62%]
+shader_count: 0.00% [0.00%, 0.00%]
+shader_dxil_bytes: 0.00% [0.00%, 0.00%]
+shadow_refresh_bytes: 0.00% [0.00%, 0.00%]
+shadow_refresh_us: -0.75% [-3.66%, 2.41%]
+submit_32_us: +2.78% [-1.93%, 9.16%]
+submit_count: 0.00% [0.00%, 0.00%]
+submit_fence_wait_us: +0.55% [-10.51%, 18.16%]
+submit_prepare_us: +25.00% [-11.11%, 33.33%]
+submit_queue_and_fence_us: +1.16% [-6.48%, 15.75%]
+texture_full_bytes: 0.00% [0.00%, 0.00%]
+texture_full_staging_backing_bytes: 0.00% [0.00%, 0.00%]
+texture_full_staging_requested_bytes: 0.00% [0.00%, 0.00%]
+texture_full_subresources: 0.00% [0.00%, 0.00%]
+texture_full_us: -1.61% [-6.11%, -0.26%]
+texture_partial_bytes: 0.00% [0.00%, 0.00%]
+texture_partial_staging_backing_bytes: 0.00% [0.00%, 0.00%]
+texture_partial_staging_requested_bytes: 0.00% [0.00%, 0.00%]
+texture_partial_subresources: 0.00% [0.00%, 0.00%]
+texture_partial_us: -6.98% [-21.67%, 2.27%]
+texture_title_patch_bytes: 0.00% [0.00%, 0.00%]
+wave_page_marks_gpu_us: -2.84% [-20.28%, 12.66%]
+wave_page_marks_lanes: 0.00% [0.00%, 0.00%]
+writeback_bytes: 0.00% [0.00%, 0.00%]
+writeback_withheld_bytes: 0.00% [0.00%, 0.00%]
+Paired bootstrap: 15 pairs; see paired.json
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "prebuild-states",
+  "test": "pipeline::hot::shader_bench::prebuild",
+  "parameters": { },
+  "family_size": 2,
+  "pairs": 15,
+  "a_commit": "21cda97f32a3f251f26da82bcdbf91194dba79e4",
+  "b_commit": "71600a1fc980e566f41d9b70b36f2cf0f2b4cbc1",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 17:08:47Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=8% | VRAM=3882\/32607 MiB | power=64.56 W | temp=39.34 C | graphics=1125 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%, dwm(pid=61556) 3D=1%, msedgewebview2(pid=68740) 3D=1%",
+    "tolerated_background": "chrome(pid=60252) 3D=1%, dwm(pid=61556) 3D=1%, msedgewebview2(pid=68740) 3D=1%"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [
+    "depth_matched"
+  ],
+  "pointwise_excludes_zero": [ ],
+  "family_excludes_zero": [ ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "depth_matched": {
+      "a_median": 0,
+      "b_median": 1,
+      "change_pct": null,
+      "ci95_pct": null,
+      "family95_pct": null
+    },
+    "key_count": {
+      "a_median": 4000,
+      "b_median": 4000,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "pack_match_us": {
+      "a_median": 62397.7,
+      "b_median": 61973.1,
+      "change_pct": -0.47412394679274827,
+      "ci95_pct": [
+        -1.9672199456069683,
+        0.46428160365199478
+      ],
+      "family95_pct": [
+        -1.9672199456069683,
+        1.4859470336232583
+      ]
+    },
+    "pack_records": {
+      "a_median": 1,
+      "b_median": 1,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "prebuild_keys_us": {
+      "a_median": 188464.9,
+      "b_median": 174073.7,
+      "change_pct": -4.3214330356690418,
+      "ci95_pct": [
+        -11.035593971304646,
+        3.5617312703398074
+      ],
+      "family95_pct": [
+        -11.035593971304646,
+        3.5617312703398074
+      ]
+    },
+    "raster_matched": {
+      "a_median": 1,
+      "b_median": 1,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}

@@ -1,0 +1,55 @@
+Local build-queue slots reserved: 4
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+2026-11-26 17:10:39Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=9% | VRAM=4098/32607 MiB | power=76.74 W | temp=39.08 C | graphics=1485 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%, dwm(pid=61556) 3D=2%, msedgewebview2(pid=68740) 3D=1%
+Idle window: 11.9s, 10 samples, max GPU=9%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Sample A 1/15 P0 2902/14001 MHz
+Sample B 1/15 P0 2715/14001 MHz
+Sample B 2/15 P0 2715/14001 MHz
+Sample A 2/15 P0 2707/14001 MHz
+Sample A 3/15 P0 2722/14001 MHz
+Sample B 3/15 P0 2655/14001 MHz
+Sample B 4/15 P0 2745/14001 MHz
+Sample A 4/15 P0 2662/14001 MHz
+Sample A 5/15 P0 2662/14001 MHz
+Sample B 5/15 P0 2655/14001 MHz
+Sample B 6/15 P0 2662/14001 MHz
+Sample A 6/15 P0 2662/14001 MHz
+Sample A 7/15 P0 2662/14001 MHz
+Sample B 7/15 P0 2655/14001 MHz
+Sample B 8/15 P0 2655/14001 MHz
+Sample A 8/15 P0 2662/14001 MHz
+Sample A 9/15 P0 2692/14001 MHz
+Sample B 9/15 P0 2715/14001 MHz
+Sample B 10/15 P0 2670/14001 MHz
+Sample A 10/15 P0 2677/14001 MHz
+Sample A 11/15 P0 2670/14001 MHz
+Sample B 11/15 P0 2700/14001 MHz
+Sample B 12/15 P0 2670/14001 MHz
+Sample A 12/15 P0 2677/14001 MHz
+Sample A 13/15 P0 2715/14001 MHz
+Sample B 13/15 P0 2730/14001 MHz
+Sample B 14/15 P0 2707/14001 MHz
+Sample A 14/15 P0 2737/14001 MHz
+Sample A 15/15 P0 2670/14001 MHz
+Sample B 15/15 P0 2715/14001 MHz
+Correctness: A True, B True. Median paired change [pointwise 95%]:
+disk_all_commit_bytes: -0.16% [-0.56%, 0.61%]
+disk_all_us: -36.35% [-39.29%, -34.64%]
+disk_all_working_set_bytes: -0.18% [-0.38%, -0.07%]
+disk_cold_commit_bytes: -0.16% [-2.20%, 2.07%]
+disk_cold_us: -12.98% [-15.68%, -10.68%]
+disk_cold_working_set_bytes: +0.02% [-2.76%, 3.01%]
+disk_middle_commit_bytes: -0.25% [-0.49%, -0.05%]
+disk_middle_us: -20.81% [-27.13%, -17.83%]
+disk_middle_working_set_bytes: -0.06% [-0.17%, 0.33%]
+disk_prefix_commit_bytes: +0.18% [0.04%, 0.68%]
+disk_prefix_us: -24.84% [-28.40%, -16.81%]
+disk_prefix_working_set_bytes: -0.03% [-0.14%, 0.09%]
+shader_count: 0.00% [0.00%, 0.00%]
+subset_count: 0.00% [0.00%, 0.00%]
+Paired bootstrap: 15 pairs; see paired.json
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

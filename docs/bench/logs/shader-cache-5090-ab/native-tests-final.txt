@@ -1,0 +1,13 @@
+Windows 原生五个 crate 的最终复测。提交 cea5b8209e0e15d9c40a089b423bab695c576392，可执行文件 SHA-256 71c8b243985ca6e60a08522404ebf32d3eb91d7253fc2a69527491813cb4d493。
+Windows Cargo diag，victory、victory-game、victory-shader、victory-gpu、victory-pipeline，启用 victory-gpu/diagnostics。为避开其他方向正式采样，VALU 子集按 test 名称分批串行运行。
+合计 643 项通过，0 项失败，22 项默认忽略。
+另外按需运行 3/3 次冒烟，合成像素 CheckOnly、SkipValidation 通过，零崩溃。
+D3D12 Debug Layer 缺少 Windows 图形工具，待补。
+
+hardware reopened_library_loads_then_recovers_a_rejected_blob：7 个进程均通过。
+hardware wave_mark_capability_selects_its_cached_dxil：1 个进程均通过。
+warp reopened_library_loads_then_recovers_a_rejected_blob：7 个进程均通过。
+warp wave_mark_capability_selects_its_cached_dxil：1 个进程均通过。
+shader_count=20 shader_dxil_bytes=94025 shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2 prebuild_count=16 verified=1
+shader_count=2000 shader_dxil_bytes=9186185 shader_digest=20473c42839d9df07d82a5489a8d023920ae7fb2d74ebe660a8f6591f065ef8b prebuild_count=1996 verified=1
+新增驱动实验在最终集成代码下再次验证 128 个 PSO 正常创建并跨进程重放。

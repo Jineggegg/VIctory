@@ -28,10 +28,10 @@ fn wave_scenarios() {
 /// must change only when the generated shader changes.
 #[test]
 fn wave_mark_capability_selects_its_cached_dxil() {
-    use crate::shader_cache::{cached, key};
-    use victory_shader::emit::{Options, translate_with};
+    use crate::shader_cache::{Cache, cached, key};
+    use victory_shader::emit::{Options, translate_with, translate_with_resources};
     let dir = tempfile::tempdir().unwrap();
-    let cache = victory_pipeline::Cache::open(dir.path()).unwrap();
+    let cache = Cache::open(dir.path()).unwrap();
     let container = super::gfx10::wave_container(None);
     let mut outputs = Vec::new();
     for wave_marks in [false, true] {
@@ -43,7 +43,7 @@ fn wave_mark_capability_selects_its_cached_dxil() {
             wave_marks,
         );
         let translate = |bytes: &[u8]| {
-            translate_with(
+            translate_with_resources(
                 bytes,
                 Options {
                     view_marks: true,
@@ -51,6 +51,7 @@ fn wave_mark_capability_selects_its_cached_dxil() {
                     wave_marks,
                 },
             )
+            .map(|(host, used)| super::super::Translated { host, used })
             .map_err(|e| e.to_string())
         };
         let (first, hit) = cached(&cache, &build, &container, translate);
@@ -60,7 +61,7 @@ fn wave_mark_capability_selects_its_cached_dxil() {
         });
         assert!(hit);
         assert_eq!(first, again);
-        let bytes = first.unwrap().dxil;
+        let bytes = first.unwrap().host.dxil;
         let pso_name = super::super::library::name("compute", &[], &[&bytes], "");
         outputs.push((bytes, pso_name));
     }

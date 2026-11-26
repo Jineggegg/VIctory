@@ -11,7 +11,7 @@ use windows::Win32::Graphics::Dxgi::Common::DXGI_FORMAT_R32G32B32A32_FLOAT;
 use windows::core::Interface;
 
 /// Synthetic compute shader storing four root constants at texel (0, 0).
-fn store_shader() -> Arc<Shader> {
+fn store_shader(salt: Option<u32>) -> Arc<Shader> {
     let words: [u32; 12] = [
         0xBE85_0380, // s_mov_b32 s5, 0: high word of the table address
         0xF40C_0202,
@@ -26,6 +26,13 @@ fn store_shader() -> Arc<Shader> {
         0x0002_0105, // image_store v[1:4], v[5:6], s[8:15], dim:2D, dmask:0xf
         0xBF81_0000, // s_endpgm
     ];
+    let mut words = words.to_vec();
+    if let Some(salt) = salt {
+        // Use the same instruction sequence as the salted blur, on four
+        // distinct bit patterns that can be read back after dispatch.
+        let transforms = (1..=4).flat_map(|dst| super::gfx10::salted_identity(dst, 7, salt));
+        words.splice(9..9, transforms);
+    }
     let native = NativeProgram {
         stage: HwStage::Cs,
         wave64: false,
@@ -110,6 +117,14 @@ fn placed_uav_dispatch_writes_its_texture() {
 
 pub(super) fn run_store(
     host: &crate::host::Host,
+    mark: impl FnMut(&'static str),
+) -> Option<[[f32; 4]; 2]> {
+    run_store_with_salt(host, None, mark)
+}
+
+pub(super) fn run_store_with_salt(
+    host: &crate::host::Host,
+    salt: Option<u32>,
     mut mark: impl FnMut(&'static str),
 ) -> Option<[[f32; 4]; 2]> {
     let mut sm = D3D12_FEATURE_DATA_SHADER_MODEL {
@@ -129,7 +144,7 @@ pub(super) fn run_store(
     }
 
     mark("begin");
-    let shader = store_shader();
+    let shader = store_shader(salt);
     mark("shader_us");
     let mut pipeline = std::ptr::null();
     assert_eq!(

@@ -1,0 +1,48 @@
+Local build-queue slots reserved: 4
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-26 17:13:22Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=2% | VRAM=3882/32607 MiB | power=66.06 W | temp=37.21 C | graphics=1117 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%
+Idle window: 11.9s, 10 samples, max GPU=4%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Sample A 1/15 P0 2895/14001 MHz
+Sample B 1/15 P0 2910/14001 MHz
+Sample B 2/15 P0 2895/14001 MHz
+Sample A 2/15 P0 2655/14001 MHz
+Sample A 3/15 P0 2722/14001 MHz
+Sample B 3/15 P0 2662/14001 MHz
+Sample B 4/15 P0 2662/14001 MHz
+Sample A 4/15 P0 2662/14001 MHz
+Sample A 5/15 P0 2685/14001 MHz
+Sample B 5/15 P0 2722/14001 MHz
+Sample B 6/15 P0 2722/14001 MHz
+Sample A 6/15 P0 2655/14001 MHz
+Sample A 7/15 P0 2677/14001 MHz
+Sample B 7/15 P0 2677/14001 MHz
+Sample B 8/15 P0 2677/14001 MHz
+Sample A 8/15 P0 2760/14001 MHz
+Sample A 9/15 P0 2662/14001 MHz
+Sample B 9/15 P0 2655/14001 MHz
+Sample B 10/15 P0 2670/14001 MHz
+Sample A 10/15 P0 2685/14001 MHz
+Sample A 11/15 P0 2775/14001 MHz
+Sample B 11/15 P0 2685/14001 MHz
+Sample B 12/15 P0 2700/14001 MHz
+Sample A 12/15 P0 2722/14001 MHz
+Sample A 13/15 P0 2655/14001 MHz
+Sample B 13/15 P0 2670/14001 MHz
+Sample B 14/15 P0 2662/14001 MHz
+Sample A 14/15 P0 2685/14001 MHz
+Sample A 15/15 P0 2707/14001 MHz
+Sample B 15/15 P0 2655/14001 MHz
+Correctness: A True, B True. Median paired change [pointwise 95%]:
+cache_cold_open_us: +0.41% [-4.25%, 2.57%]
+cache_cold_ready_us: -15.85% [-20.98%, -12.05%]
+cache_cold_saved_us: -15.55% [-20.60%, -11.79%]
+cache_warm_open_us: -2.18% [-9.12%, -1.60%]
+cache_warm_ready_us: -28.56% [-32.64%, -25.50%]
+cache_warm_saved_us: -26.69% [-30.01%, -23.50%]
+shader_count: 0.00% [0.00%, 0.00%]
+Paired bootstrap: 15 pairs; see paired.json
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

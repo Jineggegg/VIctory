@@ -1,0 +1,34 @@
+Windows 11，RTX 5090，驱动 621.14。测试代码 4583945c0b68ddf2fb4be85c61a19b7639182126。
+Cargo --locked --offline --profile diag，包为 victory（apps/victory）、victory-gpu、victory-shader。
+各 Cargo 测试目标串行运行。emit::valu_tests 的 35 个测试以同一配置得到的可执行文件逐个启动，全部计入总数。
+
+默认功能
+Running unittests src\main.rs (target\diag\deps\victory-6892f752224772d5.exe)  通过 14，忽略 0
+Running tests\census.rs (target\diag\deps\census-69b08ef01f558a0a.exe)  通过 2，忽略 0
+Running tests\census_unreadable.rs (target\diag\deps\census_unreadable-2d28e5bd5108b7db.exe)  通过 1，忽略 0
+Running tests\translate.rs (target\diag\deps\translate-619c0c8aa2deac03.exe)  通过 1，忽略 0
+Running unittests src\lib.rs (target\diag\deps\victory_gpu-5f14f42b2b6bfd0a.exe)  通过 281，忽略 3
+Running unittests src\lib.rs (target\diag\deps\victory_shader-15273abedac861e6.exe)  通过 273，忽略 3
+Running tests\resource_tracking.rs (target\diag\deps\resource_tracking-efe59c35d907d68c.exe)  通过 3，忽略 1
+Doc-tests victory_gpu  通过 0，忽略 0
+Doc-tests victory_shader  通过 0，忽略 0
+VALU 子集另通过 35，shader 测试程序 SHA-256 87d08bdda2bd29dc218faf037fe58f12dbc98bd847a4ac85afb82ea27b0f5df9
+合计通过 610，失败 0，默认忽略 7。
+
+诊断功能，启用 victory/diagnostics 和 victory-gpu/diagnostics
+Running unittests src\main.rs (target\diag\deps\victory-5cb4d4b1dc15c1f1.exe)  通过 14，忽略 0
+Running tests\census.rs (target\diag\deps\census-8356c28b9a2fbbc2.exe)  通过 2，忽略 0
+Running tests\census_unreadable.rs (target\diag\deps\census_unreadable-37f3207d51ff0caa.exe)  通过 1，忽略 0
+Running tests\translate.rs (target\diag\deps\translate-aa576cb99cf4dae2.exe)  通过 1，忽略 0
+Running unittests src\lib.rs (target\diag\deps\victory_gpu-821f20968b1ca81e.exe)  通过 297，忽略 19
+Running unittests src\lib.rs (target\diag\deps\victory_shader-d1c4e028de5f166c.exe)  通过 273，忽略 3
+Running tests\resource_tracking.rs (target\diag\deps\resource_tracking-a5935fd5ea46ff8b.exe)  通过 3，忽略 1
+Doc-tests victory_gpu  通过 0，忽略 0
+Doc-tests victory_shader  通过 0，忽略 0
+VALU 子集另通过 35，shader 测试程序 SHA-256 8cd79de3617282a86f101aaa8623b44ad8a0659db347afd8bc23dd747e8ecdb1
+合计通过 626，失败 0，默认忽略 23。
+
+RTX 5090 和 WARP 分别显式运行驱动库重开测试。各含父进程和 7 个阶段进程，8/8 均通过。
+三个独立 Windows 进程的标准冒烟均通过。合成像素 CheckOnly、SkipValidation 通过，零失败、零崩溃，D3D12 调试层验证按参数跳过。
+初版未限制默认测试线程时，纹理尾部子资源行比对曾失败一次。在最终代码上以默认 test 配置单独复跑通过，两组完整串行全测也通过。
+cargo xtask policy 通过，824 个文件。
