@@ -227,6 +227,7 @@ fn gathers_at_a_level_match_the_hardware() {
             eprintln!("no SM 6.6 {label} device; skipped");
             continue;
         };
+        let label = if host.is_warp() { "warp" } else { "hardware" };
         let (root, pso) = host.compute_pipeline(&shader).expect("pipeline");
         let ud = vec![0u32; shader.user_data_dwords().max(1) as usize];
         let mut roots = vec![(0, Root::Constants(ud))];
@@ -261,8 +262,8 @@ fn gathers_at_a_level_match_the_hardware() {
             };
             let [offset, u, v, level] = *r;
             let level = level.min(3);
-            let (w, h) = (24 >> level, 16 >> level);
-            let at = |ox: i64, oy: i64| {
+            let at = |level: u32, ox: i64, oy: i64| {
+                let (w, h) = (24 >> level, 16 >> level);
                 let (x, y) = (
                     first(f32::from_bits(u), w) + ox,
                     first(f32::from_bits(v), h) + oy,
@@ -275,14 +276,17 @@ fn gathers_at_a_level_match_the_hardware() {
                 ]
             };
             let sext = |b: u32| i64::from((b as i32) << 26 >> 26);
-            assert_eq!(got(0), at(0, 0), "{label}: lane {lane}");
+            assert_eq!(got(0), at(level, 0, 0), "{label}: lane {lane}");
             assert_eq!(
                 got(1),
-                at(sext(offset), sext(offset >> 8)),
+                at(level, sext(offset), sext(offset >> 8)),
                 "{label}: lane {lane}, offset"
             );
             // WARP's own gather truncates where the hardware rounds.
-            if lane < 16 && !warp {
+            if lane >= 16 {
+                // These coordinates are away from the level-zero rounding boundaries.
+                assert_eq!(got(2), at(0, 0, 0), "{label}: native level-zero gather, lane {lane}");
+            } else if !host.is_warp() {
                 assert_eq!(got(2), got(0), "{label}: lane {lane} against its gather");
             }
         }
