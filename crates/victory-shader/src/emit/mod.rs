@@ -401,6 +401,15 @@ pub fn translate(container: &[u8]) -> Result<HostShader, ShaderError> {
 
 /// [`translate`] made as `options` say.
 pub fn translate_with(container: &[u8], options: Options) -> Result<HostShader, ShaderError> {
+    translate_with_resources(container, options).map(|(shader, _)| shader)
+}
+
+/// The emitted shader and the descriptor ranges used by the selected
+/// native program, decoded from the same container.
+pub fn translate_with_resources(
+    container: &[u8],
+    options: Options,
+) -> Result<(HostShader, Vec<crate::UsedResource>), ShaderError> {
     let c = Container::parse(container)?;
     let dxil = c
         .part(FourCC::DXIL)
@@ -424,7 +433,8 @@ pub fn translate_with(container: &[u8], options: Options) -> Result<HostShader, 
     let res = resource::track(&p, &native.layout, native.stage, st.as_ref().ok())?;
     let io = io::raise(&p, &native)?;
     let st = st?;
-    emit_with(&c, &native, &p, &st, &io, &res, options)
+    let host = emit_with(&c, &native, &p, &st, &io, &res, options)?;
+    Ok((host, native.used))
 }
 
 /// Emits a program whose earlier stages already ran, without write marks.
