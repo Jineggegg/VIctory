@@ -82,23 +82,39 @@ fn descriptors(count: usize) {
     println!("BENCH descriptors_{count}_changed={count}");
     // D3D12 descriptors are opaque. Read every changed raw SRV on the GPU.
     let device = crate::host::host().unwrap();
-    let (root, pso) = crate::draw::tests::compile_cs(
+    // A shader indexes the physical heap. On paged hosts, follow the same
+    // GPU-visible page table as translated shaders, after the timed sync.
+    let paged = crate::descriptor::view_pages();
+    let page_slots = victory_shader::emit::VIEW_PAGE_SLOTS;
+    // SAFETY: the view heap stays live through the readback.
+    let host_slots = unsafe { host.heap.GetDesc().NumDescriptors };
+    let source = format!(
         r#"
-        ByteAddressBuffer slots[32768] : register(t0);
+        ByteAddressBuffer slots[{host_slots}] : register(t0);
+        ByteAddressBuffer pages : register(t0, space1);
         RWByteAddressBuffer dst : register(u0);
-        [RootSignature("DescriptorTable(SRV(t0,numDescriptors=32768)), UAV(u0)")]
+        [RootSignature("DescriptorTable(SRV(t0,numDescriptors={host_slots})), UAV(u0), SRV(t0,space=1)")]
         [numthreads(1,1,1)]
-        void main(uint3 id : SV_GroupID) {
-            dst.Store(4 * id.x, slots[(id.x * 17) % 32768].Load(0));
-        }"#,
+        void main(uint3 id : SV_GroupID) {{
+            uint slot = (id.x * 17) % {capacity};
+            #if {paged}
+            slot = pages.Load(4 * (slot / {page_slots})) * {page_slots} + slot % {page_slots};
+            #endif
+            dst.Store(4 * id.x, slots[slot].Load(0));
+        }}"#,
+        paged = u32::from(paged),
     );
+    let (root, pso) = crate::draw::tests::compile_cs(&source);
     let (output, data) = device.shared_buffer((4 * count) as u64).unwrap();
     let list = device.new_list().unwrap();
     unsafe {
         list.list.SetDescriptorHeaps(&[Some(host.heap.clone())]);
         list.list.SetComputeRootSignature(&root);
         list.list.SetPipelineState(&pso);
-        list.list.SetComputeRootDescriptorTable(0, host.gpu(0));
+        list.list.SetComputeRootDescriptorTable(0, host.heap.GetGPUDescriptorHandleForHeapStart());
+        let strides = host.strides().unwrap().GetGPUVirtualAddress();
+        let offset = if paged { victory_shader::emit::VIEW_PAGE_TABLE } else { 0 };
+        list.list.SetComputeRootShaderResourceView(2, strides + u64::from(offset));
         list.list
             .SetComputeRootUnorderedAccessView(1, output.GetGPUVirtualAddress());
         list.list.Dispatch(count as u32, 1, 1);
