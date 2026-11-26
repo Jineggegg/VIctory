@@ -830,6 +830,41 @@ impl Shadow {
         })
     }
 
+    /// Only valid declarations on this shared page go back. Keep the shader's
+    /// withheld bytes in the shadow and leave the page's tracker outstanding.
+    fn copy_back_marked_ranges(&self, page: usize, spans: &[(usize, usize)]) -> usize {
+        let Some(t) = &self.tracked else { return 0 };
+        let start = self.start as usize;
+        let from = start.max(page);
+        let end = (start + self.len as usize).min(page + PAGE);
+        let index = page / PAGE;
+        t.arm(from, end);
+        let was_dirty = t.changed(index);
+        let mut title = vec![0; end - from];
+        let read = crate::host::read_into(from as *const u8, &mut title);
+        t.unarm(index);
+        let saved = t.saved(index);
+        if !read || (was_dirty && saved.is_none()) { return 0; }
+        let mut written = 0;
+        let mut snapshot = self.before.lock().unwrap_or_else(|e| e.into_inner());
+        for &(a, b) in spans {
+            let (a, b) = (a.max(from), b.min(end));
+            if a >= b { continue; }
+            // SAFETY: this piece lies entirely inside the mapped shadow.
+            let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(a - start), b - a) };
+            let title = &title[a - from..b - from];
+            let old = saved.as_ref().map_or(title, |s| &s[a - page..b - page]);
+            if store_snapshot_changes(a, host, old, title) { written += b - a; }
+            if crate::host::read_into(a as *const u8, host) {
+                for (at, bytes) in &mut snapshot.0 {
+                    let (s, e) = ((a - start).max(*at), (b - start).min(*at + bytes.len()));
+                    if s < e { bytes[s - *at..e - *at].copy_from_slice(&host[start + s - a..start + e - a]); }
+                }
+            }
+        }
+        written
+    }
+
     fn copy_back_marked_with(
         &self,
         page: usize,
@@ -1432,7 +1467,7 @@ fn drain_marks(bits: &mut [u32], end: usize, into: &mut Vec<u32>) {
 // shortcut: marks do not tell lists apart: a page that a withheld list and
 // another both wrote through views goes back unless the withheld list
 // declared it.
-pub(crate) fn copy_back_marks(withheld: &[(Arc<Shadow>, usize, usize)], memory_withheld: bool) {
+pub(crate) fn copy_back_marks(declared: &[(Arc<Shadow>, usize, usize, bool)], memory_withheld: bool) {
     let (mut marked, mut held) = (Vec::new(), Vec::new());
     for memory in [false, true] {
         let Some(b) = bitmap(memory) else {
@@ -1463,40 +1498,61 @@ pub(crate) fn copy_back_marks(withheld: &[(Arc<Shadow>, usize, usize)], memory_w
     let page_at = |copy: &Shadow, bit: u32| {
         ((copy.start as usize) & !(PAGE - 1)) + (bit - copy.marks.unwrap()) as usize * PAGE
     };
+    // Preserve the clipped declared ranges on pages shared by a valid and a
+    // missed list (Marvisak/VIctory#1986). Plain pages keep the batched path.
+    let withheld: Vec<_> = declared.iter().filter(|d| !d.3).collect();
     for (copy, bits) in owners {
-        let mut chunks: Vec<(usize, usize)> = Vec::new();
+        struct MarkedRun {
+            page: usize,
+            pages: usize,
+            /// Empty for a run of unrestricted, complete marked pages.
+            valid: Vec<(usize, usize)>,
+        }
+        let mut chunks = Vec::<MarkedRun>::new();
         let mut count = 0;
         for &bit in bits {
             let page = page_at(&copy, bit);
-            if withheld
-                .iter()
-                .any(|(c, a, n)| Arc::ptr_eq(c, &copy) && *a < page + PAGE && page < a + n)
-            {
+            let end = page + PAGE;
+            let on_page = |c: &Arc<Shadow>, a: usize, n: usize| Arc::ptr_eq(c, &copy) && a < end && page < a + n;
+            if withheld.iter().any(|(c, a, n, _)| on_page(c, *a, *n)) {
+                let spans = |valid| declared.iter()
+                    .filter(|(c, a, n, back)| *back == valid && on_page(c, *a, *n))
+                    .map(|(_, a, n, _)| ((*a).max(page), (a + n).min(end)))
+                    .collect::<Vec<_>>();
+                let allowed = subtract(spans(true), &spans(false));
+                if !allowed.is_empty() {
+                    chunks.push(MarkedRun { page, pages: 1, valid: allowed });
+                    count += 1;
+                }
                 continue;
             }
             count += 1;
             match chunks.last_mut() {
-                Some((first, pages)) if *pages < 8 && page == *first + *pages * PAGE => *pages += 1,
-                _ => chunks.push((page, 1)),
+                Some(run) if run.valid.is_empty() && run.pages < 8 && page == run.page + run.pages * PAGE => {
+                    run.pages += 1;
+                }
+                _ => chunks.push(MarkedRun { page, pages: 1, valid: Vec::new() }),
             }
         }
-        let Some(&(first, _)) = chunks.first() else {
-            continue;
-        };
-        let &(last, n) = chunks.last().unwrap();
-        let end = last + n * PAGE;
+        let Some(first) = chunks.first() else { continue };
+        let last = chunks.last().unwrap();
+        let end = last.page + last.pages * PAGE;
         let copy_chunk = |i: usize| {
-            let (page, count) = chunks[i];
-            let written = copy.copy_back_marked(page, count);
+            let run = &chunks[i];
+            let written = if run.valid.is_empty() {
+                copy.copy_back_marked(run.page, run.pages)
+            } else {
+                copy.copy_back_marked_ranges(run.page, &run.valid)
+            };
             #[cfg(feature = "diagnostics")]
             {
-                crate::copystat::add(crate::copystat::C::MarkedPages, count as u64);
+                crate::copystat::add(crate::copystat::C::MarkedPages, run.pages as u64);
                 crate::copystat::add(crate::copystat::C::MarkedBytes, written as u64);
             }
             #[cfg(not(feature = "diagnostics"))]
             let _ = written;
         };
-        if count >= 128 && private_write_watch(first, end - first) {
+        if count >= 128 && private_write_watch(first.page, end - first.page) {
             parallel_items(chunks.len(), copy_chunk);
         } else {
             (0..chunks.len()).for_each(copy_chunk);
@@ -1510,6 +1566,26 @@ pub(crate) fn copy_back_marks(withheld: &[(Arc<Shadow>, usize, usize)], memory_w
             crate::memory::drop_withheld(page_at(&copy, bit), PAGE);
         }
     }
+}
+
+/// `ranges` (half-open) less `minus`: sorted, disjoint.
+fn subtract(mut ranges: Vec<(usize, usize)>, minus: &[(usize, usize)]) -> Vec<(usize, usize)> {
+    ranges.sort_unstable();
+    let mut joined: Vec<(usize, usize)> = Vec::new();
+    for (a, e) in ranges {
+        match joined.last_mut() {
+            Some(last) if a <= last.1 => last.1 = last.1.max(e),
+            _ => joined.push((a, e)),
+        }
+    }
+    for &(ma, me) in minus {
+        joined = joined
+            .into_iter()
+            .flat_map(|(a, e)| [(a, e.min(ma)), (a.max(me), e)])
+            .filter(|(a, e)| a < e)
+            .collect();
+    }
+    joined
 }
 
 struct Entry {
@@ -2521,6 +2597,45 @@ pub(crate) mod tests {
         crate::watch::tests::free(p);
         assert_eq!(first, [0xa1, 0, 0xc1, 0xa2], "CPU store during first snapshot");
         assert_eq!(second, [0xa1, 0, 0xc2, 0xa2], "CPU store before overlapping snapshot");
+    }
+
+    #[test]
+    fn publish_valid_declaration_beside_a_withheld_write_on_one_page() {
+        let host = host().expect("D3D12 adapter");
+        let p = crate::watch::tests::pool(1);
+        register(p, p as u64, PAGE as u64);
+        let copy = find(p as u64, PAGE as u64).unwrap();
+        copy.update(p, PAGE);
+        let valid = host.new_list().unwrap();
+        let missed = host.new_list().unwrap();
+        copy.gpu_writes(&valid, (p + 64) as u64, 4, true);
+        {
+            let _writer = missed.writer_uses_memory(true);
+            copy.gpu_writes(&missed, (p + 256) as u64, 4, true);
+        }
+        let shader = copy.clone();
+        valid.defer_host(move || {
+            shader.write_host((p + 64) as u64, &[0x5a; 4]);
+            shader.write_host((p + 256) as u64, &[0xa5; 4]);
+            let n = shader.marks.unwrap() as usize;
+            let bits = bitmap(false).unwrap().data as *mut u32;
+            // SAFETY: the submission lock serializes access to this bitmap.
+            unsafe { *bits.add(n / 32) |= 1 << (n % 32) };
+        });
+        missed.defer_missed(|| true);
+        valid.close();
+        missed.close();
+        host.execute(&[&valid, &missed]);
+        let mut actual = [0u8; 260];
+        assert!(crate::host::read_into(p as *const u8, &mut actual));
+        let retained = copy.read_host((p + 256) as u64, 1)[0];
+        drop((valid, missed));
+        unregister(p, p as u64);
+        drop(copy);
+        crate::watch::tests::free(p);
+        assert_eq!(&actual[64..68], &[0x5a; 4], "valid shader write must reach title memory");
+        assert_eq!(&actual[256..260], &[0; 4], "withheld title bytes");
+        assert_eq!(retained, 0xa5a5a5a5, "withheld GPU bytes remain available");
     }
 
     /// Mark bits are handed out in runs and come back joined.
