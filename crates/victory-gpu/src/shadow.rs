@@ -1458,15 +1458,12 @@ fn drain_marks(bits: &mut [u32], end: usize, into: &mut Vec<u32>) {
     }
 }
 
-/// After a submission: every page its shaders marked as written through
-/// views goes back ([`Shadow::copy_back_marked`]), but for pages in
-/// `withheld` (ranges of copies that lists whose writes stay out of title
-/// memory declared) and, with `memory_withheld`, pages that shaders using
-/// title memory marked; the bitmaps are cleared. Before the copy-backs of
-/// declared ranges, which disarm the copies.
-// shortcut: marks do not tell lists apart: a page that a withheld list and
-// another both wrote through views goes back unless the withheld list
-// declared it.
+/// Publish the ordinary marked pages after a submission. On a page with
+/// withheld declarations, only the remaining valid ranges can go back.
+/// A withheld shader's bitmap mark covers its entire shadow page. Retake
+/// held pages after publishing ordinary marks of other shadows, since their
+/// title mappings can alias. Both write bitmaps are drained before the
+/// declared copy-backs disarm the shadows.
 pub(crate) fn copy_back_marks(declared: &[(Arc<Shadow>, usize, usize, bool)], memory_withheld: bool) {
     let (mut marked, mut held) = (Vec::new(), Vec::new());
     for memory in [false, true] {
@@ -1491,6 +1488,18 @@ pub(crate) fn copy_back_marks(declared: &[(Arc<Shadow>, usize, usize, bool)], me
     }
     marked.sort_unstable();
     marked.dedup();
+    if !held.is_empty() {
+        // A bit belongs to one shadow page. Both bitmap classes on that bit
+        // share the same GPU bytes, so an ordinary mark cannot publish them.
+        // Distinct shadows of the same physical page have distinct bits.
+        let mut next_held = 0;
+        marked.retain(|bit| {
+            while next_held < held.len() && held[next_held] < *bit {
+                next_held += 1;
+            }
+            held.get(next_held) != Some(bit)
+        });
+    }
     let (owners, held_owners) = {
         let m = marks();
         (m.owners_of(&marked), m.owners_of(&held))
@@ -2597,6 +2606,46 @@ pub(crate) mod tests {
         crate::watch::tests::free(p);
         assert_eq!(first, [0xa1, 0, 0xc1, 0xa2], "CPU store during first snapshot");
         assert_eq!(second, [0xa1, 0, 0xc2, 0xa2], "CPU store before overlapping snapshot");
+    }
+
+    #[test]
+    fn withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes() {
+        let Some(h) = host() else { return };
+        let p = crate::watch::tests::pool(2);
+        register(p, p as u64, (2 * PAGE) as u64);
+        let copy = find(p as u64, (2 * PAGE) as u64).unwrap();
+        copy.update(p, 2 * PAGE);
+        let list = h.new_list().unwrap();
+        let shader = copy.clone();
+        list.defer_host(move || {
+            // No declared ranges distinguish the two writes on the first page.
+            // A neighboring ordinary-only page must still go back.
+            let base = shader.marks.unwrap() as usize;
+            for (memory, offset, value) in [(true, 100, 0xa1), (false, 200, 0xb2), (false, PAGE, 0xc3)] {
+                shader.write_host((p + offset) as u64, &[value]);
+                let bit = base + offset / PAGE;
+                let bits = bitmap(memory).unwrap().data as *mut u32;
+                // SAFETY: a valid owned mark under the host submission lock.
+                unsafe { *bits.add(bit / 32) |= 1 << (bit % 32) };
+            }
+        });
+        list.defer_missed(|| true);
+        list.close();
+        h.execute(&[&list]);
+
+        let mut title = [0; 3];
+        for (&offset, byte) in [100, 200, PAGE].iter().zip(&mut title) {
+            assert!(crate::host::read_into((p + offset) as *const u8, std::slice::from_mut(byte)));
+        }
+        let refreshed = copy.update(p, 2 * PAGE);
+        let after = [100, 200, PAGE].map(|offset| copy.read_host((p + offset) as u64, 1)[0]);
+        drop(list);
+        unregister(p, p as u64);
+        drop(copy);
+        crate::watch::tests::free(p);
+        assert_eq!(title, [0, 0, 0xc3], "withheld mark on the same shadow page");
+        assert_eq!(refreshed, PAGE);
+        assert_eq!(after, [0, 0, 0xc3], "refresh must take the retained title bytes");
     }
 
     #[test]
