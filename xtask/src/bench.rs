@@ -12,6 +12,7 @@ pub enum Mode {
     Build,
     Smoke,
     Run,
+    Ab,
 }
 
 fn driver(root: &Path) -> Command {
@@ -20,7 +21,13 @@ fn driver(root: &Path) -> Command {
     cmd
 }
 
-pub fn hot(root: &Path, mode: Mode, runs: Option<usize>, out: Option<PathBuf>) -> Result<()> {
+pub fn hot(
+    root: &Path,
+    mode: Mode,
+    runs: Option<usize>,
+    out: Option<PathBuf>,
+    arms: Option<(PathBuf, PathBuf)>,
+) -> Result<()> {
     // A Windows -> WSL round trip loses the original build-queue ancestor.
     // Reserving every slot from there can deadlock against the calling wrapper.
     ensure!(
@@ -29,6 +36,12 @@ pub fn hot(root: &Path, mode: Mode, runs: Option<usize>, out: Option<PathBuf>) -
     );
     let mut cmd = driver(root);
     cmd.arg(mode.to_possible_value().unwrap().get_name());
+    if let Some((a, b)) = arms {
+        cmd.arg("--a")
+            .arg(std::path::absolute(a)?)
+            .arg("--b")
+            .arg(std::path::absolute(b)?);
+    }
     if let Some(count) = runs {
         cmd.arg("--runs").arg(count.to_string());
     }
@@ -209,6 +222,35 @@ fn interval(a: &[f64], b: &[f64]) -> Option<(f64, f64)> {
     Some((changes[124], changes[4874]))
 }
 
+/// Resampling these pairwise ratios is equivalent to drawing whole pairs.
+fn paired_interval(a: &[f64], b: &[f64]) -> Result<[f64; 5]> {
+    ensure!(a.len() == b.len() && a.len() >= 2, "incomplete pairs");
+    ensure!(
+        a.iter().all(|&x| x > 0.0),
+        "paired percentage needs positive baselines"
+    );
+    let mut values: Vec<_> = a
+        .iter()
+        .zip(b)
+        .map(|(x, y)| 100.0 * (y / x - 1.0))
+        .collect();
+    let mut rng = BootstrapRng::new();
+    let mut scratch = Vec::new();
+    let mut draws: Vec<_> = (0..5000)
+        .map(|_| rng.resample(&values, &mut scratch))
+        .collect();
+    draws.sort_unstable_by(f64::total_cmp);
+    values.sort_unstable_by(f64::total_cmp);
+    // Nearest ranks for 2.5/97.5% and Bonferroni 0.025/19 on each tail.
+    Ok([
+        sorted_median(&values),
+        draws[124],
+        draws[4874],
+        draws[6],
+        draws[4993],
+    ])
+}
+
 fn series(field: Option<&str>) -> Result<Vec<f64>> {
     let values = field
         .context("missing series")?
@@ -219,7 +261,7 @@ fn series(field: Option<&str>) -> Result<Vec<f64>> {
     Ok(values)
 }
 
-pub fn statistics(compare: bool) -> Result<()> {
+pub fn statistics(compare: bool, paired: bool) -> Result<()> {
     for line in io::stdin().lock().lines() {
         let line = line?;
         let mut fields = line.split('\t');
@@ -228,7 +270,16 @@ pub fn statistics(compare: bool) -> Result<()> {
         let mut sorted = a.clone();
         sorted.sort_unstable_by(f64::total_cmp);
         let m = sorted_median(&sorted);
-        if compare {
+        if paired {
+            let b = series(fields.next())?;
+            let [change, low, high, family_low, family_high] = paired_interval(&a, &b)?;
+            let mut sorted = b;
+            sorted.sort_unstable_by(f64::total_cmp);
+            println!(
+                "{key}\t{m}\t{}\t{change}\t{low}\t{high}\t{family_low}\t{family_high}",
+                sorted_median(&sorted)
+            );
+        } else if compare {
             let b = series(fields.next())?;
             let mut sorted = b.clone();
             sorted.sort_unstable_by(f64::total_cmp);
@@ -265,6 +316,16 @@ pub fn statistics(compare: bool) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn paired_resampling_keeps_the_matches() {
+        assert_eq!(
+            paired_interval(&[1., 10., 100.], &[2., 20., 200.]).unwrap(),
+            [100.; 5]
+        );
+        assert_eq!(paired_interval(&[2., 1.], &[2., 1.]).unwrap(), [0.; 5]);
+        assert!(paired_interval(&[1.], &[1., 2.]).is_err());
+    }
 
     #[test]
     fn bootstrap_matches_the_reference_random_stream() {

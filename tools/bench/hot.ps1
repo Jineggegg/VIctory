@@ -1,6 +1,6 @@
 ﻿# Windows half of hot.sh. Use the WSL entry point for sampling.
 param(
-    [Parameter(Mandatory, Position=0)][ValidateSet('build','smoke','sample','compare')][string]$Mode,
+    [Parameter(Mandatory, Position=0)][ValidateSet('build','smoke','sample','ab','compare')][string]$Mode,
     [Parameter(Position=1)][string]$Before,
     [Parameter(Position=2)][string]$After,
     [string]$StatsExe, [string]$EnvFile, [string]$Distro, [int]$Runs, [string]$OutDir, [string]$QuietState
@@ -48,8 +48,10 @@ function Save-Json($path, $value) {
         if ($LASTEXITCODE) { throw "Cannot publish $path" }
     } finally { if ([IO.File]::Exists($temp)) { [IO.File]::Delete($temp) } }
 }
-function Source-Stamp {
-    $stamp = @(wsl.exe --distribution $Distro --cd $root --exec bash tools/bench/hot.sh _stamp)
+function Source-Stamp($checkout = $root) {
+    $scriptPath = wsl.exe --distribution $Distro --exec wslpath -u "$PSScriptRoot/hot.sh"
+    if ($LASTEXITCODE) { throw 'Cannot locate fingerprint tool' }
+    $stamp = @(wsl.exe --distribution $Distro --cd $checkout --exec bash $scriptPath _stamp .)
     if ($LASTEXITCODE -or $stamp.Count -lt 1 -or $stamp.Count -gt 2) { throw 'Cannot fingerprint measured sources' }
     $delta = $null
     if ($stamp.Count -eq 2) { $delta = $stamp[1] }
@@ -85,7 +87,8 @@ function Build-Benchmark {
     if (!(Same-Source $stamp (Source-Stamp))) { throw 'Source changed during build' }
     Save-Json $manifest $stamp
 }
-$gpuFields = 'name','driver_version','memory.total','utilization.gpu','memory.used','temperature.gpu','clocks.gr','clocks.mem','power.draw','pstate'
+$gpuFields = 'name','driver_version','memory.total','utilization.gpu','memory.used','temperature.gpu','clocks.gr','clocks.mem','power.draw','pstate',
+    'clocks.max.gr','clocks.max.mem','pcie.link.gen.current','pcie.link.gen.max','pcie.link.width.current','pcie.link.width.max'
 function Get-Gpu {
     $csv = @(nvidia-smi -i 0 "--query-gpu=$($gpuFields -join ',')" --format=csv,noheader,nounits)
     if ($LASTEXITCODE -or $csv.Count -ne 1) { throw 'Cannot query adapter 0' }
@@ -109,12 +112,12 @@ function Read-Metrics($text) {
     }
     $values
 }
-function Run-Child($exe) {
+function Run-Child($exe, $cwd, $test) {
     $process = [Diagnostics.Process]::new()
     $start = $process.StartInfo
     $start.FileName = $exe
-    $start.WorkingDirectory = $root
-    $start.Arguments = '--exact pipeline::hot::hot_paths --ignored --nocapture --test-threads=1'
+    $start.WorkingDirectory = $cwd
+    $start.Arguments = "--exact $test --ignored --nocapture --test-threads=1"
     $start.UseShellExecute = $false
     $start.RedirectStandardOutput = $start.RedirectStandardError = $true
     $start.StandardOutputEncoding = $start.StandardErrorEncoding = $utf8
@@ -147,56 +150,166 @@ function Summarize($rows) {
     }
     $summary
 }
-function Sample {
-    $formal = $Mode -eq 'sample'
-    if (!$formal -and [IO.File]::Exists($QuietState)) { throw 'GPU reserved for formal sampling' }
-    $binary = Read-Json $manifest
-    $exe = Join-Path $root $binary.executable
-    if (!(Same-Source $binary (Source-Stamp)) -or (File-Hash $exe) -cne $binary.sha256) {
-        throw 'Measured source or executable differs from build manifest'
+function Get-Target($dir) {
+    $dir = (Get-Item -LiteralPath $dir).FullName
+    if (Test-Path -LiteralPath (Join-Path $dir hot-bench.json)) { $dir = Split-Path $dir }
+    $binary = Read-Json (Join-Path $dir target/hot-bench.json)
+    $exe = Join-Path $dir $binary.executable
+    if (!(Same-Source $binary (Source-Stamp $dir)) -or (File-Hash $exe) -cne $binary.sha256) {
+        throw "Source or executable differs from build manifest in $dir"
     }
-    [void][IO.Directory]::CreateDirectory($OutDir)
-    $reportPath = Join-Path $OutDir results.json
+    @{dir=$dir; exe=$exe; binary=$binary}
+}
+
+function New-Report($target, $system, $gpu) {
+    [ordered]@{system=$system; schema=1; suite='victory-hot-v1'; formal=($Mode -ne 'smoke'); complete=$false;
+        debug_layer='pending: Windows Graphics Tools unavailable'; binary=$target.binary; requested=$Runs; utc=Utc-Now;
+        gpu=$gpu; profile='diag'; runs=[Collections.ArrayList]::new(); summary=@{}; invalid_count=0; max_invalid=0}
+}
+
+function Warm-Ready($gpu) {
+    # GPU Boost changes individual bins with temperature. Require the high
+    # performance P-state, the full negotiated link and near-boost clocks.
+    foreach ($key in 'clocks.gr','clocks.mem','clocks.max.gr','clocks.max.mem','pcie.link.gen.current',
+            'pcie.link.gen.max','pcie.link.width.current','pcie.link.width.max') {
+        if ($gpu[$key] -notmatch '^\d+$' -or [double]$gpu[$key] -le 0) { return $false }
+    }
+    ($gpu.pstate -in 'P0','P2' -and [double]$gpu.'clocks.gr' -ge 0.80 * [double]$gpu.'clocks.max.gr' -and
+        [double]$gpu.'clocks.mem' -ge 0.90 * [double]$gpu.'clocks.max.mem' -and
+        $gpu.'pcie.link.gen.current' -eq $gpu.'pcie.link.gen.max' -and
+        $gpu.'pcie.link.width.current' -eq $gpu.'pcie.link.width.max')
+}
+
+function Measure-One($target, $warmer, $report, $i, $position, $label, $log) {
+    $row = [ordered]@{index=$i; position=$position; utc=Utc-Now; ok=$false; polls=[Collections.ArrayList]::new()}
+    [void]$report.runs.Add($row)
+    try {
+        if (!$report.formal -and [IO.File]::Exists($QuietState)) { throw 'GPU reserved for formal sampling' }
+        if ($report.formal) {
+            for ($attempt=1; $attempt -le 2; $attempt++) {
+                $warm = Run-Child $warmer.exe $warmer.dir 'pipeline::hot::warm_adapter'
+                if ($warm.exit -ne 0 -or $warm.text -notmatch 'WARMUP completed') {
+                    throw (Protect-Log "GPU warmup failed: $($warm.text)")
+                }
+                $row.pre = Get-Gpu
+                [void]$row.polls.Add($row.pre)
+                if (Warm-Ready $row.pre) { break }
+            }
+            if (!(Warm-Ready $row.pre)) { throw 'GPU clocks or PCIe link below the warmup gate' }
+        } else {
+            $row.pre = Get-Gpu
+            [void]$row.polls.Add($row.pre)
+        }
+        Write-Host "Sample $label $i/$Runs $($row.pre.pstate) $($row.pre.'clocks.gr')/$($row.pre.'clocks.mem') MHz"
+        $child = Run-Child $target.exe $target.dir 'pipeline::hot::hot_paths'
+        $row.post = Get-Gpu
+        $log.WriteLine((Protect-Log "`nSample $label $i, position $position`n$($child.text)`nexit $($child.exit)"))
+        $row.exit = $child.exit
+        $v = Read-Metrics $child.text
+        $row.values = $v
+        $times = @($v.Keys | Where-Object { $_.EndsWith('_us') })
+        if ($row.exit -ne 0 -or $v['verified'] -ne 1 -or $v['adapter'] -cne $row.pre.name -or
+            !$v.Contains('shader_digest') -or !$v.Contains('peak_working_set_bytes') -or
+            !$v.Contains('sampled_local_peak_mb') -or $times.Count -ne $timings.Count -or
+            @($timings | Where-Object { $_ -cnotin $times }).Count) { throw 'Hotspot correctness check failed' }
+        if ($v.shader_digest -cne $report.runs[0].values.shader_digest) { throw 'DXIL changed within arm' }
+        $row.ok = $true
+    } catch {
+        $row.error = Protect-Log $_.Exception.Message
+        $report.invalid_count++
+        if (!$row.Contains('post')) { $row.post = Get-Gpu }
+        throw
+    }
+}
+
+function Telemetry-Range($rows, $phase) {
+    $range = [ordered]@{}
+    $range.pstate = @($rows | ForEach-Object { $_[$phase].pstate } | Sort-Object -Unique)
+    foreach ($key in 'clocks.gr','clocks.mem','pcie.link.gen.current','pcie.link.width.current','temperature.gpu','power.draw') {
+        $v = $rows | ForEach-Object { [double]$_[$phase][$key] } | Measure-Object -Minimum -Maximum
+        $range[$key] = @($v.Minimum,$v.Maximum)
+    }
+    $range
+}
+
+function Paired-Report($a, $b) {
+    # Each array is indexed by chronological pair, even on BA rounds.
+    $workload = 'shader_count','prebuild_count','submit_count','shadow_refresh_bytes','descriptors_1300_changed',
+        'descriptors_14400_changed','wave_page_marks_lanes','loop_global_loads','texture_title_patch_bytes'
+    foreach ($key in $workload) {
+        $base = $a.runs[0].values[$key]
+        foreach ($row in (@($a.runs) + @($b.runs))) {
+            if ($null -eq $base -or $row.values[$key] -ne $base) { throw "Workload mismatch: $key" }
+        }
+    }
+    if (Compare-Object @($a.summary.Keys) @($b.summary.Keys) -CaseSensitive) { throw 'Metric sets differ' }
+    $table = [ordered]@{}
+    $keys = $timings + @('peak_working_set_bytes','sampled_local_peak_mb')
+    $lines = $keys | ForEach-Object { "$_`t$(Series $a.runs $_)`t$(Series $b.runs $_)" } | & $xtask bench-stats --paired
+    if ($LASTEXITCODE -ne 0 -or $lines.Count -ne $keys.Count) { throw 'Paired bootstrap failed' }
+    foreach ($line in $lines) {
+        $k,$m,$n,$d,$lo,$hi,$flo,$fhi = $line.Split("`t")
+        $table[$k] = [ordered]@{a_median=[double]$m; b_median=[double]$n; change_pct=[double]$d;
+            ci95_pct=@([double]$lo,[double]$hi); family95_pct=@([double]$flo,[double]$fhi)}
+    }
+    $outside = @($timings | Where-Object { $table[$_].family95_pct[0] -gt 0 -or $table[$_].family95_pct[1] -lt 0 })
+    $nominal = @($timings | Where-Object { $table[$_].ci95_pct[0] -gt 0 -or $table[$_].ci95_pct[1] -lt 0 })
+    $aa = ($a.binary.sha256 -ceq $b.binary.sha256)
+    [ordered]@{schema=1; pairs=$Runs; a_commit=$a.binary.commit; b_commit=$b.binary.commit; a_correct=$a.complete;
+        b_correct=$b.complete; same_binary=$aa; order='alternating AB / BA by pair'; bootstrap_draws=5000; seed=5090;
+        pointwise_excludes_zero=$nominal; family_excludes_zero=$outside; pass=(!$aa -or $outside.Count -eq 0); metrics=$table}
+}
+
+function Sample {
+    $paired = $Mode -eq 'ab'
+    if ($Mode -eq 'smoke' -and [IO.File]::Exists($QuietState)) { throw 'GPU reserved for formal sampling' }
+    $warmer = Get-Target $root
+    $targets = [ordered]@{A=$warmer}
+    if ($paired) { $targets.A = Get-Target $Before; $targets.B = Get-Target $After }
     $system = [ordered]@{cpu=(Get-CimInstance Win32_Processor).Name; ram_bytes=(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory;
         os=(Get-CimInstance Win32_OperatingSystem).Version}
-    $report = [ordered]@{system=$system; schema=1; suite='victory-hot-v1'; formal=$formal; complete=$false;
-        debug_layer='pending: Windows Graphics Tools unavailable'; binary=$binary; requested=$Runs; utc=Utc-Now; gpu=Get-Gpu;
-        profile='diag'; runs=[Collections.ArrayList]::new(); summary=@{}}
+    $gpu = Get-Gpu
+    [void][IO.Directory]::CreateDirectory($OutDir)
     $file = [IO.File]::Open((Join-Path $OutDir run.txt), 'CreateNew', 'Write', 'Read')
     $log = [IO.StreamWriter]::new($file, $utf8)
     $log.AutoFlush = $true
+    $reports = @{}
+    $paths = @{}
     try {
-        for ($i = 1; $i -le $Runs; $i++) {
-            $row = [ordered]@{index=$i; utc=Utc-Now; ok=$false; polls=[Collections.ArrayList]::new()}
-            [void]$report.runs.Add($row)
-            try {
-                if (!$formal -and [IO.File]::Exists($QuietState)) { throw 'GPU reserved for formal sampling' }
-                $timer = [Diagnostics.Stopwatch]::StartNew()
-                while ($true) {
-                    $gpu = Get-Gpu
-                    [void]$row.polls.Add($gpu)
-                    if (!$formal -or [double]$gpu.'utilization.gpu' -le 10) { break }
-                    if ($timer.Elapsed.TotalSeconds -gt 30) { throw 'Busy adapter before sample' }
-                    Start-Sleep -Milliseconds 500
-                }
-                Write-Host "Sample $i/$Runs, GPU $($gpu.'utilization.gpu')%"
-                $child = Run-Child $exe
-                $log.WriteLine((Protect-Log "`nSample $i | $(ConvertTo-Json $gpu -Compress)`n$($child.text)`nexit $($child.exit)"))
-                $row.exit = $child.exit
-                $values = Read-Metrics $child.text
-                $row.values = $values
-                $times = @($values.Keys | Where-Object { $_.EndsWith('_us') })
-                if ($row.exit -ne 0 -or $values['verified'] -ne 1 -or $values['adapter'] -cne $gpu.name -or
-                    !$values.Contains('shader_digest') -or !$values.Contains('peak_working_set_bytes') -or
-                    !$values.Contains('sampled_local_peak_mb') -or $times.Count -ne $timings.Count -or
-                    @($timings | Where-Object { $_ -cnotin $times }).Count) { throw "Validation failed in sample $i; see run.txt" }
-                if ($values.shader_digest -cne $report.runs[0].values.shader_digest) { throw 'DXIL content changed within this sample set' }
-                $row.ok = $true
-            } finally { Save-Json $reportPath $report }
+        foreach ($label in $targets.Keys) {
+            $reports[$label] = New-Report $targets[$label] $system $gpu
+            if ($Mode -ne 'smoke') {
+                $reports[$label].warmup = [ordered]@{binary=$warmer.binary; seconds=2; max_attempts=2;
+                    pstate=@('P0','P2'); min_graphics_fraction=0.80; min_memory_fraction=0.90; full_link=$true}
+            }
+            $dir = if ($paired) { Join-Path $OutDir $label } else { $OutDir }
+            [void][IO.Directory]::CreateDirectory($dir)
+            $paths[$label] = Join-Path $dir results.json
+            Save-Json $paths[$label] $reports[$label]
         }
-        $report.summary = Summarize $report.runs
-        $report.complete = $true
-        Save-Json $reportPath $report
+        for ($i=1; $i -le $Runs; $i++) {
+            $order = @($targets.Keys)
+            if ($paired -and $i % 2 -eq 0) { [array]::Reverse($order) }
+            $position = 0
+            foreach ($label in $order) {
+                $position++
+                try { Measure-One $targets[$label] $warmer $reports[$label] $i $position $label $log }
+                finally { Save-Json $paths[$label] $reports[$label] }
+            }
+        }
+        foreach ($label in $targets.Keys) {
+            $r = $reports[$label]
+            $r.summary = Summarize $r.runs
+            $r.telemetry = [ordered]@{pre=Telemetry-Range $r.runs pre; post=Telemetry-Range $r.runs post}
+            $r.complete = $true
+            Save-Json $paths[$label] $r
+        }
+        if ($paired) {
+            $result = Paired-Report $reports.A $reports.B
+            Save-Json (Join-Path $OutDir paired.json) $result
+            if (!$result.pass) { throw 'A/A family interval excludes zero; inspect paired.json' }
+            Write-Host "Paired bootstrap: $Runs pairs; see paired.json"
+        }
     } finally { $log.Dispose() }
 }
 function Passed($report) {

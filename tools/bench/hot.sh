@@ -7,7 +7,7 @@ shift || true
 
 # Same fingerprint as the original runner, including raw untracked file bytes.
 if [[ $mode == _stamp ]]; then
-    cd "$root"
+    cd "${1:-$root}"
     paths=(-- . ':(exclude)docs/bench')
     git rev-parse HEAD
     temp=$(mktemp -d)
@@ -46,15 +46,19 @@ if [[ $mode == compare && $# == 2 ]]; then
     invoke compare "$(winpath "$1")" "$(winpath "$2")" -EnvFile "$envfile"
     exit
 fi
-case "$mode" in build|smoke|run) ;; *)
-    echo "usage: hot.sh {build|smoke|run} [--runs N] [--out DIR] | compare BEFORE AFTER" >&2
+case "$mode" in build|smoke|run|ab) ;; *)
+    echo "usage: hot.sh {build|smoke|run} [--runs N] [--out DIR] | ab --a DIR --b DIR [--runs N] [--out DIR] | compare BEFORE AFTER" >&2
     exit 2 ;;
 esac
 runs=30
+a=
+b=
 [[ $mode != smoke ]] || runs=3
 out="$root/docs/bench/logs/hot-$(date +%Y%m%d-%H%M%S)"
 while (($#)); do
     case "$1" in
+        --a) a=$(winpath "${2:?missing A directory}"); shift 2 ;;
+        --b) b=$(winpath "${2:?missing B directory}"); shift 2 ;;
         --runs) runs=${2:?missing count}; shift 2 ;;
         --runs=*) runs=${1#*=}; shift ;;
         --out) out=${2:?missing directory}; shift 2 ;;
@@ -64,6 +68,7 @@ while (($#)); do
 done
 # Non-login WSL services do not always export WSL_DISTRO_NAME.
 distro=${WSL_DISTRO_NAME:-$(wslpath -w / | cut -d '\' -f4)}
+[[ $mode == ab || ( -z $a && -z $b ) ]] || { echo "--a/--b require ab" >&2; exit 2; }
 common=(-EnvFile "$envfile" -Distro "${distro:?cannot identify WSL distribution}")
 if [[ $mode == build ]]; then invoke build "${common[@]}"; exit; fi
 [[ $runs =~ ^[0-9]+$ ]] && ((10#$runs >= 1)) || { echo "invalid run count" >&2; exit 2; }
@@ -74,7 +79,14 @@ if [[ $mode == smoke ]]; then
     invoke smoke "${args[@]}" -QuietState "$(winpath "$state")"
     exit
 fi
-((10#$runs >= 30)) || { echo "formal sampling requires at least 30 runs" >&2; exit 2; }
+sample_mode=sample
+if [[ $mode == ab ]]; then
+    [[ -n $a && -n $b ]] && ((10#$runs >= 2)) || { echo "ab requires --a, --b and at least two pairs" >&2; exit 2; }
+    sample_mode=ab
+    args+=(-Before "$a" -After "$b")
+else
+    ((10#$runs >= 30)) || { echo "formal sampling requires at least 30 runs" >&2; exit 2; }
+fi
 invoke build "${common[@]}"
 mkdir -p "$out"
 state=${BUILD_QUEUE_STATE:-$HOME/.local/state/build-queue}
@@ -114,7 +126,7 @@ export BUILD_QUEUE_HELD=1
     # A desktop service restored by gpu-quiet must not inherit the slot locks.
     for fd in "${held[@]}"; do exec {fd}>&-; done
     exec 3>&-
-    exec gpu-quiet run -- "${driver[@]}" sample "${args[@]}"
+    exec gpu-quiet run -- "${driver[@]}" "$sample_mode" "${args[@]}"
 ) 2>&1 |
     redact |
     tee -a /dev/fd/3
