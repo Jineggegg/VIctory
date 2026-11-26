@@ -78,7 +78,9 @@ fn library_dir() -> Option<&'static PathBuf> {
 fn adapter_namespace(device: &ID3D12Device) -> Option<String> {
     // SAFETY: reads the identifier of this live device.
     let luid = unsafe { device.GetAdapterLuid() };
-    if let Some(name) = hardware_namespace(luid) {
+    // The kernel query describes physical node zero. For linked devices use
+    // the logical adapter and driver identity supplied by DXGI.
+    if unsafe { device.GetNodeCount() } == 1 && let Some(name) = hardware_namespace(luid) {
         return Some(name);
     }
     dxgi_namespace(luid)
