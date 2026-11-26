@@ -1,0 +1,190 @@
+Isolated checks, native Windows, each command in a fresh process.
+> cargo test --locked -p victory-shader --lib emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index -- --exact --nocapture --test-threads=1
+Applied only #2596 (9620667)
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-shader)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.72s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.40s
+
+
+After adding paging #2121 (65768a2)
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-shader)
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.27s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-430539b01b4c91b0.exe)
+
+running 1 test
+test descriptor::host::tests::dynamic_slots_are_held_until_released ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 254 filtered out; finished in 0.35s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-430539b01b4c91b0.exe)
+
+running 1 test
+test memory::tests::lists_share_a_table_and_copies_keep_their_views ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 254 filtered out; finished in 0.48s
+
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-shader)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.69s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 306 filtered out; finished in 0.38s
+
+
+After integrating structured buffers and exact length queries
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-shader)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.95s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::stride_tests::table_bound_structured_buffer_reads_by_element_and_dimensions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 308 filtered out; finished in 0.80s
+
+
+Final input, adapter and range checks
+>  cargo test --locked -p victory-shader --lib gathers_at_a_level_match_the_hardware -- --nocapture
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-shader)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.56s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::synthetic_tests::gathers_at_a_level_match_the_hardware ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 308 filtered out; finished in 0.45s
+
+> $env:VICTORY_WARP="1"; cargo test --locked -p victory-shader --lib gathers_at_a_level_match_the_hardware -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::synthetic_tests::gathers_at_a_level_match_the_hardware ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 308 filtered out; finished in 0.05s
+
+>  cargo test --locked -p victory-gpu --lib --features diagnostics structured_clears_preserve_neighbor_words -- --nocapture
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-shader)
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.62s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-69ba82a9969bd3e8.exe)
+
+running 1 test
+CLEAR bias=0 float=false partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=0 float=false partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=0 float=true partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=0 float=true partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=4 float=false partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=4 float=false partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=4 float=true partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=4 float=true partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=8 float=false partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=8 float=false partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=8 float=true partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=8 float=true partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=12 float=false partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=12 float=false partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=12 float=true partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=12 float=true partial=true gpu_wrong=0 title_wrong=0
+test draw::tests::structured_clear::structured_clears_preserve_neighbor_words_in_the_shared_buffer ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 273 filtered out; finished in 0.71s
+
+>  cargo test --locked -p victory-gpu --lib --features diagnostics gpu_writes_visible_through_overlapping_views -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-69ba82a9969bd3e8.exe)
+
+running 1 test
+Verified 2400 words across five view origins and guest slots through 1245183.
+test descriptor::host::overlap_test::gpu_writes_visible_through_overlapping_views ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 273 filtered out; finished in 0.90s
+
+> $env:VICTORY_D3D12_WARP="1"; cargo test --locked -p victory-gpu --lib --features diagnostics structured_clears_preserve_neighbor_words -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-69ba82a9969bd3e8.exe)
+
+running 1 test
+CLEAR bias=0 float=false partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=0 float=false partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=0 float=true partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=0 float=true partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=4 float=false partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=4 float=false partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=4 float=true partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=4 float=true partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=8 float=false partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=8 float=false partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=8 float=true partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=8 float=true partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=12 float=false partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=12 float=false partial=true gpu_wrong=0 title_wrong=0
+CLEAR bias=12 float=true partial=false gpu_wrong=0 title_wrong=0
+CLEAR bias=12 float=true partial=true gpu_wrong=0 title_wrong=0
+test draw::tests::structured_clear::structured_clears_preserve_neighbor_words_in_the_shared_buffer ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 273 filtered out; finished in 0.14s
+
+> $env:VICTORY_D3D12_WARP="1"; cargo test --locked -p victory-gpu --lib --features diagnostics gpu_writes_visible_through_overlapping_views -- --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-69ba82a9969bd3e8.exe)
+
+running 1 test
+Verified 2400 words across five view origins and guest slots through 1245183.
+test descriptor::host::overlap_test::gpu_writes_visible_through_overlapping_views ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 273 filtered out; finished in 0.22s
+
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.82s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-430539b01b4c91b0.exe)
+
+running 1 test
+test descriptor::host::tests::dynamic_slots_are_held_until_released ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 257 filtered out; finished in 0.52s
+
+
+Before the diagnostics fixture selected production paging (3d7afd4, -CheckOnly -SkipValidation):
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+FAILED
+
+failures:
+
+failures:
+    pipeline::baseline::synthetic_gpu
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 273 filtered out; finished in 0.94s
+
+
+
+thread 'pipeline::baseline::synthetic_gpu' (42808) panicked at crates\victory-gpu\src\pipeline\placed_uav_tests.rs:224:5:
+assertion `left == right` failed: placed UAV dispatch readback
+  left: [[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]
+ right: [[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+exit 101
+
+Native D3D12 capacity probe: create a shader-visible CBV_SRV_UAV heap at each size on a feature-level 12_0 device and record HRESULT and GetDesc().NumDescriptors. Each heap was released before the next call.
+default: NVIDIA GeForce RTX 5090, vendor=0x10de
+  requested=1000000 HRESULT=0x00000000 returned=1000000
+  requested=1000001 HRESULT=0x80070057 returned=0
+  requested=1245184 HRESULT=0x80070057 returned=0
+  requested=2097152 HRESULT=0x80070057 returned=0
+  requested=2359296 HRESULT=0x80070057 returned=0
+WARP: Microsoft Basic Render Driver, vendor=0x1414
+  requested=1000000 HRESULT=0x00000000 returned=1000000
+  requested=1000001 HRESULT=0x00000000 returned=1000001
+  requested=1245184 HRESULT=0x00000000 returned=1245184
+  requested=2097152 HRESULT=0x00000000 returned=2097152
+  requested=2359296 HRESULT=0x80070057 returned=0

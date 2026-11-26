@@ -805,11 +805,14 @@ impl State {
             for (views, kind) in [(&stage.root_cbvs, 0), (&stage.root_srvs, 1), (&stage.root_uavs, 2)] {
                 for &(slot, param) in views {
                     if kind == 1 && slot == victory_shader::emit::VIEW_STRIDES {
-                        // The bound view heap's stride table; without one
+                        // The bound view heap's stride table (and, in a
+                        // paged heap, its page table): the title's, else our
+                        // own, bound where the title binds none; without one
                         // the shader would read an unbound root view.
-                        let heap = (self.heaps[0] != 0)
-                            .then(|| crate::descriptor::heap(self.heaps[0] as This).host())
-                            .flatten();
+                        let heap = match self.heaps[0] {
+                            0 => crate::memory::heap(),
+                            h => crate::descriptor::heap(h as This).host(),
+                        };
                         let Some(table) = heap.and_then(|h| h.strides()) else {
                             once!("a shader reads view strides without a view heap: dropped");
                             not_run("view strides without a view heap");
@@ -1049,7 +1052,7 @@ impl State {
             return;
         };
         let heap = (self.heaps[0] != 0).then(|| crate::descriptor::heap(self.heaps[0] as This));
-        let (Some(heap), Some(host)) = (heap, crate::host::host()) else {
+        let Some(heap) = heap else {
             once!("an unordered access clear without a bound view heap");
             return;
         };
@@ -1059,9 +1062,7 @@ impl State {
         };
         self.dynamic
             .push((std::ptr::from_ref(heap) as usize, slot, 1));
-        visible.make_at(slot, &view);
-        let at = host.cpu_view();
-        let Some(resource) = crate::descriptor::host::make_view(&view, at) else {
+        let Some((at, resource)) = visible.make_clear_at(slot, &view) else {
             once!("an unordered access clear of a view the host cannot make");
             return;
         };
@@ -2029,6 +2030,8 @@ const QUAD_STRIP: u32 = 20;
 pub(crate) mod tests {
     use super::*;
 
+    mod structured_clear;
+
     /// A root signature that indexes the heaps directly needs one of each
     /// kind bound before it is set: our sampler heap stands in for a title
     /// that binds none, which a compute list that only reads views does.
@@ -2082,6 +2085,294 @@ void main() {
     writes.InterlockedOr((bit >> 5) * 4, 1u << (bit & 31), old);
 }
 "#;
+
+    /// Marks a read of heap slot `slot_bit` - `VIEW_READS` and of view heap
+    /// page `page_bit` - `VIEW_PAGE_READS` in the plain shaders' bitmap, as
+    /// a translated shader reading a texture through the heap does.
+    const READ_MARK_SOURCE: &str = r#"
+#define RS "UAV(u0), RootConstants(num32BitConstants=2, b0)"
+RWByteAddressBuffer marks : register(u0);
+cbuffer c : register(b0) { uint slot_bit; uint page_bit; }
+[RootSignature(RS)]
+[numthreads(1, 1, 1)]
+void main() {
+    uint old;
+    marks.InterlockedOr((slot_bit >> 5) * 4, 1u << (slot_bit & 31), old);
+    marks.InterlockedOr((page_bit >> 5) * 4, 1u << (page_bit & 31), old);
+}
+"#;
+
+    /// A view of a 4x1 RGBA8 texture the title placed, linear, in memory of
+    /// its own (returned), written to slot `slot` of `title_heap`.
+    fn placed_texture_view(title_heap: &crate::descriptor::Heap, slot: u32) -> Vec<u8> {
+        let memory = vec![0u8; 1 << 16];
+        let address = memory.as_ptr() as u64;
+        let words: [u32; 14] = [3, 0, 0, 0, 4, 0, 1, 1 | 1 << 16, 28, 1, 0, 0x100, 0, 0];
+        let mut view = [0u32; 16];
+        view[..6].copy_from_slice(&[28, 4, 0x1688, 0, 0, 1]);
+        (view[10], view[11]) = (address as u32, (address >> 32) as u32);
+        let at = title_heap.start + u64::from(slot) * 32;
+        crate::descriptor::create_placed_srv(std::ptr::null(), &words, &view, at);
+        memory
+    }
+
+    /// A submission through `Host::execute` whose shader (`READ_MARK_SOURCE`)
+    /// reads heap slot `slot`: its read mark and its page's are set.
+    fn submit_read(shader: &(ID3D12RootSignature, ID3D12PipelineState), slot: u32) {
+        let host = crate::host::host().unwrap();
+        let writes = crate::shadow::view_writes(false).expect("the read marks' bitmap");
+        let constants = [
+            victory_shader::emit::VIEW_READS + slot,
+            victory_shader::emit::VIEW_PAGE_READS + slot / victory_shader::emit::VIEW_PAGE_SLOTS,
+        ];
+        let list = host.new_list().unwrap();
+        // SAFETY: an open list and live objects.
+        unsafe {
+            list.list.SetComputeRootSignature(&shader.0);
+            list.list.SetComputeRootUnorderedAccessView(0, writes);
+            list.list
+                .SetComputeRoot32BitConstants(1, 2, constants.as_ptr().cast(), 0);
+            list.list.SetPipelineState(&shader.1);
+            list.list.Dispatch(1, 1, 1);
+        }
+        list.close();
+        host.execute(&[&list]);
+    }
+
+    /// Paged view heaps, through `Host::execute`: a placed texture's slot
+    /// that a shader reads in every submission, in a page taken back, reads
+    /// null in the first submission after (its page has no place) and is
+    /// made for the next. Its read in that submission is taken after it
+    /// (not cleared as forgotten), and the page's other slots made when it
+    /// is placed again leave it made.
+    #[test]
+    fn a_placed_texture_in_a_page_taken_back_is_made_after_one_submission_reads_it() {
+        if crate::host::host().is_none() {
+            return;
+        }
+        let Some((title_heap, heap_host)) = crate::host::tests::paged_view_heap(3) else {
+            return;
+        };
+        let page = victory_shader::emit::VIEW_PAGE_SLOTS;
+        // Viewed in page 1.
+        let slot = page + 99;
+        let _memory = placed_texture_view(title_heap, slot);
+        let shader = compile_cs(READ_MARK_SOURCE);
+        // A submission whose shader reads the slot.
+        let read = || submit_read(&shader, slot);
+        // Read twice: the slot's read is taken and its texture made.
+        crate::shadow::forget_read(slot);
+        read();
+        read();
+        assert!(heap_host.kept(slot), "made when read");
+        crate::host::tests::without_submissions(|| {
+            crate::host::tests::take_back_all(heap_host, &mut std::time::Instant::now());
+        });
+        assert_eq!(heap_host.host_page_of(slot), Some(0), "taken back");
+        assert!(!heap_host.kept(slot), "the slot holds nothing");
+        let mut made = Vec::new();
+        for _ in 0..4 {
+            read();
+            made.push(heap_host.kept(slot));
+        }
+        assert_ne!(heap_host.host_page_of(slot), Some(0), "placed again");
+        assert_eq!(
+            made, [true; 4],
+            "made after the first submission that read it"
+        );
+    }
+
+    /// Two paged view heaps with a placed texture's view at the same slot,
+    /// read by a shader through the second: the first taking back the
+    /// page holding its own record there (which forgets the slot's read
+    /// mark) leaves the read in the eviction window (`reads_since`), with
+    /// another slot's, and the second heap's texture named.
+    #[test]
+    fn a_page_taken_back_keeps_another_heaps_read_of_its_slot_for_eviction() {
+        if crate::host::host().is_none() {
+            return;
+        }
+        let Some((first_heap, first_host)) = crate::host::tests::paged_view_heap(2) else {
+            return;
+        };
+        let (second_heap, second_host) = crate::host::tests::paged_view_heap(2).unwrap();
+        let slot = victory_shader::emit::VIEW_PAGE_SLOTS + 61;
+        let _first = placed_texture_view(first_heap, slot);
+        let _second = placed_texture_view(second_heap, slot);
+        let at = |heap: &crate::descriptor::Heap| heap.start + u64::from(slot) * 32;
+        assert!(first_host.mirror(slot, at(first_heap), true).is_some());
+        assert!(second_host.mirror(slot, at(second_heap), true).is_some());
+        let texture = second_host.textures_at(&[slot]);
+        assert_eq!(texture.len(), 1, "the second heap's texture made");
+        let slots = crate::host::tests::without_submissions(|| {
+            crate::shadow::reads_since();
+            // The second heap's slot read, and slot 7.
+            crate::shadow::tests::mark_read(false, 7);
+            crate::shadow::tests::mark_read(false, slot);
+            crate::host::tests::take_back_all(first_host, &mut std::time::Instant::now());
+            assert_eq!(first_host.host_page_of(slot), Some(0), "taken back");
+            // As before the next submission.
+            crate::shadow::forget_reads_now();
+            crate::shadow::reads_since()
+        });
+        assert!(slots.contains(&7) && slots.contains(&slot), "both reads kept: {slots:?}");
+        let read = crate::descriptor::read_textures(&slots);
+        assert!(read.contains(&texture[0]), "the second heap's texture named");
+        assert!(second_host.kept(slot), "the second heap's slot holds its view");
+    }
+
+    /// Leaves `heap_host` no host page free, taking none back.
+    fn fill_view_heap(heap_host: &crate::descriptor::host::HostHeap) {
+        crate::host::tests::without_submissions(|| {
+            heap_host.hold_page_room(true);
+            heap_host.set_page_water(0, 0);
+        });
+    }
+
+    /// Leaves `heap_host`'s pages unused for 40 submissions (none taken back
+    /// meanwhile); pages are then taken back below one free host page, up to
+    /// one, where a write or a read finds no room (none is old enough
+    /// otherwise).
+    fn age_view_heap_pages(heap_host: &crate::descriptor::host::HostHeap) {
+        crate::host::tests::without_submissions(|| {
+            heap_host.set_page_water(0, 0);
+            for _ in 0..40 {
+                heap_host.take_back_pages(std::time::Instant::now());
+            }
+            heap_host.set_page_water(1, 1);
+        });
+    }
+
+    /// Gives `heap_host` the room [`fill_view_heap`] held back, and takes
+    /// no page back.
+    fn unfill_view_heap(heap_host: &crate::descriptor::host::HostHeap) {
+        crate::host::tests::without_submissions(|| {
+            heap_host.hold_page_room(false);
+            heap_host.set_page_water(0, 0);
+        });
+    }
+
+    /// Paged view heaps with no host page free, through `Host::execute`: a
+    /// placed texture's page taken back, whose host page another page took
+    /// since, is placed again when a shader reads the texture (the other
+    /// page, unused lately, is taken back for it), and the texture is made
+    /// for the next submission, as the page's buffer view is; a placed
+    /// texture there that no shader reads stays unmade.
+    #[test]
+    fn a_placed_texture_read_with_no_page_free_is_made_after_one_submission() {
+        let Some(host) = crate::host::host() else { return };
+        // Page marks are shared by all registered heaps. Use pages distinct
+        // from the other submission fixtures, and set up pressure atomically:
+        // a foreign submission between eviction and the replacement write
+        // could otherwise place the original page before it is read here.
+        let page = victory_shader::emit::VIEW_PAGE_SLOTS;
+        let (read, unread, buffer_view) = (37 * page + 99, 37 * page + 50, 37 * page + 1);
+        let other = 36 * page + 7;
+        let Some((title_heap, heap_host, memories, first)) = crate::host::tests::without_submissions(|| {
+            let (title_heap, heap_host) = crate::host::tests::paged_view_heap(38)?;
+            let at = |s: u32| title_heap.start + u64::from(s) * 32;
+            let mut source = placed_texture_view(title_heap, read);
+            source[..4].copy_from_slice(&[255, 0, 255, 255]);
+            let unread_memory = placed_texture_view(title_heap, unread);
+            let (_, buffer) = crate::host::tests::title_buffer();
+            let desc: [u32; 10] = [39, 1, 0x1688, 0, 0, 0, 64, 0, 1, 0];
+            crate::descriptor::create_srv(std::ptr::null(), buffer, &desc, at(buffer_view));
+            assert!(heap_host.mirror(read, at(read), true).is_some());
+            assert!(heap_host.mirror(buffer_view, at(buffer_view), true).is_some());
+            assert!(heap_host.kept(read) && heap_host.kept(buffer_view), "made for a draw");
+            let first = heap_host.host_page_of(read).unwrap();
+            assert_ne!(first, 0);
+            // Withhold unused host pages before giving back the only resident
+            // one. The replacement and the recovered page must both reuse it.
+            heap_host.hold_page_room(true);
+            crate::host::tests::take_back_all(heap_host, &mut std::time::Instant::now());
+            assert_eq!(heap_host.host_page_of(read), Some(0), "taken back");
+            let replacement = placed_texture_view(title_heap, other);
+            assert_eq!(heap_host.host_page_of(other), Some(first), "reused the released page");
+            for _ in 0..40 {
+                heap_host.take_back_pages(std::time::Instant::now());
+            }
+            heap_host.set_page_water(1, 1);
+            Some((title_heap, heap_host, (source, unread_memory, replacement), first))
+        }) else { return };
+        let shader = compile_cs(READ_MARK_SOURCE);
+        let mut made = Vec::new();
+        for _ in 0..4 {
+            submit_read(&shader, read);
+            made.push((heap_host.kept(read), heap_host.kept(buffer_view)));
+        }
+        assert_eq!(
+            made, [(true, true); 4],
+            "the texture and the buffer view made after the first submission"
+        );
+        assert_eq!(heap_host.host_page_of(read), Some(first), "placed again");
+        assert_eq!(heap_host.page_table_entry(read / page), first, "GPU page table restored");
+        assert_eq!(heap_host.host_page_of(other), Some(0), "the replacement page taken back for it");
+        assert!(!heap_host.kept(unread), "a placed texture not read stays unmade");
+
+        let view = crate::descriptor::view(title_heap.start + u64::from(read) * 32).unwrap();
+        let list = host.new_list().unwrap();
+        readable(&list, &used(ResourceType::Srv), &view, false);
+        let (root, pso) = compile_cs(READ);
+        let (out, mapped) = host.shared_buffer(64 * 8 * 16).unwrap();
+        // SAFETY: one group of READ writes 8 rows with a 64-texel output pitch.
+        // The descriptor is the one recovered above; all objects outlive the fence.
+        unsafe {
+            list.list.SetDescriptorHeaps(&[Some(heap_host.heap.clone())]);
+            list.list.SetComputeRootSignature(&root);
+            list.list.SetPipelineState(&pso);
+            list.list.SetComputeRootDescriptorTable(0, heap_host.gpu(read));
+            list.list.SetComputeRootUnorderedAccessView(1, out.GetGPUVirtualAddress());
+            list.list.Dispatch(1, 1, 1);
+        }
+        list.close();
+        host.execute(&[&list]);
+        // SAFETY: the fence completed and READ stored the first float4 here.
+        assert_eq!(unsafe { mapped.cast::<[f32; 4]>().read() }, [1.0, 0.0, 1.0, 1.0]);
+        unfill_view_heap(heap_host);
+        drop(memories);
+    }
+
+    /// Paged view heaps with no host page free, through `Host::execute`: a
+    /// placed texture a shader read while its page found no room (made in
+    /// the scratch page) is made in its page for the submission after the
+    /// next one that reads it, once another page is taken back for it.
+    #[test]
+    fn a_placed_texture_read_with_no_room_before_is_made_after_one_submission() {
+        if crate::host::host().is_none() {
+            return;
+        }
+        let Some((title_heap, heap_host)) = crate::host::tests::paged_view_heap(6) else {
+            return;
+        };
+        let page = victory_shader::emit::VIEW_PAGE_SLOTS;
+        // Page 4 holds a texture made for a draw.
+        let other = 4 * page + 3;
+        let _other = placed_texture_view(title_heap, other);
+        let at = title_heap.start + u64::from(other) * 32;
+        assert!(heap_host.mirror(other, at, true).is_some());
+        let first = heap_host.host_page_of(other).unwrap();
+        assert_ne!(first, 0, "placed");
+        // Page 5's placed texture written and read with no host page free.
+        fill_view_heap(heap_host);
+        let read = 5 * page + 9;
+        let _read = placed_texture_view(title_heap, read);
+        assert_eq!(heap_host.host_page_of(read), Some(0), "no room for its page");
+        let shader = compile_cs(READ_MARK_SOURCE);
+        submit_read(&shader, read);
+        assert_eq!(heap_host.host_page_of(read), Some(0), "still no room");
+        assert!(!heap_host.kept(read), "made in the scratch page: the slot holds nothing");
+        age_view_heap_pages(heap_host);
+        let mut made = Vec::new();
+        for _ in 0..4 {
+            submit_read(&shader, read);
+            made.push(heap_host.kept(read));
+        }
+        unfill_view_heap(heap_host);
+        assert_eq!(made, [true; 4], "made after the first submission");
+        assert_eq!(heap_host.host_page_of(read), Some(first), "placed");
+        assert_eq!(heap_host.host_page_of(other), Some(0), "page 4 taken back for it");
+    }
 
     fn buffer_at_address(address: u64, bytes: u64) -> This {
         let desc: [u32; 14] = [
@@ -3312,7 +3603,7 @@ void main(uint3 id : SV_DispatchThreadID) {
 
     #[test]
     fn compute_view_marks_rebind_after_depth_twin_conversion() {
-        use victory_shader::emit::{Options, emit_with};
+        use victory_shader::emit::emit_with;
         use victory_shader::native::{ComputeIo, HwStage, NativeProgram, RootParam, StageIo};
         use victory_shader::{Container, io, ir, resource, structure};
 
@@ -3399,7 +3690,7 @@ void main(uint3 id : SV_DispatchThreadID) {
             &st,
             &io,
             &res,
-            Options { view_marks: true },
+            crate::shader_cache::options(),
         )
         .unwrap();
         assert!(host_shader.view_marks);
@@ -3591,24 +3882,38 @@ void main(uint3 id : SV_DispatchThreadID) {
         .unwrap();
         // SAFETY: a live heap.
         let at = unsafe { cpu.GetCPUDescriptorHandleForHeapStart() };
-        // Four 456-byte elements placed at `address` (resource and view
-        // descriptions as the title passes them to device 0x230).
-        let view = |address: u64| {
+        // Four 456-byte structured elements placed at `address` (resource and
+        // view descriptions as the title passes them to device 0x230).
+        let structured_view = |address: u64| {
             let resource: [u32; 14] = [1, 0, 0, 0, 4 * 456, 0, 1, 1 | 1 << 16, 0, 1, 0, 1, 0, 0];
             let mut desc = [0u32; 16];
             desc[..10].copy_from_slice(&[0, 1, 5768, 0, 0, 0, 4, 456, 0, 0]);
             (desc[10], desc[11]) = (address as u32, (address >> 32) as u32);
             View::Placed(false, resource, desc)
         };
-        let width = |address: u64| {
-            let made = crate::descriptor::host::make_view(&view(address), at).expect("a view");
+        // Four 16-byte typed (R32G32B32A32_FLOAT) elements placed at `address`.
+        let typed_view = |address: u64| {
+            let resource: [u32; 14] = [1, 0, 0, 0, 4 * 16, 0, 1, 1 | 1 << 16, 0, 1, 0, 1, 0, 0];
+            let mut desc = [0u32; 16];
+            desc[..10].copy_from_slice(&[2, 1, 5768, 0, 0, 0, 4, 0, 0, 0]);
+            (desc[10], desc[11]) = (address as u32, (address >> 32) as u32);
+            View::Placed(false, resource, desc)
+        };
+        let width = |v: &View| {
+            let made = crate::descriptor::host::make_view(v, at).expect("a view");
             // SAFETY: a live buffer.
             unsafe { made.GetDesc() }.Width
         };
-        assert_eq!(width(start + 456), 1 << 16, "on an element: the buffer's copy");
-        assert_ne!(width(start + 100), 1 << 16, "off: a copy of its own bytes (in a shared buffer)");
-        let (copy, address, len) = crate::descriptor::host::view_copy(&view(start + 100)).unwrap();
-        assert_eq!((copy.range(), address, len), ((start + 100, 4 * 456), start + 100, 4 * 456));
+        // Structured buffers are viewed raw with a 0..12-byte start bias in
+        // `VIEW_STRIDES`, so any 4-byte-aligned start shares the buffer's copy.
+        assert_eq!(width(&structured_view(start + 456)), 1 << 16, "4-byte-aligned structured: buffer's copy");
+        assert_eq!(width(&structured_view(start + 100)), 1 << 16, "4-byte-aligned structured: buffer's copy");
+        // Typed views must start on an element of their copy: on-element uses
+        // the buffer's copy, off-element gets a copy of its own bytes.
+        assert_eq!(width(&typed_view(start + 16)), 1 << 16, "on an element: the buffer's copy");
+        assert_ne!(width(&typed_view(start + 100)), 1 << 16, "off: a copy of its own bytes (in a shared buffer)");
+        let (copy, address, len) = crate::descriptor::host::view_copy(&typed_view(start + 100)).unwrap();
+        assert_eq!((copy.range(), address, len), ((start + 100, 4 * 16), start + 100, 4 * 16));
         drop(copy);
         // A slot made from the view holds its copy: after more than a
         // thousand other views' copies, draws still find (and refresh) the
@@ -3619,14 +3924,14 @@ void main(uint3 id : SV_DispatchThreadID) {
         let iid = crate::object::guid(0x8efb471d, 0x616c, 0x4f49, [0x90, 0xf7, 0x12, 0x7b, 0xb7, 0x63, 0xfa, 0x51]);
         assert_eq!(crate::descriptor::create_heap(null, heap_desc.as_ptr().cast(), &iid, &mut heap), S_OK);
         let slots = crate::descriptor::heap(heap).host().expect("a host view heap");
-        slots.make_at(0, &view(start + 100));
-        let shown = std::sync::Arc::downgrade(&crate::descriptor::host::view_copy(&view(start + 100)).unwrap().0);
-        for k in 1..1200 {
-            if (100 + 4 * k) % 456 != 0 {
-                crate::descriptor::host::view_copy(&view(start + 100 + 4 * k)).unwrap();
+        slots.make_at(0, &typed_view(start + 100));
+        let shown = std::sync::Arc::downgrade(&crate::descriptor::host::view_copy(&typed_view(start + 100)).unwrap().0);
+        for k in 1..1500 {
+            if (100 + 4 * k) % 16 != 0 {
+                crate::descriptor::host::view_copy(&typed_view(start + 100 + 4 * k)).unwrap();
             }
         }
-        let found = crate::descriptor::host::view_copy(&view(start + 100)).unwrap().0;
+        let found = crate::descriptor::host::view_copy(&typed_view(start + 100)).unwrap().0;
         assert!(shown.upgrade().is_some_and(|s| std::sync::Arc::ptr_eq(&s, &found)), "the slot's copy");
         drop(found);
         slots.make_null(0);
