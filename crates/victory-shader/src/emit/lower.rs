@@ -240,6 +240,8 @@ struct Lower<'a> {
     wave_marks: bool,
     /// Page marks emitted with all lanes in the unique entry block.
     entry_page_marks: HashSet<V>,
+    /// Virtual pages whose indices come only from immutable root parameters.
+    uniform_pages: HashSet<V>,
     /// Defining block and lazily decoded raw offset of each table buffer handle.
     table_bias: HashMap<V, (usize, Option<V>)>,
     /// Blocks splitting the edge from one IR block to another.
@@ -705,6 +707,7 @@ impl<'a> Lower<'a> {
             guarded_stride: HashMap::new(),
             memory_null: None,
             entry_page_marks: HashSet::new(),
+            uniform_pages: HashSet::new(),
             wave_marks,
             table_bias: HashMap::new(),
             edges: HashMap::new(),
@@ -3588,8 +3591,26 @@ impl<'a> Lower<'a> {
         // The view heap pages it read, each once per console block.
         for page in std::mem::take(&mut self.s.page_reads) {
             if r.is_ok() && self.s.pages_marked.insert((b, page)) {
-                self.mark_read_bit(super::VIEW_PAGE_READS, page, true);
-                if b == 0 && self.x.p.blocks[0].preds.is_empty() && self.s.guards == 0 {
+                let unconditional = b == 0 && self.x.p.blocks[0].preds.is_empty() && self.s.guards == 0;
+                if unconditional && self.x.native.stage == HwStage::Cs && self.uniform_pages.contains(&page) {
+                    // Every invocation reaches this mark with the same virtual
+                    // page. Only the dispatch origin needs to update the bitmap.
+                    let c = self.cur;
+                    let [x, y, z] = [0, 1, 2].map(|axis| {
+                        let arg = self.s.m.i32(axis);
+                        self.s.op(c, "threadId.i32", Attr::ReadNone, self.s.t.i32, 93, &[arg])
+                    });
+                    let xy = self.s.m.bin(c, Bin::Or, x, y);
+                    let xyz = self.s.m.bin(c, Bin::Or, xy, z);
+                    let zero = self.s.m.i32(0);
+                    let origin = self.s.m.cmp(c, pred::EQ, xyz, zero);
+                    let at = self.begin_guarded(Some(origin));
+                    self.mark_read_bit(super::VIEW_PAGE_READS, page, false);
+                    self.end_guarded(at, &[]);
+                } else {
+                    self.mark_read_bit(super::VIEW_PAGE_READS, page, true);
+                }
+                if unconditional {
                     self.entry_page_marks.insert(page);
                 }
             }
@@ -5473,6 +5494,9 @@ impl<'a> Lower<'a> {
                 let here = std::mem::replace(&mut self.cur, self.s.entry);
                 let index = self.entry_heap_index(address, *first, sampler);
                 let h = self.guarded_heap_handle(src, index, sampler, false, props);
+                if let Some(&(page, _)) = self.s.page_index.get(&h) {
+                    self.uniform_pages.insert(page);
+                }
                 self.cur = here;
                 self.entry_handles.insert(key, h);
                 Ok(h)
