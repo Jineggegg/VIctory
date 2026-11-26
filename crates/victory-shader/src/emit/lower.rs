@@ -231,6 +231,8 @@ struct Lower<'a> {
     /// `VIEW_STRIDES` dword loaded by [`Lower::buffer_guard`], reused by
     /// [`Lower::view_raw_bias`] to avoid a second load or OOB read at null.
     guarded_stride: HashMap<V, V>,
+    /// Block zero's null SRV index, invariant for this draw or dispatch.
+    memory_null: Option<V>,
     /// Defining block and lazily decoded raw offset of each table buffer handle.
     table_bias: HashMap<V, (usize, Option<V>)>,
     /// Blocks splitting the edge from one IR block to another.
@@ -694,6 +696,7 @@ impl<'a> Lower<'a> {
             entry_handles: HashMap::new(),
             join_handles: HashMap::new(),
             guarded_stride: HashMap::new(),
+            memory_null: None,
             table_bias: HashMap::new(),
             edges: HashMap::new(),
             exported: vec![false; p.blocks.len()],
@@ -4583,6 +4586,16 @@ impl<'a> Lower<'a> {
         self.as_int(x)
     }
 
+    /// Fetch both dwords of an eight-byte-aligned host table entry.
+    fn raw_dword_pair(&mut self, handle: V, at: V) -> (V, V) {
+        let c = self.cur;
+        let (unused, mask, align) = (self.s.m.undef(self.s.t.i32), self.s.m.i8(3), self.s.m.i32(8));
+        let pair = self.s.op(c, "rawBufferLoad.f32", Attr::ReadOnly, self.s.t.res_ret, 139, &[handle, at, unused, mask, align]);
+        let lo = self.s.m.extract(c, pair, 0);
+        let hi = self.s.m.extract(c, pair, 1);
+        (self.as_int(lo), self.as_int(hi))
+    }
+
     /// Marks the pages a write of `bytes` bytes at byte `x` of the unordered
     /// buffer view `h` touches, in the lanes `guard` lets through (module
     /// notes, "Write marks"): the bits of its first and last byte, each set
@@ -4598,11 +4611,9 @@ impl<'a> Lower<'a> {
         let k = |l: &mut Self, v: u32| l.s.m.i32(v);
         let table = self.s.view_marks_handle();
         let c = self.cur;
-        let (eight, four) = (k(self, 8), k(self, 4));
+        let eight = k(self, 8);
         let at = self.s.m.bin(c, Bin::Mul, index, eight);
-        let base = self.raw_dword(table, at);
-        let at = self.s.m.bin(c, Bin::Add, at, four);
-        let phase = self.raw_dword(table, at);
+        let (base, phase) = self.raw_dword_pair(table, at);
         let none = k(self, super::VIEW_MARK_NONE);
         let valid = self.s.m.cmp(c, pred::NE, base, none);
         let active = match guard {
@@ -4818,14 +4829,20 @@ impl<'a> Lower<'a> {
         let c = self.cur;
         let map = self.s.memory_handle();
         let k = |l: &mut Self, x: u32| l.s.m.i32(x);
-        let (k3, first, four) = (k(self, 3), k(self, 4096 * 4), k(self, 4));
+        let (k3, first) = (k(self, 3), k(self, 4096 * 4));
         let at = self.s.m.bin(c, Bin::Shl, entry, k3);
         let at = self.s.m.bin(c, Bin::Add, at, first);
-        let view = self.raw_dword(map, at);
-        let at = self.s.m.bin(c, Bin::Add, at, four);
-        let start = self.raw_dword(map, at);
+        let (view, start) = self.raw_dword_pair(map, at);
         // Block 0's first entry names the null pair: no copy holds the page.
-        let null = self.raw_dword(map, first);
+        let null = if let Some(null) = self.memory_null {
+            null
+        } else {
+            let here = std::mem::replace(&mut self.cur, self.s.entry);
+            let null = self.raw_dword(map, first);
+            self.cur = here;
+            self.memory_null = Some(null);
+            null
+        };
         let miss = self.s.m.cmp(c, pred::EQ, view, null);
         // Views come in pairs: the raw SRV, then the raw UAV of one copy.
         let (view, props) = if write {
