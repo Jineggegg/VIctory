@@ -11,7 +11,12 @@ use crate::{io, ir, resource, structure};
 
 /// Write to a title address offset by the local thread id shifted by s2.
 /// A preceding store to page zero leaves the first bit already set.
-fn dirty_mark_program(divergent: bool, threads: u32, wave_marks: bool) -> HostShader {
+fn dirty_mark_program(
+    divergent: bool,
+    threads: u32,
+    wave_marks: bool,
+    fixed_width: bool,
+) -> HostShader {
     let mut words: Vec<u32> = vec![
         0x3402_0082, // v_lshlrev_b32 v1, 2, v0
         0xDC70_8000,
@@ -29,7 +34,7 @@ fn dirty_mark_program(divergent: bool, threads: u32, wave_marks: bool) -> HostSh
     }
     let native = NativeProgram {
         stage: HwStage::Cs,
-        wave64: false,
+        wave64: fixed_width && threads == 64,
         vgprs: 4,
         layout: vec![crate::native::RootParam {
             root: RootType::Constants,
@@ -41,7 +46,9 @@ fn dirty_mark_program(divergent: bool, threads: u32, wave_marks: bool) -> HostSh
         }],
         used: vec![],
         io: StageIo::Cs(ComputeIo {
-            rsrc2: 3 << 1,
+            // A single-wave group with an LDS allocation requests the native
+            // wave size in DXIL, even without a cross-lane guest instruction.
+            rsrc2: 3 << 1 | u32::from(fixed_width) << 15,
             threads: [threads, 1, 1],
         }),
         code: words.into_iter().flat_map(u32::to_le_bytes).collect(),
@@ -131,9 +138,12 @@ fn verify_adapter(host: &Host, name: &str) {
     }
     for threads in [32, 64] {
         for divergent in [false, true] {
-            verify_marks(host, divergent, threads, false);
+            verify_marks(host, divergent, threads, false, false);
             if caps.WaveOps.as_bool() {
-                verify_marks(host, divergent, threads, true);
+                verify_marks(host, divergent, threads, true, false);
+                if (caps.WaveLaneCountMin..=caps.WaveLaneCountMax).contains(&threads) {
+                    verify_marks(host, divergent, threads, true, true);
+                }
             }
         }
     }
@@ -143,8 +153,8 @@ fn verify_adapter(host: &Host, name: &str) {
     );
 }
 
-fn verify_marks(host: &Host, divergent: bool, threads: u32, wave_marks: bool) {
-    let shader = dirty_mark_program(divergent, threads, wave_marks);
+fn verify_marks(host: &Host, divergent: bool, threads: u32, wave_marks: bool, fixed_width: bool) {
+    let shader = dirty_mark_program(divergent, threads, wave_marks, fixed_width);
     let (root, pso) = host.compute_pipeline(&shader).unwrap();
     // Region zero uses block 1. Its first page points to the real copy,
     // the rest to the null pair. Writes and misses both owe a mark.
