@@ -59,3 +59,6 @@ impl Lower<'_> {
         Some(self.s.m.bin(c, Bin::Or, differ, first))
     }
 }
+
+#[cfg(all(test, windows))]
+mod tests;
