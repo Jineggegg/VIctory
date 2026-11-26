@@ -1,0 +1,1139 @@
+===== measured-write_overlap-1-01.txt =====
+start_utc=2026-11-26T14:46:59.0074657Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 2, 56.23, 442.39, 27982
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3862.400
+BENCH overlap_cpu_writes=659
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.26s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 4, 55.53, 313.83, 27982
+exit=0
+end_utc=2026-11-26T14:46:59.4456091Z
+
+===== measured-write_overlap-1-02.txt =====
+start_utc=2026-11-26T14:49:07.4890159Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 2, 57.57, 453.54, 28607
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3468.800
+BENCH overlap_cpu_writes=953
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.26s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 7, 56.61, 265.95, 28607
+exit=0
+end_utc=2026-11-26T14:49:07.9210630Z
+
+===== measured-write_overlap-1-03.txt =====
+start_utc=2026-11-26T14:51:15.5224949Z
+gpu_before=P0, 2902, 14001, 3090, 14001, 5, 5, 16, 3, 57.63, 477.52, 28594
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3410.800
+BENCH overlap_cpu_writes=625
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.26s
+
+
+gpu_after=P0, 2902, 14001, 3090, 14001, 5, 5, 16, 3, 57.14, 343.02, 28594
+exit=0
+end_utc=2026-11-26T14:51:15.9620882Z
+
+===== measured-write_overlap-1-04.txt =====
+start_utc=2026-11-26T14:53:23.6431885Z
+gpu_before=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 3, 58.30, 477.22, 28592
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3195.500
+BENCH overlap_cpu_writes=586
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 4, 57.40, 405.07, 28592
+exit=0
+end_utc=2026-11-26T14:53:24.0802625Z
+
+===== measured-write_overlap-1-05.txt =====
+start_utc=2026-11-26T14:55:39.5995336Z
+gpu_before=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 3, 59.18, 557.38, 28160
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3564.200
+BENCH overlap_cpu_writes=620
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.32s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 4, 57.05, 358.71, 28160
+exit=0
+end_utc=2026-11-26T14:55:40.0901775Z
+
+===== measured-write_overlap-1-06.txt =====
+start_utc=2026-11-26T14:57:48.8390832Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 9, 59.50, 531.99, 28403
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3701.400
+BENCH overlap_cpu_writes=593
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 6, 56.88, 337.65, 28403
+exit=0
+end_utc=2026-11-26T14:57:49.3251994Z
+
+===== measured-write_overlap-1-07.txt =====
+start_utc=2026-11-26T15:00:03.2100607Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 3, 60.00, 520.50, 28591
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3716.100
+BENCH overlap_cpu_writes=558
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 5, 57.20, 324.80, 28591
+exit=0
+end_utc=2026-11-26T15:00:03.6586050Z
+
+===== measured-write_overlap-1-08.txt =====
+start_utc=2026-11-26T15:02:17.9042549Z
+gpu_before=P0, 2902, 14001, 3090, 14001, 5, 5, 16, 3, 58.65, 477.64, 28584
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3439.900
+BENCH overlap_cpu_writes=715
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.25s
+
+
+gpu_after=P0, 2902, 14001, 3090, 14001, 5, 5, 16, 4, 57.93, 382.32, 28584
+exit=0
+end_utc=2026-11-26T15:02:18.3454538Z
+
+===== measured-write_overlap-1-09.txt =====
+start_utc=2026-11-26T15:04:25.9890182Z
+gpu_before=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 92, 69.97, 570.18, 28591
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3662.400
+BENCH overlap_cpu_writes=607
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 3, 57.17, 380.37, 28591
+exit=0
+end_utc=2026-11-26T15:04:26.4464296Z
+
+===== measured-write_overlap-1-10.txt =====
+start_utc=2026-11-26T15:06:34.3389606Z
+gpu_before=P0, 2910, 14001, 3090, 14001, 5, 5, 16, 3, 58.83, 507.51, 28590
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3574.700
+BENCH overlap_cpu_writes=592
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2910, 14001, 3090, 14001, 5, 5, 16, 2, 57.31, 374.10, 28590
+exit=0
+end_utc=2026-11-26T15:06:34.8011180Z
+
+===== measured-write_overlap-1-11.txt =====
+start_utc=2026-11-26T15:08:47.2814813Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 24, 59.27, 563.46, 28811
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3635.100
+BENCH overlap_cpu_writes=700
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 1, 57.55, 345.15, 28811
+exit=0
+end_utc=2026-11-26T15:08:47.7201536Z
+
+===== measured-write_overlap-1-12.txt =====
+start_utc=2026-11-26T15:10:54.3778383Z
+gpu_before=P0, 2895, 14001, 3090, 14001, 5, 5, 16, 0, 58.98, 508.40, 28811
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3156.800
+BENCH overlap_cpu_writes=610
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2895, 14001, 3090, 14001, 5, 5, 16, 1, 57.63, 406.01, 28811
+exit=0
+end_utc=2026-11-26T15:10:54.7991141Z
+
+===== measured-write_overlap-1-13.txt =====
+start_utc=2026-11-26T15:13:27.0382158Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 25, 62.50, 563.31, 28795
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3187.500
+BENCH overlap_cpu_writes=516
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.25s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 1, 58.39, 324.65, 28795
+exit=0
+end_utc=2026-11-26T15:13:27.4583553Z
+
+===== measured-write_overlap-1-14.txt =====
+start_utc=2026-11-26T15:15:47.2847427Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 0, 60.81, 553.77, 28805
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3579.800
+BENCH overlap_cpu_writes=570
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.25s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 1, 58.48, 404.67, 28805
+exit=0
+end_utc=2026-11-26T15:15:47.7012785Z
+
+===== measured-write_overlap-1-15.txt =====
+start_utc=2026-11-26T15:17:53.2423558Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 77, 59.82, 539.44, 28794
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=3565.400
+BENCH overlap_cpu_writes=708
+BENCH merged_bytes=65536
+BENCH threads=1
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 1, 57.43, 326.46, 28794
+exit=0
+end_utc=2026-11-26T15:17:53.6942150Z
+
+===== measured-write_overlap-16-01.txt =====
+start_utc=2026-11-26T14:48:03.1230284Z
+gpu_before=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 3, 59.04, 493.99, 27980
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=22264.500
+BENCH overlap_cpu_writes=1737
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.31s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 23, 57.57, 302.92, 27980
+exit=0
+end_utc=2026-11-26T14:48:03.6089613Z
+
+===== measured-write_overlap-16-02.txt =====
+start_utc=2026-11-26T14:50:11.6184968Z
+gpu_before=P0, 2887, 14001, 3090, 14001, 5, 5, 16, 56, 65.51, 554.62, 28594
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=22807.500
+BENCH overlap_cpu_writes=1767
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.30s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 5, 58.27, 357.67, 28594
+exit=0
+end_utc=2026-11-26T14:50:12.0941934Z
+
+===== measured-write_overlap-16-03.txt =====
+start_utc=2026-11-26T14:52:19.9880664Z
+gpu_before=P0, 2850, 14001, 3090, 14001, 5, 5, 16, 91, 70.21, 599.69, 28581
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21916.000
+BENCH overlap_cpu_writes=1846
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.30s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 5, 58.30, 395.01, 28581
+exit=0
+end_utc=2026-11-26T14:52:20.4782173Z
+
+===== measured-write_overlap-16-04.txt =====
+start_utc=2026-11-26T14:54:27.9007503Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 5, 59.44, 490.06, 28404
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21960.700
+BENCH overlap_cpu_writes=2056
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.32s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 24, 58.01, 293.21, 28404
+exit=0
+end_utc=2026-11-26T14:54:28.4006139Z
+
+===== measured-write_overlap-16-05.txt =====
+start_utc=2026-11-26T14:56:44.0719995Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 3, 60.43, 531.07, 28347
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=22147.400
+BENCH overlap_cpu_writes=1728
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.31s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 4, 58.13, 304.06, 28347
+exit=0
+end_utc=2026-11-26T14:56:44.5610707Z
+
+===== measured-write_overlap-16-06.txt =====
+start_utc=2026-11-26T14:58:53.0138777Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 69, 60.35, 567.21, 28441
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21754.400
+BENCH overlap_cpu_writes=1580
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.31s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 4, 58.25, 343.48, 28459
+exit=0
+end_utc=2026-11-26T14:58:53.5003834Z
+
+===== measured-write_overlap-16-07.txt =====
+start_utc=2026-11-26T15:01:07.4463542Z
+gpu_before=P0, 2887, 14001, 3090, 14001, 5, 5, 16, 3, 59.76, 494.79, 28591
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=22021.900
+BENCH overlap_cpu_writes=1751
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.33s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 22, 58.16, 272.28, 28591
+exit=0
+end_utc=2026-11-26T15:01:07.9451160Z
+
+===== measured-write_overlap-16-08.txt =====
+start_utc=2026-11-26T15:03:22.2011794Z
+gpu_before=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 92, 71.23, 569.31, 28592
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21575.300
+BENCH overlap_cpu_writes=1407
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.32s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 3, 58.27, 410.11, 28592
+exit=0
+end_utc=2026-11-26T15:03:22.6935213Z
+
+===== measured-write_overlap-16-09.txt =====
+start_utc=2026-11-26T15:05:30.4106871Z
+gpu_before=P0, 2895, 14001, 3090, 14001, 5, 5, 16, 3, 60.81, 524.93, 28592
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21698.400
+BENCH overlap_cpu_writes=1653
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.30s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 23, 58.19, 324.39, 28592
+exit=0
+end_utc=2026-11-26T15:05:30.8742880Z
+
+===== measured-write_overlap-16-10.txt =====
+start_utc=2026-11-26T15:07:37.8759114Z
+gpu_before=P0, 2842, 14001, 3090, 14001, 5, 5, 16, 73, 60.93, 589.74, 28488
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21529.300
+BENCH overlap_cpu_writes=1682
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 3, 58.33, 349.98, 28488
+exit=0
+end_utc=2026-11-26T15:07:38.3161921Z
+
+===== measured-write_overlap-16-11.txt =====
+start_utc=2026-11-26T15:09:51.4983330Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 15, 61.95, 555.48, 28526
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21736.300
+BENCH overlap_cpu_writes=1818
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 21, 58.71, 317.52, 28526
+exit=0
+end_utc=2026-11-26T15:09:51.9530575Z
+
+===== measured-write_overlap-16-12.txt =====
+start_utc=2026-11-26T15:11:57.8464024Z
+gpu_before=P0, 2842, 14001, 3090, 14001, 5, 5, 16, 66, 72.34, 584.44, 28811
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21298.900
+BENCH overlap_cpu_writes=1716
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 17, 58.62, 347.53, 28811
+exit=0
+end_utc=2026-11-26T15:11:58.2917835Z
+
+===== measured-write_overlap-16-13.txt =====
+start_utc=2026-11-26T15:14:31.2508276Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 0, 60.41, 533.74, 28811
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21971.300
+BENCH overlap_cpu_writes=1710
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 19, 58.36, 292.58, 28811
+exit=0
+end_utc=2026-11-26T15:14:31.7144148Z
+
+===== measured-write_overlap-16-14.txt =====
+start_utc=2026-11-26T15:16:50.8040289Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 90, 71.93, 588.30, 28746
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21555.000
+BENCH overlap_cpu_writes=1713
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.26s
+
+
+gpu_after=P0, 2917, 14001, 3090, 14001, 5, 5, 16, 2, 58.74, 365.21, 28746
+exit=0
+end_utc=2026-11-26T15:16:51.2534046Z
+
+===== measured-write_overlap-16-15.txt =====
+start_utc=2026-11-26T15:18:57.1351999Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 53, 60.35, 578.29, 28794
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=21804.400
+BENCH overlap_cpu_writes=2500
+BENCH merged_bytes=1048576
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 10, 58.62, 362.16, 28794
+exit=0
+end_utc=2026-11-26T15:18:57.5716148Z
+
+===== measured-write_overlap-4-01.txt =====
+start_utc=2026-11-26T14:47:20.3818364Z
+gpu_before=P0, 2910, 14001, 3090, 14001, 5, 5, 16, 2, 69.57, 497.19, 27982
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7256.400
+BENCH overlap_cpu_writes=761
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2910, 14001, 3090, 14001, 5, 5, 16, 4, 56.79, 368.38, 27982
+exit=0
+end_utc=2026-11-26T14:47:20.8381840Z
+
+===== measured-write_overlap-4-02.txt =====
+start_utc=2026-11-26T14:49:28.9761454Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 0, 59.06, 507.06, 28594
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7198.000
+BENCH overlap_cpu_writes=672
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 3, 57.40, 279.91, 28594
+exit=0
+end_utc=2026-11-26T14:49:29.4179992Z
+
+===== measured-write_overlap-4-03.txt =====
+start_utc=2026-11-26T14:51:36.9124790Z
+gpu_before=P0, 2917, 14001, 3090, 14001, 5, 5, 16, 3, 59.12, 497.32, 28594
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7730.900
+BENCH overlap_cpu_writes=919
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2917, 14001, 3090, 14001, 5, 5, 16, 4, 57.87, 380.30, 28594
+exit=0
+end_utc=2026-11-26T14:51:37.3627966Z
+
+===== measured-write_overlap-4-04.txt =====
+start_utc=2026-11-26T14:53:44.9750796Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 16, 60.90, 540.98, 28592
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7489.700
+BENCH overlap_cpu_writes=1213
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.25s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 4, 57.78, 383.49, 28592
+exit=0
+end_utc=2026-11-26T14:53:45.3931978Z
+
+===== measured-write_overlap-4-05.txt =====
+start_utc=2026-11-26T14:56:01.1887397Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 2, 60.14, 532.52, 28426
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7517.200
+BENCH overlap_cpu_writes=817
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.31s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 5, 57.63, 374.11, 28426
+exit=0
+end_utc=2026-11-26T14:56:01.6738655Z
+
+===== measured-write_overlap-4-06.txt =====
+start_utc=2026-11-26T14:58:10.2766938Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 3, 59.41, 508.51, 28404
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7687.500
+BENCH overlap_cpu_writes=768
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 6, 57.55, 336.62, 28404
+exit=0
+end_utc=2026-11-26T14:58:10.7559111Z
+
+===== measured-write_overlap-4-07.txt =====
+start_utc=2026-11-26T15:00:24.7642306Z
+gpu_before=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 4, 61.16, 528.39, 28591
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7468.000
+BENCH overlap_cpu_writes=813
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.26s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 4, 57.87, 355.72, 28591
+exit=0
+end_utc=2026-11-26T15:00:25.2056040Z
+
+===== measured-write_overlap-4-08.txt =====
+start_utc=2026-11-26T15:02:39.3756233Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 2, 59.44, 494.67, 28592
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7359.700
+BENCH overlap_cpu_writes=763
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.30s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 8, 57.75, 304.59, 28592
+exit=0
+end_utc=2026-11-26T15:02:39.8607543Z
+
+===== measured-write_overlap-4-09.txt =====
+start_utc=2026-11-26T15:04:47.6015106Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 3, 59.68, 513.38, 28584
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7297.400
+BENCH overlap_cpu_writes=784
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 4, 57.78, 358.11, 28584
+exit=0
+end_utc=2026-11-26T15:04:48.0649724Z
+
+===== measured-write_overlap-4-10.txt =====
+start_utc=2026-11-26T15:06:55.6693251Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 39, 59.53, 578.93, 28479
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7126.500
+BENCH overlap_cpu_writes=552
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 3, 57.81, 333.27, 28479
+exit=0
+end_utc=2026-11-26T15:06:56.1229225Z
+
+===== measured-write_overlap-4-11.txt =====
+start_utc=2026-11-26T15:09:09.2327064Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 28, 59.59, 559.72, 28373
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7135.700
+BENCH overlap_cpu_writes=524
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 7, 57.81, 340.61, 28373
+exit=0
+end_utc=2026-11-26T15:09:09.6742222Z
+
+===== measured-write_overlap-4-12.txt =====
+start_utc=2026-11-26T15:11:15.5968765Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 19, 62.04, 566.29, 28811
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=6858.200
+BENCH overlap_cpu_writes=696
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 7, 58.19, 346.72, 28811
+exit=0
+end_utc=2026-11-26T15:11:16.0494704Z
+
+===== measured-write_overlap-4-13.txt =====
+start_utc=2026-11-26T15:13:48.6507570Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 0, 59.38, 523.39, 28811
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=6984.200
+BENCH overlap_cpu_writes=763
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.25s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 1, 58.30, 316.87, 28811
+exit=0
+end_utc=2026-11-26T15:13:49.0589641Z
+
+===== measured-write_overlap-4-14.txt =====
+start_utc=2026-11-26T15:16:08.4092188Z
+gpu_before=P0, 2902, 14001, 3090, 14001, 5, 5, 16, 33, 60.08, 568.40, 28805
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=6852.800
+BENCH overlap_cpu_writes=540
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.25s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 7, 58.27, 326.79, 28805
+exit=0
+end_utc=2026-11-26T15:16:08.8334599Z
+
+===== measured-write_overlap-4-15.txt =====
+start_utc=2026-11-26T15:18:14.6866096Z
+gpu_before=P0, 2880, 14001, 3090, 14001, 5, 5, 16, 0, 58.65, 486.93, 28778
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=7040.700
+BENCH overlap_cpu_writes=695
+BENCH merged_bytes=262144
+BENCH threads=4
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 2, 57.87, 276.73, 28778
+exit=0
+end_utc=2026-11-26T15:18:15.1278443Z
+
+===== measured-write_overlap-8-01.txt =====
+start_utc=2026-11-26T14:47:41.7942237Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 93, 70.21, 575.84, 27982
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12196.900
+BENCH overlap_cpu_writes=1284
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.26s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 16, 57.52, 389.23, 27966
+exit=0
+end_utc=2026-11-26T14:47:42.2363125Z
+
+===== measured-write_overlap-8-02.txt =====
+start_utc=2026-11-26T14:49:50.3019748Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 3, 59.32, 503.13, 28594
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12216.000
+BENCH overlap_cpu_writes=1060
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 11, 57.89, 304.32, 28594
+exit=0
+end_utc=2026-11-26T14:49:50.7505074Z
+
+===== measured-write_overlap-8-03.txt =====
+start_utc=2026-11-26T14:51:58.4164653Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 53, 59.62, 556.12, 28594
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12253.900
+BENCH overlap_cpu_writes=1172
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 5, 57.93, 338.31, 28594
+exit=0
+end_utc=2026-11-26T14:51:58.8629756Z
+
+===== measured-write_overlap-8-04.txt =====
+start_utc=2026-11-26T14:54:06.3567301Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 7, 59.06, 478.54, 28262
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12222.900
+BENCH overlap_cpu_writes=993
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.30s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 3, 57.93, 288.51, 28241
+exit=0
+end_utc=2026-11-26T14:54:06.8567075Z
+
+===== measured-write_overlap-8-05.txt =====
+start_utc=2026-11-26T14:56:22.5343169Z
+gpu_before=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 2, 60.23, 522.05, 28421
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12325.900
+BENCH overlap_cpu_writes=1133
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 14, 57.93, 306.51, 28421
+exit=0
+end_utc=2026-11-26T14:56:22.9851179Z
+
+===== measured-write_overlap-8-06.txt =====
+start_utc=2026-11-26T14:58:31.6755812Z
+gpu_before=P0, 2910, 14001, 3090, 14001, 5, 5, 16, 3, 59.18, 475.53, 28227
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12320.600
+BENCH overlap_cpu_writes=1075
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.30s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 12, 57.87, 264.67, 28242
+exit=0
+end_utc=2026-11-26T14:58:32.1509410Z
+
+===== measured-write_overlap-8-07.txt =====
+start_utc=2026-11-26T15:00:46.1288860Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 11, 61.57, 535.15, 28584
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12171.000
+BENCH overlap_cpu_writes=1184
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 14, 58.10, 337.30, 28584
+exit=0
+end_utc=2026-11-26T15:00:46.5994797Z
+
+===== measured-write_overlap-8-08.txt =====
+start_utc=2026-11-26T15:03:00.9295941Z
+gpu_before=P0, 2880, 14001, 3090, 14001, 5, 5, 16, 3, 58.74, 442.27, 28592
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12223.600
+BENCH overlap_cpu_writes=992
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 15, 57.89, 246.23, 28592
+exit=0
+end_utc=2026-11-26T15:03:01.3685045Z
+
+===== measured-write_overlap-8-09.txt =====
+start_utc=2026-11-26T15:05:09.0985514Z
+gpu_before=P0, 2850, 14001, 3090, 14001, 5, 5, 16, 92, 71.46, 576.03, 28592
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12471.600
+BENCH overlap_cpu_writes=981
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 3, 58.13, 360.55, 28592
+exit=0
+end_utc=2026-11-26T15:05:09.5496664Z
+
+===== measured-write_overlap-8-10.txt =====
+start_utc=2026-11-26T15:07:16.7945649Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 91, 71.99, 595.41, 28488
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=11636.600
+BENCH overlap_cpu_writes=987
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 2, 58.21, 386.68, 28488
+exit=0
+end_utc=2026-11-26T15:07:17.2371958Z
+
+===== measured-write_overlap-8-11.txt =====
+start_utc=2026-11-26T15:09:30.2837302Z
+gpu_before=P0, 2857, 14001, 3090, 14001, 5, 5, 16, 7, 59.68, 552.93, 28453
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12356.200
+BENCH overlap_cpu_writes=1153
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.30s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 12, 58.07, 335.29, 28453
+exit=0
+end_utc=2026-11-26T15:09:30.7671482Z
+
+===== measured-write_overlap-8-12.txt =====
+start_utc=2026-11-26T15:11:36.7260821Z
+gpu_before=P0, 2842, 14001, 3090, 14001, 5, 5, 16, 34, 63.53, 569.10, 28811
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12068.400
+BENCH overlap_cpu_writes=966
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.29s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 7, 58.33, 330.27, 28811
+exit=0
+end_utc=2026-11-26T15:11:37.1768556Z
+
+===== measured-write_overlap-8-13.txt =====
+start_utc=2026-11-26T15:14:10.0157064Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 90, 71.81, 587.02, 28811
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=12017.300
+BENCH overlap_cpu_writes=936
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.28s
+
+
+gpu_after=P0, 2917, 14001, 3090, 14001, 5, 5, 16, 1, 58.59, 377.07, 28811
+exit=0
+end_utc=2026-11-26T15:14:10.4968301Z
+
+===== measured-write_overlap-8-14.txt =====
+start_utc=2026-11-26T15:16:29.6940177Z
+gpu_before=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 0, 60.02, 517.57, 28746
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=11696.100
+BENCH overlap_cpu_writes=933
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.27s
+
+
+gpu_after=P0, 2865, 14001, 3090, 14001, 5, 5, 16, 1, 58.62, 387.50, 28746
+exit=0
+end_utc=2026-11-26T15:16:30.1276291Z
+
+===== measured-write_overlap-8-15.txt =====
+start_utc=2026-11-26T15:18:35.9841939Z
+gpu_before=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 0, 59.27, 483.77, 28794
+
+running 1 test
+test pipeline::hot::contention::write_overlap ... BENCH overlap_merge_us=11849.700
+BENCH overlap_cpu_writes=1042
+BENCH merged_bytes=524288
+BENCH threads=8
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.26s
+
+
+gpu_after=P0, 2925, 14001, 3090, 14001, 5, 5, 16, 11, 58.13, 236.21, 28794
+exit=0
+end_utc=2026-11-26T15:18:36.4194597Z

@@ -1,0 +1,16 @@
+{
+  "name": "victory-heap-flat-v1",
+  "test": "pipeline::hot::pressure::heap_capacity",
+  "timings": [
+    "heap_fill_us",
+    "heap_age_and_evict_us",
+    "heap_restore_us"
+  ],
+  "workload": [
+    "physical_slots",
+    "paged"
+  ],
+  "env": {
+    "VICTORY_BENCH_HEAP": "flat"
+  }
+}
