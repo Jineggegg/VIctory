@@ -1,0 +1,221 @@
+Source commit 0cbde2f. Each case ran in a separate native Windows test process.
+The line "exit" after each command is the WSL wrapper status (low 8 bits); cargo reports the Windows exception code above it.
+
+[hardware]  cargo test --locked -p victory-gpu --lib  descriptor::host::tests::dynamic_slots_are_held_until_released -- --exact --test-threads=1 --nocapture
+   Compiling windows-sys v0.61.2
+   Compiling syn v3.0.10
+   Compiling windows v0.62.2
+   Compiling nu-ansi-term v0.50.3
+   Compiling tempfile v3.27.0
+   Compiling tracing-subscriber v0.3.23
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling thiserror v2.0.21
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-shader)
+   Compiling serde v1.0.229
+   Compiling victory-core v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-core)
+   Compiling victory-pipeline v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-pipeline)
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.79s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-430539b01b4c91b0.exe)
+
+running 1 test
+test descriptor::host::tests::dynamic_slots_are_held_until_released ...
+thread 'descriptor::host::tests::dynamic_slots_are_held_until_released' (42584) panicked at crates\victory-gpu\src\descriptor\host.rs:2226:13:
+assertion failed: heap.heap.GetDesc().NumDescriptors >= victory_shader::emit::HEAP_VIEWS
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    descriptor::host::tests::dynamic_slots_are_held_until_released
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 231 filtered out; finished in 0.38s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`
+exit 101
+[hardware]  cargo test --locked -p victory-gpu --lib  memory::tests::lists_share_a_table_and_copies_keep_their_views -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-430539b01b4c91b0.exe)
+
+running 1 test
+test memory::tests::lists_share_a_table_and_copies_keep_their_views ...
+thread 'memory::tests::lists_share_a_table_and_copies_keep_their_views' (57156) panicked at crates\victory-gpu\src\memory.rs:1030:9:
+past the dynamic slots
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    memory::tests::lists_share_a_table_and_copies_keep_their_views
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 231 filtered out; finished in 0.33s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`
+exit 101
+[hardware]  cargo test --locked -p victory-shader --lib  emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride -- --exact --test-threads=1 --nocapture
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-shader)
+   Compiling windows-sys v0.61.2
+   Compiling syn v2.0.119
+   Compiling windows-implement v0.60.2
+   Compiling windows-interface v0.59.3
+   Compiling windows-core v0.62.2
+   Compiling windows-numerics v0.3.1
+   Compiling windows-collections v0.3.2
+   Compiling windows-future v0.3.2
+   Compiling windows v0.62.2
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.45s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride ...
+thread 'emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride' (59832) panicked at crates\victory-shader\src\emit\stride_tests.rs:300:9:
+assertion `left == right` failed: hardware
+  left: [101, 104, 107, 110, 113, 116, 119, 122, 125, 128, 131, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+ right: [200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.52s
+
+error: test failed, to rerun pass `-p victory-shader --lib`
+exit 101
+[hardware]  cargo test --locked -p victory-shader --lib  emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros ...
+thread 'emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros' (63760) panicked at crates\victory-shader\src\emit\stride_tests.rs:350:33:
+hardware: dispatch failed: 参数错误。
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.52s
+
+error: test failed, to rerun pass `-p victory-shader --lib`
+exit 101
+[hardware]  cargo test --locked -p victory-shader --lib  emit::synthetic_tests::gathers_at_a_level_match_the_hardware -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::synthetic_tests::gathers_at_a_level_match_the_hardware ...
+thread 'emit::synthetic_tests::gathers_at_a_level_match_the_hardware' (58576) panicked at crates\victory-shader\src\emit\synthetic_tests.rs:268:13:
+assertion `left == right` failed: hardware: lane 0
+  left: [0.0, 1.0, 0.0, 0.0]
+ right: [0.0, 0.0, 0.0, 0.0]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    emit::synthetic_tests::gathers_at_a_level_match_the_hardware
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.51s
+
+error: test failed, to rerun pass `-p victory-shader --lib`
+exit 101
+[hardware]  cargo test --locked -p victory-shader --lib  emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index ... error: test failed, to rerun pass `-p victory-shader --lib`
+
+Caused by:
+  process didn't exit successfully: `E:\Projects\GTA-build\fix-nv\target\debug\deps\victory_shader-01150f1076d175ec.exe emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index --exact --test-threads=1 --nocapture` (exit code: 0xc0000005, STATUS_ACCESS_VIOLATION)
+exit 5
+[warp] $env:VICTORY_D3D12_WARP='1'; cargo test --locked -p victory-gpu --lib --features diagnostics descriptor::host::tests::dynamic_slots_are_held_until_released -- --exact --test-threads=1 --nocapture
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\fix-nv\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.57s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-69ba82a9969bd3e8.exe)
+
+running 1 test
+test descriptor::host::tests::dynamic_slots_are_held_until_released ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.08s
+
+exit 0
+[warp] $env:VICTORY_D3D12_WARP='1'; cargo test --locked -p victory-gpu --lib --features diagnostics memory::tests::lists_share_a_table_and_copies_keep_their_views -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-69ba82a9969bd3e8.exe)
+
+running 1 test
+test memory::tests::lists_share_a_table_and_copies_keep_their_views ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.08s
+
+exit 0
+[warp] $env:VICTORY_WARP='1'; cargo test --locked -p victory-shader --lib  emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.03s
+
+exit 0
+[warp] $env:VICTORY_WARP='1'; cargo test --locked -p victory-shader --lib  emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.04s
+
+exit 0
+[warp] $env:VICTORY_WARP='1'; cargo test --locked -p victory-shader --lib  emit::synthetic_tests::gathers_at_a_level_match_the_hardware -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::synthetic_tests::gathers_at_a_level_match_the_hardware ...
+thread 'emit::synthetic_tests::gathers_at_a_level_match_the_hardware' (42176) panicked at crates\victory-shader\src\emit\synthetic_tests.rs:276:17:
+assertion `left == right` failed: hardware: lane 4 against its gather
+  left: [66.0, 67.0, 35.0, 34.0]
+ right: [65.0, 66.0, 34.0, 33.0]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    emit::synthetic_tests::gathers_at_a_level_match_the_hardware
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `-p victory-shader --lib`
+exit 101
+[warp] $env:VICTORY_WARP='1'; cargo test --locked -p victory-shader --lib  emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index -- --exact --test-threads=1 --nocapture
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-01150f1076d175ec.exe)
+
+running 1 test
+test emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.10s
+
+exit 0
+
+Windows Application Error event 1000, same isolated shader executable
+AppName=victory_shader-01150f1076d175ec.exe
+ModuleName=nvwgf2umx.dll
+ModuleVersion=32.0.16.2114
+ExceptionCode=c0000005
+FaultingOffset=00000000004e6af5

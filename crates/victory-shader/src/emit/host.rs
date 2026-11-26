@@ -159,6 +159,11 @@ fn hardware_adapter(factory: &IDXGIFactory4) -> windows::core::Result<IDXGIAdapt
 static WARP_LOCK: Mutex<()> = Mutex::new(());
 
 impl Host {
+    #[cfg(test)]
+    pub(super) fn is_warp(&self) -> bool {
+        self.warp
+    }
+
     fn lock_warp(&self) -> Option<MutexGuard<'static, ()>> {
         self.warp
             .then(|| WARP_LOCK.lock().unwrap_or_else(|e| e.into_inner()))
@@ -1156,12 +1161,14 @@ impl Host {
             list.SetGraphicsRootSignature(root);
             for (param, arg) in &d.roots {
                 match arg {
-                    Root::Constants(data) => list.SetGraphicsRoot32BitConstants(
-                        *param,
-                        data.len() as u32,
-                        data.as_ptr().cast(),
-                        0,
-                    ),
+                    Root::Constants(data) => {
+                        // The root signature declares at least one constant (`user_data_dwords().max(1)`):
+                        // an empty list is set as that one zero, not as 0 values through an empty Vec's
+                        // dangling pointer, which a hardware driver reads (0xC0000005 on NVIDIA and AMD; WARP
+                        // ignores it, #2571).
+                        let data: &[u32] = if data.is_empty() { &[0] } else { data };
+                        list.SetGraphicsRoot32BitConstants(*param, data.len() as u32, data.as_ptr().cast(), 0)
+                    }
                     Root::Table { sampler, index } => {
                         let (heap, size) = if *sampler {
                             (&sampler_heap, sampler_size)
@@ -1361,7 +1368,7 @@ pub fn view_strides(views: &[View]) -> Vec<u32> {
         .map(|v| match *v {
             View::Buffer { stride: Stride::Raw, .. } | View::RawUav(_) => 4,
             View::Buffer { stride: Stride::Typed, .. } => 16,
-            View::Buffer { stride: Stride::Structured(n), .. } => n,
+            View::Buffer { stride: Stride::Structured(n) | Stride::PcStructured(n), .. } => n,
             View::Buffer { stride: Stride::Format(f, n), .. } | View::TypedUav(f, _, n) => n | kind(f),
             View::HalfUav(_) => 8,
             _ => 0,
@@ -1376,8 +1383,11 @@ pub enum Stride {
     Raw,
     /// RGBA32F elements.
     Typed,
-    /// Structured, elements of this many bytes.
+    /// Structured title buffer: viewed raw on the host (as `victory_gpu`
+    /// makes it) while keeping `n` in [`view_strides`].
     Structured(u32),
+    /// Structured host buffer for PC DXC reference shaders in `diff_tests`.
+    PcStructured(u32),
     /// Typed, elements in this format of this many bytes.
     Format(DXGI_FORMAT, u32),
 }
@@ -1394,6 +1404,31 @@ pub struct Dispatch<'a> {
 
 #[cfg(test)]
 impl Host {
+    /// Where [`View::NullBuffers`] puts the null buffer views on a device
+    /// that refuses a view heap of [`super::HEAP_VIEWS`] slots (NVIDIA
+    /// takes at most 1,000,000): the host page, of
+    /// [`super::VIEW_PAGE_SLOTS`] slots, after the dispatch's `views`
+    /// others, at their offsets in [`super::NULL_BUFFER_VIEW`]'s page. A
+    /// program translated with view pages reads them there through a page
+    /// table entry for that page, as the runtime pages such heaps. None
+    /// where the device takes the whole heap (the views are at their own
+    /// slots).
+    pub fn null_buffer_page(&self, views: usize) -> Option<u32> {
+        // SAFETY: a plain heap creation, released at once.
+        let whole: windows::core::Result<ID3D12DescriptorHeap> = unsafe {
+            self.device
+                .CreateDescriptorHeap(&D3D12_DESCRIPTOR_HEAP_DESC {
+                    Type: D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+                    NumDescriptors: super::HEAP_VIEWS,
+                    Flags: D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+                    ..Default::default()
+                })
+        };
+        whole
+            .is_err()
+            .then(|| (views.saturating_sub(1) as u32).div_ceil(super::VIEW_PAGE_SLOTS))
+    }
+
     /// Runs a compute pipeline and returns each UAV's contents in heap
     /// order (texels as float bits, row by row).
     pub fn dispatch(
@@ -1541,8 +1576,24 @@ impl Host {
                 )]);
                 Ok::<_, String>(zeros)
             };
+            // The null buffer views' slot: their own, or the paged one.
+            let null_page = match d.views.last() {
+                Some(View::NullBuffers) => self.null_buffer_page(d.views.len()),
+                _ => None,
+            };
+            let null_at = match null_page {
+                Some(page) => {
+                    (page * super::VIEW_PAGE_SLOTS
+                        + super::NULL_BUFFER_VIEW % super::VIEW_PAGE_SLOTS)
+                        as usize
+                }
+                None => super::NULL_BUFFER_VIEW as usize,
+            };
             let slots = match d.views.last() {
-                Some(View::NullBuffers) => super::HEAP_VIEWS as usize,
+                Some(View::NullBuffers) => match null_page {
+                    Some(page) => ((page + 1) * super::VIEW_PAGE_SLOTS) as usize,
+                    None => super::HEAP_VIEWS as usize,
+                },
                 _ => d.views.len(),
             };
             let views = heap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, slots)?;
@@ -1787,7 +1838,13 @@ impl Host {
                                 0,
                                 D3D12_BUFFER_SRV_FLAG_NONE,
                             ),
-                            Stride::Structured(s) => (
+                            Stride::Structured(_) => (
+                                DXGI_FORMAT_R32_TYPELESS,
+                                data.len(),
+                                0,
+                                D3D12_BUFFER_SRV_FLAG_RAW,
+                            ),
+                            Stride::PcStructured(s) => (
                                 DXGI_FORMAT_UNKNOWN,
                                 data.len() * 4 / s as usize,
                                 s,
@@ -1878,7 +1935,7 @@ impl Host {
                     }
                     View::Pair => {}
                     View::NullBuffers => {
-                        let null = super::NULL_BUFFER_VIEW as usize;
+                        let null = null_at;
                         let (mut srv_at, mut uav_at) = (at, at);
                         srv_at.ptr += (null - i) * view_size;
                         uav_at.ptr += (null - 1 - i) * view_size;
@@ -1919,12 +1976,14 @@ impl Host {
             list.SetComputeRootSignature(root);
             for (param, arg) in &d.roots {
                 match arg {
-                    Root::Constants(data) => list.SetComputeRoot32BitConstants(
-                        *param,
-                        data.len() as u32,
-                        data.as_ptr().cast(),
-                        0,
-                    ),
+                    Root::Constants(data) => {
+                        // The root signature declares at least one constant (`user_data_dwords().max(1)`):
+                        // an empty list is set as that one zero, not as 0 values through an empty Vec's
+                        // dangling pointer, which a hardware driver reads (0xC0000005 on NVIDIA and AMD; WARP
+                        // ignores it, #2571).
+                        let data: &[u32] = if data.is_empty() { &[0] } else { data };
+                        list.SetComputeRoot32BitConstants(*param, data.len() as u32, data.as_ptr().cast(), 0)
+                    }
                     Root::Table { sampler, index } => {
                         let (h, size) = if *sampler {
                             (&samplers, sampler_size)

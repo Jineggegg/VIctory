@@ -1,5 +1,9 @@
 //! Each sample is a fresh Windows process, with isolated application caches.
+mod contention;
 mod gfx10;
+mod pressure;
+mod scale;
+mod soak;
 mod textures;
 mod waves;
 
@@ -41,7 +45,7 @@ fn heap(count: u32, address: usize) -> Guest {
 }
 
 fn descriptors(count: usize) {
-    let capacity = 32768;
+    let capacity = count.next_power_of_two().max(32768);
     let address = pool(capacity * 32 / PAGE);
     let h = heap(capacity as u32, address);
     let host = crate::descriptor::heap(h.0).host().unwrap();
@@ -82,26 +86,45 @@ fn descriptors(count: usize) {
     println!("BENCH descriptors_{count}_changed={count}");
     // D3D12 descriptors are opaque. Read every changed raw SRV on the GPU.
     let device = crate::host::host().unwrap();
-    let (root, pso) = crate::draw::tests::compile_cs(
+    // A shader indexes the physical heap. On paged hosts, follow the same
+    // GPU-visible page table as translated shaders, after the timed sync.
+    let paged = crate::descriptor::view_pages();
+    let page_slots = victory_shader::emit::VIEW_PAGE_SLOTS;
+    // SAFETY: the view heap stays live through the readback.
+    let host_slots = unsafe { host.heap.GetDesc().NumDescriptors };
+    let source = format!(
         r#"
-        ByteAddressBuffer slots[32768] : register(t0);
+        ByteAddressBuffer slots[{host_slots}] : register(t0);
+        ByteAddressBuffer pages : register(t0, space1);
         RWByteAddressBuffer dst : register(u0);
-        [RootSignature("DescriptorTable(SRV(t0,numDescriptors=32768)), UAV(u0)")]
+        [RootSignature("DescriptorTable(SRV(t0,numDescriptors={host_slots})), UAV(u0), SRV(t0,space=1)")]
         [numthreads(1,1,1)]
-        void main(uint3 id : SV_GroupID) {
-            dst.Store(4 * id.x, slots[(id.x * 17) % 32768].Load(0));
-        }"#,
+        void main(uint3 id : SV_GroupID) {{
+            uint item = id.x + id.y * 65535;
+            if (item >= {count}) return;
+            uint slot = (item * 17) % {capacity};
+            #if {paged}
+            slot = pages.Load(4 * (slot / {page_slots})) * {page_slots} + slot % {page_slots};
+            #endif
+            dst.Store(4 * item, slots[slot].Load(0));
+        }}"#,
+        paged = u32::from(paged),
     );
+    let (root, pso) = crate::draw::tests::compile_cs(&source);
     let (output, data) = device.shared_buffer((4 * count) as u64).unwrap();
     let list = device.new_list().unwrap();
     unsafe {
         list.list.SetDescriptorHeaps(&[Some(host.heap.clone())]);
         list.list.SetComputeRootSignature(&root);
         list.list.SetPipelineState(&pso);
-        list.list.SetComputeRootDescriptorTable(0, host.gpu(0));
+        list.list.SetComputeRootDescriptorTable(0, host.heap.GetGPUDescriptorHandleForHeapStart());
+        let strides = host.strides().unwrap().GetGPUVirtualAddress();
+        let offset = if paged { victory_shader::emit::VIEW_PAGE_TABLE } else { 0 };
+        list.list.SetComputeRootShaderResourceView(2, strides + u64::from(offset));
         list.list
             .SetComputeRootUnorderedAccessView(1, output.GetGPUVirtualAddress());
-        list.list.Dispatch(count as u32, 1, 1);
+        list.list
+            .Dispatch(count.min(65535) as u32, count.div_ceil(65535) as u32, 1);
     }
     list.close();
     device.execute(&[&list]);
@@ -118,17 +141,16 @@ fn descriptors(count: usize) {
     crate::watch::tests::free(address);
 }
 
-fn writeback(host: &Host) {
-    const PAGES: usize = 4096;
-    let len = PAGES * PAGE;
-    let addr = pool(PAGES);
+fn writeback(host: &Host, pages: usize) {
+    let len = pages * PAGE;
+    let addr = pool(pages);
     unsafe { std::ptr::write_bytes(addr as *mut u8, 0x35, len) };
     crate::shadow::register(addr, addr as u64, len as u64);
     let copy = crate::shadow::find(addr as u64, len as u64).unwrap();
     let (base, offset) = copy.mark_entry(addr as u64).unwrap();
     assert_eq!(offset, 0);
     assert_eq!(timed("shadow_refresh", || copy.update(addr, len)), len);
-    for i in 0..PAGES {
+    for i in 0..pages {
         let page = copy.read_host((addr + i * PAGE) as u64, PAGE / 4);
         assert!(
             page.iter().all(|&word| word == 0x35353535),
@@ -136,10 +158,10 @@ fn writeback(host: &Host) {
         );
     }
     let pattern: Vec<u8> = (0..PAGE).map(|i| (i % 251 + 1) as u8).collect();
-    for i in 0..PAGES {
+    for i in 0..pages {
         copy.write_host((addr + i * PAGE) as u64, &pattern);
     }
-    crate::shadow::bench_mark(base as usize, PAGES);
+    crate::shadow::bench_mark(base as usize, pages);
     let list = host.new_list().unwrap();
     // Duplicate declarations in every group, with an overlapping withheld
     // range in every 16th. This exercises Host::execute's actual dedup/overlap logic.
@@ -178,11 +200,11 @@ fn writeback(host: &Host) {
     crate::watch::tests::free(addr);
 }
 
-fn submissions(host: &Host) {
+fn submissions(host: &Host, count: u64) {
     let queue_before = bench_count(C::Submissions);
     let mut readbacks = Vec::new();
     let mut lists = Vec::new();
-    for i in 0u64..32 {
+    for i in 0u64..count {
         let list = Arc::new(host.new_list().unwrap());
         let (src, input) = list.upload(host, 8).unwrap();
         let (dst, output) = list.readback(host, 8).unwrap();
@@ -197,18 +219,18 @@ fn submissions(host: &Host) {
     }
     let fence_before = crate::host::BENCH_FENCE_NS.load(Relaxed);
     let before = crate::host::bench_submission_us();
-    timed("submit_32", || {
+    timed(&format!("submit_{count}"), || {
         for list in &lists {
             crate::queue::bench_submit(list.clone());
         }
     });
     let after = crate::host::bench_submission_us();
-    assert_eq!(bench_count(C::Submissions) - queue_before, 32);
+    assert_eq!(bench_count(C::Submissions) - queue_before, count);
     for (i, data) in readbacks.iter().enumerate() {
         // SAFETY: all fences completed and lists still own their readback buffers.
         assert_eq!(unsafe { data.cast::<u64>().read() }, i as u64 + 1);
     }
-    println!("BENCH submit_count=32");
+    println!("BENCH submit_count={count}");
     println!(
         "BENCH submit_fence_wait_us={:.3}",
         (crate::host::BENCH_FENCE_NS.load(Relaxed) - fence_before) as f64 / 1000.0
@@ -238,9 +260,13 @@ fn pipelines(host: &Host) {
     }
 }
 
-fn shaders(dir: &std::path::Path) {
+fn shaders(dir: &std::path::Path, count: usize) {
+    let computes = count - 4;
     let mut inputs = vec![gfx10::vertex_container(), gfx10::pixel_container()];
-    inputs.extend((1..=16).map(|i| gfx10::compute_container(128 * i)));
+    inputs.extend(
+        (1..=computes as u32)
+            .map(|i| gfx10::compute_container(if i <= 16 { 128 * i } else { 2048 + i })),
+    );
     inputs.extend([
         gfx10::wave_container(None),
         gfx10::wave_container(Some(32 << 32)),
@@ -263,26 +289,26 @@ fn shaders(dir: &std::path::Path) {
     let hot = timed("shader_batch_hot", || translate(true));
     assert_eq!(fresh, cold);
     assert_eq!(cold, hot);
-    let builds: Vec<_> = inputs[2..18]
+    let builds: Vec<_> = inputs[2..2 + computes]
         .iter()
         .map(|b| super::Prebuild::compute(b))
         .collect();
     let before = super::pipeline_counts();
-    timed("prebuild_16_cold", || {
+    timed(&format!("prebuild_{computes}_cold"), || {
         for build in &builds {
             build.make().unwrap();
         }
     });
     let after = super::pipeline_counts();
-    assert_eq!(after.0 - before.0, 16);
-    timed("prebuild_16_hot", || {
+    assert_eq!(after.0 - before.0, computes as _);
+    timed(&format!("prebuild_{computes}_hot"), || {
         for build in &builds {
             build.make().unwrap();
         }
     });
-    assert_eq!(super::pipeline_counts().1 - after.1, 16);
+    assert_eq!(super::pipeline_counts().1 - after.1, computes as _);
     assert!(builds.iter().all(|b| super::prebuilt(&b.key())));
-    println!("BENCH prebuild_count=16");
+    println!("BENCH prebuild_count={computes}");
     let mut digest = blake3::Hasher::new();
     for b in &cold {
         digest.update(b);
@@ -295,8 +321,58 @@ fn shaders(dir: &std::path::Path) {
     );
 }
 
+/// Prime clocks in a separate process so both measured checkouts start with
+/// empty application caches. No GPU work from this process survives the fence.
 #[test]
-#[ignore = "run alone in a fresh process via tools/bench/hot.py"]
+#[ignore = "GPU clock warmup for tools/bench/hot.sh"]
+fn warm_adapter() {
+    let host = crate::host::host().unwrap();
+    let (root, pso) = crate::draw::tests::compile_cs(
+        r#"
+        RWByteAddressBuffer dst : register(u0);
+        [RootSignature("UAV(u0)")]
+        [numthreads(64,1,1)]
+        void main(uint3 id : SV_DispatchThreadID) {
+            uint x = id.x + 1;
+            [loop] for (uint i = 0; i < 256; ++i) {
+                x ^= x << 13; x ^= x >> 17; x ^= x << 5;
+            }
+            dst.Store(4 * id.x, x);
+        }"#,
+    );
+    let (buffer, data) = host.shared_buffer(4096 * 64 * 4).unwrap();
+    let list = host.new_list().unwrap();
+    // SAFETY: the root UAV covers one word per thread and all objects live
+    // through the final completed submission.
+    unsafe {
+        list.list.SetComputeRootSignature(&root);
+        list.list.SetPipelineState(&pso);
+        list.list
+            .SetComputeRootUnorderedAccessView(0, buffer.GetGPUVirtualAddress());
+        list.list.Dispatch(4096, 1, 1);
+    }
+    list.close();
+    let start = Instant::now();
+    host.execute(&[&list]);
+    println!("WARMUP active");
+    // The driver releases the load only after observing three continuous
+    // seconds at benchmark clocks. EOF and the deadline also release it.
+    let stop = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let stopped = stop.clone();
+    std::thread::spawn(move || {
+        let _ = std::io::stdin().read_line(&mut String::new());
+        stopped.store(true, Relaxed);
+    });
+    while !stop.load(Relaxed) && start.elapsed() < std::time::Duration::from_secs(20) {
+        host.execute(&[&list]);
+    }
+    // SAFETY: the completed dispatch wrote nonzero xorshift(1) to word zero.
+    assert_ne!(unsafe { data.cast::<u32>().read_volatile() }, 0);
+    println!("WARMUP completed");
+}
+
+#[test]
+#[ignore = "run alone in a fresh process via bash tools/bench/hot.sh smoke"]
 fn hot_paths() {
     let cache = tempfile::tempdir().unwrap();
     super::library::use_pipeline_cache(cache.path().to_owned());
@@ -324,13 +400,13 @@ fn hot_paths() {
         high
     });
     pipelines(host);
-    shaders(cache.path());
+    shaders(cache.path(), 20);
     descriptors(1300);
     descriptors(14400);
-    submissions(host);
-    textures::run(host);
+    submissions(host, 32);
+    textures::run(host, 8);
     waves::run(host);
-    writeback(host);
+    writeback(host, 4096);
     DONE.store(true, Relaxed);
     println!("BENCH sampled_local_peak_mb={}", monitor.join().unwrap());
     use windows_sys::Win32::System::{ProcessStatus::*, Threading::GetCurrentProcess};

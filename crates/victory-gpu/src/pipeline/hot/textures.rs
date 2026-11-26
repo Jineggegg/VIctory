@@ -1,9 +1,12 @@
 use super::*;
-const N: usize = 8;
 const SIDE: u32 = 2048;
 const MIPS: u32 = 4;
 
-pub(super) fn run(host: &Host) {
+pub(super) fn run(host: &Host, count_textures: usize) {
+    batch(host, count_textures, false);
+}
+
+pub(super) fn batch(host: &Host, count_textures: usize, check_eviction: bool) {
     let desc = [3, 0, 0, 0, SIDE, 0, SIDE, 1 | MIPS << 16, 28, 1, 0, 0, 0, 0];
     // SAFETY: resource description in the title ABI, with both padding words initialized.
     let d = unsafe {
@@ -15,7 +18,7 @@ pub(super) fn run(host: &Host) {
         .layout
         .clone();
     let mut textures = Vec::new();
-    for k in 0..N {
+    for k in 0..count_textures {
         // Placed textures cache their address for the lifetime of this sample process.
         let base = pool((layout.size as usize).div_ceil(PAGE));
         unsafe { std::ptr::write_bytes(base as *mut u8, k as u8 + 1, layout.size as usize) };
@@ -52,7 +55,11 @@ pub(super) fn run(host: &Host) {
             .iter()
             .map(|&(_, r, _)| crate::texture::copied(r))
             .sum();
-        let count = if partial { N } else { N * MIPS as usize };
+        let count = if partial {
+            count_textures
+        } else {
+            count_textures * MIPS as usize
+        };
         assert_eq!(after - copied, count as u64, "{name} subresources");
         let total_bytes: u64 = textures
             .iter()
@@ -61,13 +68,40 @@ pub(super) fn run(host: &Host) {
         let bytes = total_bytes - previous_bytes;
         previous_bytes = total_bytes;
         if !partial {
-            assert_eq!(bytes, 170 << 20);
+            assert_eq!(bytes, count_textures as u64 * 21_760 * 1024);
         }
         println!("BENCH {name}_bytes={bytes}");
         println!("BENCH {name}_subresources={count}");
         verify(host, &textures, partial);
     }
-    println!("BENCH texture_title_patch_bytes={}", N * 32 * 8 * 4);
+    println!(
+        "BENCH texture_title_patch_bytes={}",
+        count_textures * 32 * 8 * 4
+    );
+    if check_eviction {
+        let addresses: Vec<_> = textures.into_iter().map(|(a, g, _)| (a, g)).collect();
+        // Advance exactly one guest frame. The next Host::execute queries
+        // WDDM and runs the real LRU policy on the now-idle textures.
+        let q = super::contention::make_queue(0);
+        let present = if crate::device::newer() { 0x100 } else { 0xf0 };
+        let call = slot::<extern "system" fn(This, u32, *const u8, *const u8) -> i32>(q.0, present);
+        assert_eq!(call(q.0, 0, std::ptr::null(), std::ptr::null()), 0);
+        let list = host.new_list().unwrap();
+        list.close();
+        host.execute(&[&list]);
+        let mut active = Vec::new();
+        let list = host.new_list().unwrap();
+        timed("pressure_reopen", || {
+            for (a, g) in addresses {
+                let resource = crate::resource::host_resource(g).expect("texture after eviction");
+                crate::texture::upload(&list, g, &resource);
+                active.push((a, g, resource));
+            }
+            list.close();
+            host.execute(&[&list]);
+        });
+        verify(host, &active, true);
+    }
 }
 
 // Actual D3D12 readback of every mip after each upload. Validation runs outside timings.

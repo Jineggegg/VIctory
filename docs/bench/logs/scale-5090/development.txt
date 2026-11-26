@@ -1,0 +1,163 @@
+===== initial-dxgi-12g.txt =====
+
+running 1 test
+test pipeline::hot::pressure::video_memory ... BENCH pressure_fill_us=307650.300
+BENCH initial_headroom_mib=31398.164
+BENCH target_headroom_mib=12288
+BENCH measured_headroom_mib=12198.164
+BENCH filler_bytes=20132659200
+BENCH filler_refused=0
+BENCH texture_full_us=47679.300
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9224.700
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH pressure_reopen_us=102.200
+BENCH texture_evictions=0
+BENCH texture_remakes=0
+BENCH initial_local_mb=21.848064
+BENCH final_local_mb=20332.838912
+BENCH final_local_budget_mb=32945.209344
+BENCH initial_nonlocal_mb=26.23488
+BENCH final_nonlocal_mb=298.74176
+BENCH final_nonlocal_budget_mb=108691.544473
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.88s
+
+
+===== initial-dxgi-oscillation.txt =====
+
+running 1 test
+test pipeline::hot::pressure::video_memory ... BENCH pressure_fill_us=11303153.500
+
+thread 'pipeline::hot::pressure::video_memory' (40404) panicked at crates\victory-gpu\src\pipeline\hot\pressure.rs:61:5:
+failed to reach profile
+BENCH initial_headroom_mib=31398.164
+BENCH target_headroom_mib=8192
+BENCH measured_headroom_mib=9510.164
+BENCH filler_bytes=22951231488
+BENCH filler_refused=0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    pipeline::hot::pressure::video_memory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 283 filtered out; finished in 11.76s
+
+
+===== initial-headroom-miss.txt =====
+
+running 1 test
+test pipeline::hot::pressure::video_memory ... BENCH pressure_fill_us=326345.100
+
+thread 'pipeline::hot::pressure::video_memory' (21716) panicked at crates\victory-gpu\src\pipeline\hot\pressure.rs:39:5:
+failed to reach profile
+BENCH initial_headroom_mib=31398.164
+BENCH target_headroom_mib=8192
+BENCH measured_headroom_mib=7334.883
+BENCH filler_bytes=23085449216
+BENCH filler_refused=0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    pipeline::hot::pressure::video_memory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 283 filtered out; finished in 0.64s
+
+
+===== initial-physical-limit.txt =====
+
+running 1 test
+test pipeline::hot::pressure::video_memory ... BENCH initial_dxgi_headroom_mib=31398.164062500004
+BENCH pressure_fill_us=2146531.600
+BENCH workload_dxgi_headroom_mib=2748.046875
+
+thread 'pipeline::hot::pressure::video_memory' (65008) panicked at crates\victory-gpu\src\pipeline\hot\pressure.rs:99:5:
+failed to reach profile
+BENCH initial_headroom_mib=26112.000
+BENCH target_headroom_mib=512
+BENCH measured_headroom_mib=1475.000
+BENCH filler_bytes=27380416512
+BENCH filler_refused=0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    pipeline::hot::pressure::video_memory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 283 filtered out; finished in 2.71s
+
+
+===== initial-warm-card.txt =====
+2026-11-26T14:22:36.4345141Z, P3, 1110, 7001, 3090, 14001, 5, 5, 16, 3, 36.60, 61.51, 27678
+2026-11-26T14:22:37.0685082Z, P3, 1065, 7001, 3090, 14001, 5, 5, 16, 2, 36.54, 61.52, 27674
+2026-11-26T14:22:37.5852102Z, P3, 1125, 7001, 3090, 14001, 5, 5, 16, 3, 36.60, 62.41, 27673
+2026-11-26T14:22:38.1086020Z, P3, 1215, 7001, 3090, 14001, 5, 5, 16, 3, 36.63, 63.29, 27673
+2026-11-26T14:22:38.5936804Z, P3, 1080, 7001, 3090, 14001, 5, 5, 16, 3, 36.57, 64.42, 27657
+2026-11-26T14:22:38.9485943Z, P1, 1080, 7001, 3090, 14001, 5, 5, 16, 9, 37.01, 68.94, 27647
+2026-11-26T14:22:39.2907669Z, P1, 2925, 13801, 3090, 14001, 5, 5, 16, 8, 38.17, 109.44, 27647
+2026-11-26T14:22:39.5957393Z, P1, 2925, 13801, 3090, 14001, 5, 5, 16, 9, 38.14, 114.49, 27647
+2026-11-26T14:22:39.9015397Z, P1, 2925, 13801, 3090, 14001, 5, 5, 16, 12, 38.17, 131.77, 27647
+2026-11-26T14:22:40.2094625Z, P1, 2925, 13801, 3090, 14001, 5, 5, 16, 13, 38.26, 126.54, 27647
+2026-11-26T14:22:40.5145460Z, P1, 2932, 13801, 3090, 14001, 5, 5, 16, 11, 38.11, 117.11, 27647
+2026-11-26T14:22:40.8485223Z, P1, 2932, 13801, 3090, 14001, 5, 5, 16, 11, 38.05, 116.86, 27647
+2026-11-26T14:22:41.1359622Z, P3, 2932, 13801, 3090, 14001, 5, 5, 16, 10, 37.59, 111.56, 27647
+2026-11-26T14:22:41.4419909Z, P3, 2932, 13801, 3090, 14001, 5, 5, 16, 14, 37.62, 104.80, 27647
+2026-11-26T14:22:41.7561576Z, P3, 2932, 13801, 3090, 14001, 5, 5, 16, 14, 37.30, 89.20, 27647
+2026-11-26T14:22:42.1098721Z, P3, 1980, 7001, 3090, 14001, 5, 5, 16, 10, 37.15, 86.64, 27647
+2026-11-26T14:22:42.4181031Z, P3, 1980, 7001, 3090, 14001, 5, 5, 16, 12, 37.33, 84.07, 27647
+2026-11-26T14:22:42.7476934Z, P3, 1980, 7001, 3090, 14001, 5, 5, 16, 9, 37.73, 85.81, 27647
+2026-11-26T14:22:43.0893863Z, P3, 2250, 7001, 3090, 14001, 5, 5, 16, 10, 37.41, 87.23, 27647
+2026-11-26T14:22:43.3965407Z, P3, 2250, 7001, 3090, 14001, 5, 5, 16, 10, 37.33, 87.72, 27647
+2026-11-26T14:22:43.7193036Z, P3, 2250, 7001, 3090, 14001, 5, 5, 16, 11, 37.18, 87.00, 27647
+2026-11-26T14:22:44.0332170Z, P3, 2010, 7001, 3090, 14001, 5, 5, 16, 11, 37.30, 81.36, 27647
+2026-11-26T14:22:44.3287139Z, P3, 2010, 7001, 3090, 14001, 5, 5, 16, 19, 37.85, 83.89, 27647
+2026-11-26T14:22:44.6157440Z, P3, 2010, 7001, 3090, 14001, 5, 5, 16, 15, 37.62, 87.77, 27647
+2026-11-26T14:22:44.9420355Z, P3, 2010, 7001, 3090, 14001, 5, 5, 16, 17, 37.62, 91.30, 27647
+2026-11-26T14:22:45.2623942Z, P3, 2010, 7001, 3090, 14001, 5, 5, 16, 13, 37.68, 99.96, 27647
+2026-11-26T14:22:45.8219265Z, P1, 2632, 13801, 3090, 14001, 5, 5, 16, 17, 38.00, 106.36, 27647
+2026-11-26T14:22:46.1350494Z, P1, 2632, 13801, 3090, 14001, 5, 5, 16, 38, 38.58, 112.27, 27647
+2026-11-26T14:22:46.4575403Z, P1, 2632, 13801, 3090, 14001, 5, 5, 16, 21, 38.11, 113.67, 27647
+2026-11-26T14:22:46.8397400Z, P1, 2632, 13801, 3090, 14001, 5, 5, 16, 43, 39.11, 130.14, 27662
+
+===== initial-warm-test.txt =====
+
+running 1 test
+test pipeline::hot::soak::warm ... BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 10.54s
+
+
+===== probe-card.txt =====
+2026-11-26T14:24:09.6909258Z, P3, 1185, 7001, 3090, 14001, 5, 5, 16, 3, 36.54, 63.96, 27683
+2026-11-26T14:24:10.0151172Z, P3, 1185, 7001, 3090, 14001, 5, 5, 16, 4, 36.54, 63.92, 27653
+2026-11-26T14:24:11.8172589Z, P1, 2880, 13801, 3090, 14001, 5, 5, 16, 83, 51.95, 513.46, 27653
+2026-11-26T14:24:12.6181171Z, P1, 2880, 13801, 3090, 14001, 5, 5, 16, 89, 52.47, 500.53, 27653
+2026-11-26T14:24:13.0556879Z, P1, 2910, 13801, 3090, 14001, 5, 5, 16, 57, 50.02, 469.94, 27653
+2026-11-26T14:24:13.4950109Z, P1, 2910, 13801, 3090, 14001, 5, 5, 16, 64, 48.24, 419.47, 27425
+2026-11-26T14:24:13.8559220Z, P1, 2910, 13801, 3090, 14001, 5, 5, 16, 65, 49.20, 385.27, 27424
+2026-11-26T14:24:14.1963526Z, P1, 2910, 13801, 3090, 14001, 5, 5, 16, 54, 47.39, 373.86, 27424
+2026-11-26T14:24:16.9393700Z, P1, 2902, 13801, 3090, 14001, 5, 5, 16, 84, 54.34, 467.42, 27638
+2026-11-26T14:24:17.9640450Z, P1, 2910, 13801, 3090, 14001, 5, 5, 16, 64, 51.33, 435.24, 27637
+2026-11-26T14:24:18.4085155Z, P1, 2887, 13801, 3090, 14001, 5, 5, 16, 2, 43.39, 398.04, 27637
+
+===== probe-heat.txt =====
+
+running 1 test
+test pipeline::hot::soak::warm ... BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 283 filtered out; finished in 8.96s

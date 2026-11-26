@@ -1,0 +1,13 @@
+{
+  "name": "victory-queue_waits-4-v1",
+  "test": "pipeline::hot::contention::queue_waits",
+  "timings": [
+    "queue_chain_us"
+  ],
+  "workload": [
+    "threads"
+  ],
+  "env": {
+    "VICTORY_BENCH_THREADS": "4"
+  }
+}

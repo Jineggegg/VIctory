@@ -1,0 +1,38 @@
+Scope: cargo test --locked -p victory-shader --lib, native Windows. Both runs: 306 passed, 0 failed, 3 ignored.
+Captured every successful emit::lower return in the shader library tests before validation, keyed by test thread and emission ordinal.
+Comparison isolates the table-bias change (dddccab -> 12754b5); both builds used the same temporary capture hook.
+Identical key sets, 1325 emitted containers. Direct byte comparison: 1320 identical, 5 different.
+Identical-subset SHA-256 on both sides (sorted UTF-8 filename, NUL, 32-byte container digest): 9fa582e66aa904df79a453f869b080268ac47508a4b6402a6e97ad4c276099c0
+Changed containers, SHA-256 and native dxc -dumpbin instruction counts before -> after:
+
+emit__lower__tests__a_descriptor_loaded_only_for_its_size_takes_the_kind_of_its_reload-0.dxil
+  ac4b1fd05ff673ddaf25bde911731a005ae49b277c2cc3a392ac111c31b4cb78 -> 7b07e82f1930357230af95ba76c2e2fc0ae3e98113ea598cff07ea882a653b3d
+  rawBufferLoad calls: 3 -> 2
+  raw offset shifts: 2 -> 1
+  raw offset masks: 2 -> 1
+
+emit__lower__tests__compute_spills_beside_a_descriptor_word_read_back-0.dxil
+  4d881ffcf03ab479176bae8f745257a23be2c6485a2673f84e187e90b803d506 -> ff4820961a4c44724e81c4fa7f943c9a7e5d2ed44f38c4899a52b5d5e6b57124
+  rawBufferLoad calls: 2 -> 2
+  raw offset shifts: 1 -> 1
+  raw offset masks: 1 -> 1
+
+emit__stride_tests__table_bound_structured_buffer_reads_by_element_and_dimensions-0.dxil
+  5546905d5642e0f00ae9a425c410ee29316f3d4f4c63b5b116fe2d7562e577bb -> 06630f8585550f431120195a0bc47c6e1c41a73676c394a456df46414446760a
+  rawBufferLoad calls: 3 -> 2
+  raw offset shifts: 2 -> 1
+  raw offset masks: 2 -> 1
+
+emit__stride_tests__table_bound_structured_buffer_reads_by_element_and_dimensions-1.dxil
+  7ac2a6719d263c0609fefb8f87d2687f3e2bfaa7f9e0bcdb1df3cc9bbe18255c -> bb4c1bd1a58c036df20609db5c5a8123aa4c1114b3b4903fae15f7b6f1c2d8f4
+  rawBufferLoad calls: 3 -> 2
+  raw offset shifts: 2 -> 1
+  raw offset masks: 2 -> 1
+
+emit__synthetic_tests__gathers_at_a_level_match_the_hardware-0.dxil
+  e52ff645357f80b30aeaef8f211b697956b88c66d95e23341171617e50eeabf8 -> efb6d4d91fa1820c7e2406d062a07ee37644c8ea6b7c2a3ee32dc88134737bca
+  rawBufferLoad calls: 2 -> 2
+  raw offset shifts: 1 -> 1
+  raw offset masks: 1 -> 1
+
+Cross-check of dxc main bodies: normalized SSA operands by expression and basic-block labels by ordinal. All five have identical ordered branches, stores, other result-less operations and their data dependencies. No new expression appeared. Three modules each omit a duplicate six-instruction metadata read/decode (mul, rawBufferLoad, extractvalue, bitcast, lshr, and); the other two retain the same expression multiset and move the metadata chain to handle creation.

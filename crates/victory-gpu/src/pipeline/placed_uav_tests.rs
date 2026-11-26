@@ -74,7 +74,9 @@ fn store_shader() -> Arc<Shader> {
     let st = structure::structure(&p).unwrap();
     let res = resource::track(&p, &native.layout, native.stage, Some(&st)).unwrap();
     let io = io::raise(&p, &native).unwrap();
-    let host = emit::emit(&c, &native, &p, &st, &io, &res).unwrap();
+    // This hand-built shader runs against the production descriptor heap.
+    let options = emit::Options { view_pages: crate::descriptor::view_pages(), ..Default::default() };
+    let host = emit::emit_with(&c, &native, &p, &st, &io, &res, options).unwrap();
     Arc::new(Shader {
         stage: "compute",
         hash: blake3::hash(&native.code).to_hex()[..16].to_owned(),
