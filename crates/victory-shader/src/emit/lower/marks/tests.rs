@@ -82,16 +82,20 @@ fn title_page_marks_keep_every_lanes_bit() {
     // Exercise every installed hardware adapter (including integrated GPUs).
     // WARP is selected separately and may occur in the DXGI list as well.
     let factory: IDXGIFactory4 =
+        // SAFETY: Zero flags are valid and the requested interface is IDXGIFactory4.
         unsafe { CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)) }.unwrap();
     for i in 0.. {
+        // SAFETY: The factory is live and an out-of-range adapter index returns an error.
         let Ok(adapter) = (unsafe { factory.EnumAdapters1(i) }) else {
             break;
         };
+        // SAFETY: The adapter returned by the factory is live for this query.
         let desc = unsafe { adapter.GetDesc1() }.unwrap();
         if desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 != 0 {
             continue;
         }
         let mut device: Option<ID3D12Device> = None;
+        // SAFETY: The adapter is live and device is writable storage for the requested interface.
         if unsafe { D3D12CreateDevice(&adapter, D3D_FEATURE_LEVEL_12_0, &mut device) }.is_err() {
             continue;
         }
