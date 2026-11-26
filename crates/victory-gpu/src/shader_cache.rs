@@ -184,7 +184,7 @@ impl Cache {
     }
 }
 
-pub(crate) pub(crate) fn cached(
+pub(crate) fn cached(
     cache: &Cache,
     build: &[u8; 32],
     container: &[u8],
