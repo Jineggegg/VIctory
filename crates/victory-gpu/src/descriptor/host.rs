@@ -1133,7 +1133,7 @@ impl HostHeap {
             return;
         }
         for slot in slots.iter() {
-            prepare(&slot.view());
+            prepare(&slot.view(), start + u64::from(slot.index) * step);
         }
 
         let mut made = self.made.lock().unwrap_or_else(|e| e.into_inner());
@@ -1255,7 +1255,7 @@ impl HostHeap {
             // memory) is made without the slot lock, which title threads
             // binding and writing views wait on (run evict5).
             drop(made);
-            prepare(&view);
+            prepare(&view, handle);
             made = self.made.lock().unwrap_or_else(|e| e.into_inner());
             // The title may have written another record there meanwhile (and
             // another thread made it): that one is the slot's.
@@ -2252,9 +2252,9 @@ fn is_placed_texture(view: &View) -> bool {
 /// Makes what a host view of `view` needs, if it is not made yet: the
 /// texture it views (made on first use) or the host copy of the buffer
 /// memory it views. The slot's view is then quick to make.
-fn prepare(view: &View) {
+fn prepare(view: &View, _handle: u64) {
     #[cfg(test)]
-    tests::while_preparing();
+    tests::while_preparing(_handle);
     match view {
         View::Placed(..) if is_placed_texture(view) => {
             let _ = placed_texture(view);
@@ -2553,11 +2553,19 @@ mod tests {
         assert!(crate::resource::made_copy(texture).is_some(), "with a host texture again");
     }
 
-    /// Work to run while a view's texture is prepared, once (tests).
-    pub(crate) static WHILE_PREPARING: std::sync::Mutex<Option<crate::descriptor::tests::Work>> = std::sync::Mutex::new(None);
+    // Independent tests can prepare descriptors concurrently. Fire a hook
+    // only for the record it registered, including on another submitter.
+    static PREPARE_HOOKS: Mutex<Vec<(u64, crate::descriptor::tests::Work)>> = Mutex::new(Vec::new());
 
-    pub(crate) fn while_preparing() {
-        let work = WHILE_PREPARING.lock().unwrap_or_else(|e| e.into_inner()).take();
+    fn on_prepare(handle: u64, work: impl FnOnce() + Send + 'static) {
+        PREPARE_HOOKS.lock().unwrap().push((handle, Box::new(work)));
+    }
+
+    pub(super) fn while_preparing(handle: u64) {
+        let work = {
+            let mut hooks = PREPARE_HOOKS.lock().unwrap_or_else(|e| e.into_inner());
+            hooks.iter().position(|entry| entry.0 == handle).map(|i| hooks.swap_remove(i).1)
+        };
         if let Some(work) = work {
             work();
         }
@@ -2591,14 +2599,14 @@ mod tests {
         let host = title_heap.host().expect("a host view heap");
         let (done, waited) = std::sync::mpsc::channel();
         let second_view = view_of(second);
-        *WHILE_PREPARING.lock().unwrap() = Some(Box::new(move || {
+        on_prepare(at, move || {
             // The title writes the other record into the slot meanwhile.
             std::thread::spawn(move || {
                 crate::descriptor::create_placed_srv(std::ptr::null(), &words, &second_view, at);
                 done.send(()).unwrap();
             });
             assert!(waited.recv_timeout(std::time::Duration::from_secs(5)).is_ok(), "the write waits");
-        }));
+        });
         // A draw reads the slot: its first record is prepared.
         assert!(host.mirror(s, at, true).is_some());
         let second_texture = crate::resource::texture_at(second, &words).expect("its resource");
@@ -2634,7 +2642,7 @@ mod tests {
         let heap_at = title_heap.start;
         let heap = heap as usize;
         let (done, waited) = std::sync::mpsc::channel();
-        *WHILE_PREPARING.lock().unwrap() = Some(Box::new(move || {
+        on_prepare(slot(first), move || {
             std::thread::spawn(move || {
                 let h = crate::descriptor::heap(heap as crate::object::This);
                 h.host().unwrap().mirror(second, heap_at + u64::from(second) * 32, true);
@@ -2644,9 +2652,8 @@ mod tests {
                 waited.recv_timeout(std::time::Duration::from_secs(5)).is_ok(),
                 "a view bound while another slot's texture is made waits"
             );
-        }));
+        });
         assert!(host.mirror(first, slot(first), true).is_some());
-        assert!(WHILE_PREPARING.lock().unwrap().is_none(), "the prepare ran");
         assert!(host.kept(first) && host.kept(second), "both made");
     }
 
@@ -3343,10 +3350,10 @@ mod tests {
         // A newer byte copy arrives after the diff has picked the old constant.
         records[0] = records[1];
         let replacement = records[2];
-        *WHILE_PREPARING.lock().unwrap() = Some(Box::new(move || {
+        on_prepare(start, move || {
             // SAFETY: the test owns this slot until sync_slots returns.
             unsafe { (start as *mut [u32; 8]).write_unaligned(replacement) };
-        }));
+        });
         heap.sync_slots(0, 1, start, 32);
         crate::shadow::unregister(pools[0], pools[0] as u64);
         run(12);
@@ -3377,20 +3384,19 @@ mod tests {
         let mut record = [0u32; 8];
         crate::descriptor::create_cbv(null, &[address as u32, (address >> 32) as u32, 256, 0],
             record.as_mut_ptr() as u64);
-        // SAFETY: this is a full slot in the test's guarded allocation.
-        unsafe { (start as *mut [u32; 8]).write(record) };
         let next = address + 256;
         let (done, wait) = std::sync::mpsc::channel();
-        *WHILE_PREPARING.lock().unwrap() = Some(Box::new(move || {
+        on_prepare(start, move || {
             std::thread::spawn(move || {
                 crate::descriptor::create_cbv(std::ptr::null(),
                     &[next as u32, (next >> 32) as u32, 256, 0], start);
                 done.send(()).unwrap();
             });
             wait.recv_timeout(std::time::Duration::from_secs(5)).expect("recorder blocked by sync");
-        }));
+        });
+        // SAFETY: this is a full slot in the test's guarded allocation.
+        unsafe { (start as *mut [u32; 8]).write(record) };
         crate::descriptor::sync_heaps();
-        assert!(WHILE_PREPARING.lock().unwrap().is_none());
         assert!(heap.made_from(0, start) && heap.kept(0));
         assert_eq!(crate::descriptor::view(start), Some(View::Constant(next, 256)));
         crate::descriptor::release(handle);
@@ -3408,13 +3414,12 @@ mod tests {
         let desc = [39, 1, 0x1688, 0, 0, 0, 64, 0, 1, 0];
         crate::descriptor::create_srv(std::ptr::null(), buffer, &desc, at);
         let object = buffer as usize;
-        *WHILE_PREPARING.lock().unwrap() = Some(Box::new(move || {
+        on_prepare(at, move || {
             // Invalidate the generation as resource destruction does, while
             // the test's own reference keeps the object safe to inspect.
             crate::descriptor::forget(object);
-        }));
+        });
         heap.sync_slots(0, 1, at, 32);
-        assert!(WHILE_PREPARING.lock().unwrap().is_none());
         assert!(!heap.made(0) && !heap.kept(0));
         drop(heap);
         crate::object::slot::<extern "system" fn(crate::object::This) -> u32>(buffer, 0x10)(buffer);
