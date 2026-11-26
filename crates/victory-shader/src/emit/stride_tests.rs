@@ -174,7 +174,7 @@ fn build(
     used: Vec<UsedResource>,
     threads: u32,
 ) -> HostShader {
-    build_with(words, layout, used, threads, false)
+    build_with(words, layout, used, threads, false, false)
 }
 
 /// [`build`], with read and write marks (`view_marks`).
@@ -184,6 +184,7 @@ fn build_with(
     used: Vec<UsedResource>,
     threads: u32,
     view_marks: bool,
+    wave_marks: bool,
 ) -> HostShader {
     let native = NativeProgram {
         stage: HwStage::Cs,
@@ -201,7 +202,7 @@ fn build_with(
     let st = structure::structure(&p).expect("structure");
     let res = resource::track(&p, &native.layout, native.stage, Some(&st)).expect("track");
     let io = io::raise(&p, &native).expect("io::raise");
-    let lowered = lower::lower(&lower::Parts {
+    let lowered = lower::lower_with_marks(&lower::Parts {
         native: &native,
         p: &p,
         st: &st,
@@ -212,7 +213,7 @@ fn build_with(
         prims: Vec::new(),
         mesh_stride: 0,
         view_marks,
-    })
+    }, wave_marks)
     .expect("lower");
     let shader = HostShader {
         stage: HwStage::Cs,
@@ -611,6 +612,12 @@ fn a_heap_index_in_a_paged_view_heap_reads_where_its_page_is() {
 /// write marked).
 #[test]
 fn views_read_in_a_paged_view_heap_mark_their_pages() {
+    for wave_marks in [false, true] {
+        verify_paged_read_marks(wave_marks);
+    }
+}
+
+fn verify_paged_read_marks(wave_marks: bool) {
     let shader = {
         let _paged = super::shader::view_pages(true);
         build_with(
@@ -623,6 +630,7 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
             vec![entry(ResourceType::Uav, 4, 2)],
             32,
             true,
+            wave_marks,
         )
     };
     assert!(shader.view_marks, "the bitmap is bound");
@@ -650,6 +658,10 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
             eprintln!("no SM 6.6 {label} device; skipped");
             continue;
         };
+        if wave_marks && !super::memory_tests::supports_wave_marks(&host) {
+            eprintln!("{label} does not support wave operations; skipped wave marks");
+            continue;
+        }
         let (root, pso) = host
             .compute_pipeline(&shader)
             .unwrap_or_else(|e| panic!("{label}: compute_pipeline failed: {e}"));
@@ -690,7 +702,7 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
         }
         ran += 1;
     }
-    assert!(ran > 0, "neither hardware nor WARP SM 6.6 device available");
+    assert!(ran > 0 || wave_marks, "neither hardware nor WARP SM 6.6 device available");
 }
 
 /// A buffer read at a heap index from data whose slot holds no buffer view

@@ -18,7 +18,7 @@ use crate::native::{
 use crate::{io, ir, resource, structure};
 
 /// Whether this test device accepts wave intrinsics in the mark shader.
-fn supports_wave_marks(host: &Host) -> bool {
+pub(super) fn supports_wave_marks(host: &Host) -> bool {
     use windows::Win32::Graphics::Direct3D12::*;
     let mut caps = D3D12_FEATURE_DATA_D3D12_OPTIONS1::default();
     // SAFETY: the feature query matches its output structure and size.
