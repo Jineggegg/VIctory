@@ -1,0 +1,56 @@
+Local build-queue slots reserved: 4
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+2026-11-26 16:19:53Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=3550/32607 MiB | power=22.89 W | temp=40.71 C | graphics=262 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.7s, 10 samples, max GPU=0%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Sample A 1/15 P0 2887/14001 MHz
+Sample B 1/15 P0 2902/14001 MHz
+Sample B 2/15 P0 2902/14001 MHz
+Sample A 2/15 P0 2902/14001 MHz
+Sample A 3/15 P0 2902/14001 MHz
+Sample B 3/15 P0 2895/14001 MHz
+Sample B 4/15 P0 2887/14001 MHz
+Sample A 4/15 P0 2902/14001 MHz
+Sample A 5/15 P0 2880/14001 MHz
+Sample B 5/15 P0 2715/14001 MHz
+Sample B 6/15 P0 2677/14001 MHz
+Sample A 6/15 P0 2632/14001 MHz
+Sample A 7/15 P0 2565/14001 MHz
+Sample B 7/15 P0 2715/14001 MHz
+Sample B 8/15 P0 2707/14001 MHz
+Sample A 8/15 P0 2707/14001 MHz
+Sample A 9/15 P0 2707/14001 MHz
+Sample B 9/15 P0 2655/14001 MHz
+Sample B 10/15 P0 2580/14001 MHz
+Sample A 10/15 P0 2565/14001 MHz
+Sample A 11/15 P0 2707/14001 MHz
+Sample B 11/15 P0 2707/14001 MHz
+Sample B 12/15 P0 2707/14001 MHz
+Sample A 12/15 P0 2707/14001 MHz
+Sample A 13/15 P0 2655/14001 MHz
+Sample B 13/15 P0 2625/14001 MHz
+Sample B 14/15 P0 2557/14001 MHz
+Sample A 14/15 P0 2715/14001 MHz
+Sample A 15/15 P0 2715/14001 MHz
+Sample B 15/15 P0 2685/14001 MHz
+Correctness: A True, B True. Median paired change [pointwise 95%]:
+guard_lock_us: undefined percentage (nonpositive baseline)
+execute_busy_us: +0.16% [-5.59%, 4.29%]
+held_busy_us: +1.58% [-4.95%, 2.85%]
+held_wait_sum_us: +1.67% [-5.50%, 2.59%]
+host_mutex_wait_us: -1.44% [-9.79%, 7.19%]
+host_prepare_us: -1.55% [-4.59%, 1.58%]
+list_recycle_us: -0.81% [-2.62%, 4.03%]
+list_reset_us: -0.13% [-6.06%, 2.00%]
+lists_per_second: +0.50% [-2.65%, 5.97%]
+mirror_lock_us: +39.62% [-22.55%, 144.44%]
+native_fence_wait_us: -0.69% [-10.17%, 7.39%]
+native_submit_and_fence_us: -1.36% [-5.65%, 5.50%]
+record_submit_us: -0.50% [-5.64%, 2.72%]
+submit_span_us: +1.82% [-5.21%, 2.74%]
+threads: 0.00% [0.00%, 0.00%]
+Paired bootstrap: 15 pairs; see paired.json
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

@@ -1,0 +1,3180 @@
+
+Sample A 1, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=967.800
+BENCH pso_hot_us=43.400
+BENCH shader_batch_translate_us=3136.100
+BENCH shader_batch_cold_us=13215.800
+BENCH shader_batch_hot_us=2427.000
+BENCH prebuild_16_cold_us=6806.500
+BENCH prebuild_16_hot_us=100.300
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=696.300
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6899.700
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3694.200
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1260.100
+BENCH submit_prepare_us=21
+BENCH submit_queue_and_fence_us=1777
+BENCH texture_full_us=31227.400
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9127.100
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=8697.824
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5735.936
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=34046.500
+BENCH marked_writeback_frame_us=77037.300
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094467584
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample B 1, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=838.600
+BENCH pso_hot_us=48.700
+BENCH shader_batch_translate_us=2865.200
+BENCH shader_batch_cold_us=13362.900
+BENCH shader_batch_hot_us=1071.800
+BENCH prebuild_16_cold_us=6743.900
+BENCH prebuild_16_hot_us=100.900
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=866.200
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8810.600
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3387.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1037.200
+BENCH submit_prepare_us=11
+BENCH submit_queue_and_fence_us=1478
+BENCH texture_full_us=29997.200
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8722.900
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3414.720
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6240.992
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33082.400
+BENCH marked_writeback_frame_us=77022.100
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094692864
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample B 2, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=862.200
+BENCH pso_hot_us=50.500
+BENCH shader_batch_translate_us=2854.000
+BENCH shader_batch_cold_us=13986.500
+BENCH shader_batch_hot_us=1030.700
+BENCH prebuild_16_cold_us=6830.900
+BENCH prebuild_16_hot_us=102.900
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=859.500
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=10032.400
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3602.500
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1137.000
+BENCH submit_prepare_us=11
+BENCH submit_queue_and_fence_us=1590
+BENCH texture_full_us=32323.400
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9053.100
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7299.840
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5209.696
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=34167.900
+BENCH marked_writeback_frame_us=79454.600
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094356992
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.02s
+
+
+exit 0
+
+Sample A 2, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=896.700
+BENCH pso_hot_us=46.200
+BENCH shader_batch_translate_us=3027.300
+BENCH shader_batch_cold_us=13579.100
+BENCH shader_batch_hot_us=1049.200
+BENCH prebuild_16_cold_us=6566.000
+BENCH prebuild_16_hot_us=100.600
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=707.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6670.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3345.100
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1088.300
+BENCH submit_prepare_us=9
+BENCH submit_queue_and_fence_us=1492
+BENCH texture_full_us=29872.900
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8530.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7924.512
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=2861.600
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33692.400
+BENCH marked_writeback_frame_us=77826.100
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1157165056
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.96s
+
+
+exit 0
+
+Sample A 3, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=829.200
+BENCH pso_hot_us=50.000
+BENCH shader_batch_translate_us=3294.100
+BENCH shader_batch_cold_us=13978.100
+BENCH shader_batch_hot_us=1062.300
+BENCH prebuild_16_cold_us=6726.700
+BENCH prebuild_16_hot_us=96.600
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=692.500
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=7121.900
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=5247.800
+BENCH submit_count=32
+BENCH submit_fence_wait_us=2831.300
+BENCH submit_prepare_us=13
+BENCH submit_queue_and_fence_us=3326
+BENCH texture_full_us=30587.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8439.100
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7571.712
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6299.584
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33211.100
+BENCH marked_writeback_frame_us=78527.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094688768
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 3, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=1150.700
+BENCH pso_hot_us=44.900
+BENCH shader_batch_translate_us=3086.300
+BENCH shader_batch_cold_us=13956.700
+BENCH shader_batch_hot_us=1090.000
+BENCH prebuild_16_cold_us=6744.000
+BENCH prebuild_16_hot_us=100.100
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=910.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8706.900
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3915.100
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1292.400
+BENCH submit_prepare_us=25
+BENCH submit_queue_and_fence_us=1871
+BENCH texture_full_us=30473.800
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8315.500
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=4568.928
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=3194.752
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=35126.000
+BENCH marked_writeback_frame_us=77521.700
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1157570560
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 4, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=839.200
+BENCH pso_hot_us=44.400
+BENCH shader_batch_translate_us=2853.300
+BENCH shader_batch_cold_us=13119.600
+BENCH shader_batch_hot_us=992.500
+BENCH prebuild_16_cold_us=6623.300
+BENCH prebuild_16_hot_us=101.500
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=891.300
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8794.500
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3924.700
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1343.900
+BENCH submit_prepare_us=20
+BENCH submit_queue_and_fence_us=1899
+BENCH texture_full_us=30921.800
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9016.200
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6349.408
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5925.632
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33806.200
+BENCH marked_writeback_frame_us=77206.500
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094447104
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample A 4, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=900.700
+BENCH pso_hot_us=44.200
+BENCH shader_batch_translate_us=2962.000
+BENCH shader_batch_cold_us=14189.600
+BENCH shader_batch_hot_us=1100.500
+BENCH prebuild_16_cold_us=6946.300
+BENCH prebuild_16_hot_us=98.500
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=687.500
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6804.600
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3537.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1093.200
+BENCH submit_prepare_us=18
+BENCH submit_queue_and_fence_us=1587
+BENCH texture_full_us=30281.600
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8682.000
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7131.616
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=7052.800
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33239.000
+BENCH marked_writeback_frame_us=76679.100
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094651904
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample A 5, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=815.300
+BENCH pso_hot_us=47.200
+BENCH shader_batch_translate_us=2977.400
+BENCH shader_batch_cold_us=13956.400
+BENCH shader_batch_hot_us=1201.500
+BENCH prebuild_16_cold_us=6499.800
+BENCH prebuild_16_hot_us=99.900
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=701.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6678.600
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3432.800
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1054.800
+BENCH submit_prepare_us=25
+BENCH submit_queue_and_fence_us=1514
+BENCH texture_full_us=31336.900
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8707.000
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7172.288
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6937.184
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33143.600
+BENCH marked_writeback_frame_us=78553.000
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1136746496
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 5, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=809.500
+BENCH pso_hot_us=51.100
+BENCH shader_batch_translate_us=2890.600
+BENCH shader_batch_cold_us=12927.800
+BENCH shader_batch_hot_us=1001.100
+BENCH prebuild_16_cold_us=6793.000
+BENCH prebuild_16_hot_us=105.200
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=865.400
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8791.100
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3362.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1145.400
+BENCH submit_prepare_us=7
+BENCH submit_queue_and_fence_us=1524
+BENCH texture_full_us=30498.100
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8916.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7310.336
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6482.080
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33095.600
+BENCH marked_writeback_frame_us=76147.100
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1156747264
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample B 6, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=934.100
+BENCH pso_hot_us=75.200
+BENCH shader_batch_translate_us=3044.900
+BENCH shader_batch_cold_us=13157.300
+BENCH shader_batch_hot_us=1072.200
+BENCH prebuild_16_cold_us=6411.200
+BENCH prebuild_16_hot_us=107.100
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=864.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8741.200
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3760.200
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1187.600
+BENCH submit_prepare_us=18
+BENCH submit_queue_and_fence_us=1689
+BENCH texture_full_us=30908.400
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8335.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3610.016
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5494.944
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33531.700
+BENCH marked_writeback_frame_us=79768.100
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094692864
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample A 6, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=936.900
+BENCH pso_hot_us=46.200
+BENCH shader_batch_translate_us=2952.000
+BENCH shader_batch_cold_us=13162.200
+BENCH shader_batch_hot_us=1031.900
+BENCH prebuild_16_cold_us=6767.400
+BENCH prebuild_16_hot_us=105.100
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=720.000
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6778.900
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3733.900
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1151.600
+BENCH submit_prepare_us=20
+BENCH submit_queue_and_fence_us=1670
+BENCH texture_full_us=30496.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8876.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7538.176
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=2483.712
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33586.200
+BENCH marked_writeback_frame_us=76988.000
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094459392
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample A 7, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=822.800
+BENCH pso_hot_us=45.500
+BENCH shader_batch_translate_us=3051.100
+BENCH shader_batch_cold_us=14066.100
+BENCH shader_batch_hot_us=1231.300
+BENCH prebuild_16_cold_us=6436.500
+BENCH prebuild_16_hot_us=100.700
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=711.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6704.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3361.300
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1099.500
+BENCH submit_prepare_us=7
+BENCH submit_queue_and_fence_us=1519
+BENCH texture_full_us=30790.000
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8946.700
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6073.248
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=2377.184
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=37008.500
+BENCH marked_writeback_frame_us=76490.900
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1157431296
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample B 7, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=916.300
+BENCH pso_hot_us=60.800
+BENCH shader_batch_translate_us=2973.200
+BENCH shader_batch_cold_us=13805.900
+BENCH shader_batch_hot_us=1041.800
+BENCH prebuild_16_cold_us=6816.300
+BENCH prebuild_16_hot_us=100.400
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=869.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=9010.800
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4762.800
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1933.000
+BENCH submit_prepare_us=25
+BENCH submit_queue_and_fence_us=2588
+BENCH texture_full_us=30898.300
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9134.200
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6124.544
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6191.168
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33901.000
+BENCH marked_writeback_frame_us=77010.600
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1121603584
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample B 8, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=859.600
+BENCH pso_hot_us=52.300
+BENCH shader_batch_translate_us=2797.800
+BENCH shader_batch_cold_us=13392.900
+BENCH shader_batch_hot_us=1320.000
+BENCH prebuild_16_cold_us=6611.200
+BENCH prebuild_16_hot_us=96.000
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=850.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8603.100
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3558.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1143.800
+BENCH submit_prepare_us=22
+BENCH submit_queue_and_fence_us=1664
+BENCH texture_full_us=33341.000
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8465.000
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3468.672
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6186.368
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33134.200
+BENCH marked_writeback_frame_us=77507.400
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094217728
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample A 8, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=1018.200
+BENCH pso_hot_us=57.800
+BENCH shader_batch_translate_us=2927.400
+BENCH shader_batch_cold_us=13538.800
+BENCH shader_batch_hot_us=1186.200
+BENCH prebuild_16_cold_us=6492.200
+BENCH prebuild_16_hot_us=96.900
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=704.000
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=7077.500
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3585.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1135.100
+BENCH submit_prepare_us=20
+BENCH submit_queue_and_fence_us=1645
+BENCH texture_full_us=31182.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9022.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6938.432
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6658.272
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33084.600
+BENCH marked_writeback_frame_us=77953.700
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094176768
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample A 9, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=805.300
+BENCH pso_hot_us=47.700
+BENCH shader_batch_translate_us=3086.000
+BENCH shader_batch_cold_us=12936.200
+BENCH shader_batch_hot_us=1151.000
+BENCH prebuild_16_cold_us=6837.000
+BENCH prebuild_16_hot_us=108.000
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=719.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6757.300
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4038.900
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1545.000
+BENCH submit_prepare_us=9
+BENCH submit_queue_and_fence_us=1969
+BENCH texture_full_us=33390.100
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8233.900
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3505.696
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4464.192
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=34396.700
+BENCH marked_writeback_frame_us=76263.700
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094336512
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample B 9, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=904.300
+BENCH pso_hot_us=48.700
+BENCH shader_batch_translate_us=2979.200
+BENCH shader_batch_cold_us=13296.400
+BENCH shader_batch_hot_us=1053.300
+BENCH prebuild_16_cold_us=7191.500
+BENCH prebuild_16_hot_us=98.200
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=843.900
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8664.100
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3547.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1149.900
+BENCH submit_prepare_us=12
+BENCH submit_queue_and_fence_us=1646
+BENCH texture_full_us=31038.200
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8382.200
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6272.096
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=7110.656
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33240.900
+BENCH marked_writeback_frame_us=77521.800
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094963200
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 10, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=866.600
+BENCH pso_hot_us=46.200
+BENCH shader_batch_translate_us=2761.400
+BENCH shader_batch_cold_us=13081.400
+BENCH shader_batch_hot_us=1017.900
+BENCH prebuild_16_cold_us=6393.600
+BENCH prebuild_16_hot_us=101.900
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=969.300
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8962.300
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=14628.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=11709.300
+BENCH submit_prepare_us=21
+BENCH submit_queue_and_fence_us=12269
+BENCH texture_full_us=29631.900
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8447.300
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=2777.152
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5555.616
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33834.000
+BENCH marked_writeback_frame_us=77369.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1157292032
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample A 10, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=830.900
+BENCH pso_hot_us=47.200
+BENCH shader_batch_translate_us=3005.600
+BENCH shader_batch_cold_us=13316.300
+BENCH shader_batch_hot_us=1022.900
+BENCH prebuild_16_cold_us=6447.900
+BENCH prebuild_16_hot_us=172.100
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=717.600
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6682.100
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3726.200
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1345.700
+BENCH submit_prepare_us=19
+BENCH submit_queue_and_fence_us=1808
+BENCH texture_full_us=30635.900
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8642.300
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7205.248
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=2751.968
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=34842.200
+BENCH marked_writeback_frame_us=78066.400
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1157455872
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample A 11, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=809.000
+BENCH pso_hot_us=48.100
+BENCH shader_batch_translate_us=2965.600
+BENCH shader_batch_cold_us=13447.000
+BENCH shader_batch_hot_us=1042.400
+BENCH prebuild_16_cold_us=6934.200
+BENCH prebuild_16_hot_us=106.300
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=720.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6964.200
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3491.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1222.300
+BENCH submit_prepare_us=8
+BENCH submit_queue_and_fence_us=1618
+BENCH texture_full_us=30913.700
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8562.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=5368.384
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4957.888
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33137.500
+BENCH marked_writeback_frame_us=78834.100
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1138917376
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample B 11, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=887.600
+BENCH pso_hot_us=44.100
+BENCH shader_batch_translate_us=2736.100
+BENCH shader_batch_cold_us=13047.900
+BENCH shader_batch_hot_us=1027.100
+BENCH prebuild_16_cold_us=6512.100
+BENCH prebuild_16_hot_us=98.200
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=887.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8896.200
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3476.000
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1196.900
+BENCH submit_prepare_us=12
+BENCH submit_queue_and_fence_us=1613
+BENCH texture_full_us=34235.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8410.800
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=5392.256
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5087.040
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=35151.300
+BENCH marked_writeback_frame_us=79203.000
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1137414144
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 12, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=815.400
+BENCH pso_hot_us=42.200
+BENCH shader_batch_translate_us=2734.200
+BENCH shader_batch_cold_us=13404.800
+BENCH shader_batch_hot_us=1144.000
+BENCH prebuild_16_cold_us=6916.600
+BENCH prebuild_16_hot_us=97.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=859.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8699.600
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3288.900
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1019.800
+BENCH submit_prepare_us=13
+BENCH submit_queue_and_fence_us=1436
+BENCH texture_full_us=30414.200
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8795.500
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7595.424
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6291.200
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33529.600
+BENCH marked_writeback_frame_us=77759.100
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094840320
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample A 12, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=889.900
+BENCH pso_hot_us=41.200
+BENCH shader_batch_translate_us=3017.400
+BENCH shader_batch_cold_us=13582.100
+BENCH shader_batch_hot_us=1003.800
+BENCH prebuild_16_cold_us=6560.600
+BENCH prebuild_16_hot_us=95.200
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=684.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6699.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3405.200
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1153.200
+BENCH submit_prepare_us=6
+BENCH submit_queue_and_fence_us=1532
+BENCH texture_full_us=31189.700
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9002.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6976.544
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=3678.432
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=32985.400
+BENCH marked_writeback_frame_us=78631.600
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1113264128
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 13, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=1075.400
+BENCH pso_hot_us=40.800
+BENCH shader_batch_translate_us=2854.500
+BENCH shader_batch_cold_us=13341.000
+BENCH shader_batch_hot_us=1067.300
+BENCH prebuild_16_cold_us=6636.600
+BENCH prebuild_16_hot_us=108.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=685.500
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6379.400
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3389.800
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1160.800
+BENCH submit_prepare_us=6
+BENCH submit_queue_and_fence_us=1553
+BENCH texture_full_us=31349.200
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8492.500
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6234.112
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=7270.112
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33015.000
+BENCH marked_writeback_frame_us=76836.300
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1156775936
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample B 13, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=912.200
+BENCH pso_hot_us=47.000
+BENCH shader_batch_translate_us=2998.800
+BENCH shader_batch_cold_us=12971.500
+BENCH shader_batch_hot_us=1187.400
+BENCH prebuild_16_cold_us=6765.100
+BENCH prebuild_16_hot_us=94.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=866.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8683.500
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3620.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1140.800
+BENCH submit_prepare_us=25
+BENCH submit_queue_and_fence_us=1643
+BENCH texture_full_us=31027.900
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9585.900
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6773.568
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5852.768
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=35544.400
+BENCH marked_writeback_frame_us=77317.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094529024
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample B 14, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=853.800
+BENCH pso_hot_us=54.000
+BENCH shader_batch_translate_us=2879.700
+BENCH shader_batch_cold_us=12651.400
+BENCH shader_batch_hot_us=1101.400
+BENCH prebuild_16_cold_us=6229.200
+BENCH prebuild_16_hot_us=98.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=818.400
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8683.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3576.800
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1099.000
+BENCH submit_prepare_us=20
+BENCH submit_queue_and_fence_us=1617
+BENCH texture_full_us=30994.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9251.200
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3459.360
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5045.120
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=34214.700
+BENCH marked_writeback_frame_us=78513.500
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1157390336
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 14, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=789.200
+BENCH pso_hot_us=62.600
+BENCH shader_batch_translate_us=3057.700
+BENCH shader_batch_cold_us=13302.800
+BENCH shader_batch_hot_us=1123.300
+BENCH prebuild_16_cold_us=6783.000
+BENCH prebuild_16_hot_us=95.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=736.400
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6727.900
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3439.900
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1157.200
+BENCH submit_prepare_us=8
+BENCH submit_queue_and_fence_us=1567
+BENCH texture_full_us=30369.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9265.800
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6961.536
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6298.944
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33934.000
+BENCH marked_writeback_frame_us=78370.000
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1137602560
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 15, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=794.600
+BENCH pso_hot_us=50.300
+BENCH shader_batch_translate_us=2980.500
+BENCH shader_batch_cold_us=13366.500
+BENCH shader_batch_hot_us=1021.000
+BENCH prebuild_16_cold_us=6783.100
+BENCH prebuild_16_hot_us=99.700
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=686.100
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6599.100
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3478.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1145.900
+BENCH submit_prepare_us=11
+BENCH submit_queue_and_fence_us=1568
+BENCH texture_full_us=31089.000
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8773.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=5426.432
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=7610.240
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33734.200
+BENCH marked_writeback_frame_us=76206.400
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094279168
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample B 15, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=898.100
+BENCH pso_hot_us=45.500
+BENCH shader_batch_translate_us=2864.200
+BENCH shader_batch_cold_us=12726.800
+BENCH shader_batch_hot_us=1004.200
+BENCH prebuild_16_cold_us=6505.400
+BENCH prebuild_16_hot_us=96.400
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=831.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8631.600
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3385.100
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1070.700
+BENCH submit_prepare_us=11
+BENCH submit_queue_and_fence_us=1517
+BENCH texture_full_us=31631.200
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9002.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6942.624
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=7360.288
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33491.200
+BENCH marked_writeback_frame_us=76808.600
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1137631232
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample B 16, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=1078.600
+BENCH pso_hot_us=55.000
+BENCH shader_batch_translate_us=2793.000
+BENCH shader_batch_cold_us=14638.100
+BENCH shader_batch_hot_us=1210.300
+BENCH prebuild_16_cold_us=6991.600
+BENCH prebuild_16_hot_us=118.700
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=861.100
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8849.500
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3575.800
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1203.100
+BENCH submit_prepare_us=12
+BENCH submit_queue_and_fence_us=1673
+BENCH texture_full_us=31402.300
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8447.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6999.552
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6199.712
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33901.800
+BENCH marked_writeback_frame_us=76487.600
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1157496832
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample A 16, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=813.900
+BENCH pso_hot_us=53.800
+BENCH shader_batch_translate_us=3351.500
+BENCH shader_batch_cold_us=13355.800
+BENCH shader_batch_hot_us=1031.700
+BENCH prebuild_16_cold_us=7147.700
+BENCH prebuild_16_hot_us=100.500
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=699.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=7099.300
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3876.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1375.700
+BENCH submit_prepare_us=18
+BENCH submit_queue_and_fence_us=1878
+BENCH texture_full_us=31978.800
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8407.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7035.648
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=2302.336
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=42062.800
+BENCH marked_writeback_frame_us=80339.000
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1137967104
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 1.02s
+
+
+exit 0
+
+Sample A 17, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=833.900
+BENCH pso_hot_us=51.600
+BENCH shader_batch_translate_us=2898.700
+BENCH shader_batch_cold_us=13065.100
+BENCH shader_batch_hot_us=1104.600
+BENCH prebuild_16_cold_us=6883.500
+BENCH prebuild_16_hot_us=100.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=691.500
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6515.600
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3433.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1161.100
+BENCH submit_prepare_us=11
+BENCH submit_queue_and_fence_us=1571
+BENCH texture_full_us=31777.200
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8676.800
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6630.400
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=3147.712
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33294.800
+BENCH marked_writeback_frame_us=75970.100
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1120776192
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 17, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=881.900
+BENCH pso_hot_us=47.800
+BENCH shader_batch_translate_us=2898.700
+BENCH shader_batch_cold_us=13945.300
+BENCH shader_batch_hot_us=1166.200
+BENCH prebuild_16_cold_us=6934.700
+BENCH prebuild_16_hot_us=97.900
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=893.000
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8561.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3305.000
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1074.600
+BENCH submit_prepare_us=8
+BENCH submit_queue_and_fence_us=1460
+BENCH texture_full_us=30007.400
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8894.300
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3560.384
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6025.568
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=34319.500
+BENCH marked_writeback_frame_us=78262.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1157414912
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 18, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=844.700
+BENCH pso_hot_us=51.000
+BENCH shader_batch_translate_us=2959.200
+BENCH shader_batch_cold_us=13726.400
+BENCH shader_batch_hot_us=1084.700
+BENCH prebuild_16_cold_us=7021.500
+BENCH prebuild_16_hot_us=99.500
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=874.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8741.500
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3619.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1301.700
+BENCH submit_prepare_us=12
+BENCH submit_queue_and_fence_us=1749
+BENCH texture_full_us=30954.700
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8983.500
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6995.840
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5354.816
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=35235.000
+BENCH marked_writeback_frame_us=77640.300
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094520832
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample A 18, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=1048.000
+BENCH pso_hot_us=47.100
+BENCH shader_batch_translate_us=3199.400
+BENCH shader_batch_cold_us=13942.400
+BENCH shader_batch_hot_us=1029.300
+BENCH prebuild_16_cold_us=6350.600
+BENCH prebuild_16_hot_us=96.900
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=729.600
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6455.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3492.200
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1200.500
+BENCH submit_prepare_us=12
+BENCH submit_queue_and_fence_us=1615
+BENCH texture_full_us=30985.700
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8740.900
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7249.376
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5682.176
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=34883.500
+BENCH marked_writeback_frame_us=78543.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1137242112
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 19, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=881.100
+BENCH pso_hot_us=47.800
+BENCH shader_batch_translate_us=2941.500
+BENCH shader_batch_cold_us=13029.800
+BENCH shader_batch_hot_us=1373.300
+BENCH prebuild_16_cold_us=5958.800
+BENCH prebuild_16_hot_us=98.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=676.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6489.500
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3921.300
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1250.800
+BENCH submit_prepare_us=41
+BENCH submit_queue_and_fence_us=1927
+BENCH texture_full_us=31556.300
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8962.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=4985.728
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=3440.896
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=34287.600
+BENCH marked_writeback_frame_us=75881.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094045696
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.96s
+
+
+exit 0
+
+Sample B 19, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=873.000
+BENCH pso_hot_us=43.600
+BENCH shader_batch_translate_us=2854.800
+BENCH shader_batch_cold_us=13288.600
+BENCH shader_batch_hot_us=1023.300
+BENCH prebuild_16_cold_us=6606.200
+BENCH prebuild_16_hot_us=100.400
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=854.100
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8928.800
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3380.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1140.500
+BENCH submit_prepare_us=8
+BENCH submit_queue_and_fence_us=1539
+BENCH texture_full_us=30085.000
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9354.700
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=4525.952
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4847.584
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33236.200
+BENCH marked_writeback_frame_us=76174.600
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1137545216
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample B 20, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=809.200
+BENCH pso_hot_us=43.000
+BENCH shader_batch_translate_us=2906.000
+BENCH shader_batch_cold_us=13475.200
+BENCH shader_batch_hot_us=1243.400
+BENCH prebuild_16_cold_us=6482.500
+BENCH prebuild_16_hot_us=95.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=871.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8345.900
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3641.700
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1085.200
+BENCH submit_prepare_us=17
+BENCH submit_queue_and_fence_us=1621
+BENCH texture_full_us=30801.900
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8635.200
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=2508.576
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4991.136
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33195.200
+BENCH marked_writeback_frame_us=78399.400
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094549504
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 20, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=841.300
+BENCH pso_hot_us=106.200
+BENCH shader_batch_translate_us=3097.000
+BENCH shader_batch_cold_us=26144.900
+BENCH shader_batch_hot_us=1097.500
+BENCH prebuild_16_cold_us=6796.600
+BENCH prebuild_16_hot_us=105.500
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=697.300
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6855.300
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3950.800
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1301.400
+BENCH submit_prepare_us=33
+BENCH submit_queue_and_fence_us=1962
+BENCH texture_full_us=30918.800
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8424.800
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3338.112
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6203.776
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33079.900
+BENCH marked_writeback_frame_us=76690.700
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1137364992
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 1.01s
+
+
+exit 0
+
+Sample A 21, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=838.900
+BENCH pso_hot_us=124.500
+BENCH shader_batch_translate_us=2957.000
+BENCH shader_batch_cold_us=13028.600
+BENCH shader_batch_hot_us=1030.600
+BENCH prebuild_16_cold_us=6559.500
+BENCH prebuild_16_hot_us=95.900
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=708.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6970.100
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4433.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=2041.200
+BENCH submit_prepare_us=12
+BENCH submit_queue_and_fence_us=2497
+BENCH texture_full_us=31837.400
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8425.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=4574.720
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5276.544
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33246.200
+BENCH marked_writeback_frame_us=76488.800
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094672384
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 21, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=885.600
+BENCH pso_hot_us=53.000
+BENCH shader_batch_translate_us=2765.800
+BENCH shader_batch_cold_us=13004.200
+BENCH shader_batch_hot_us=1060.000
+BENCH prebuild_16_cold_us=6555.800
+BENCH prebuild_16_hot_us=97.700
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=863.400
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8323.800
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4066.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1357.500
+BENCH submit_prepare_us=32
+BENCH submit_queue_and_fence_us=2018
+BENCH texture_full_us=32390.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9434.500
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=5346.432
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6574.784
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33201.000
+BENCH marked_writeback_frame_us=76688.800
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1156587520
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.01s
+
+
+exit 0
+
+Sample B 22, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=898.600
+BENCH pso_hot_us=47.700
+BENCH shader_batch_translate_us=2848.600
+BENCH shader_batch_cold_us=13340.700
+BENCH shader_batch_hot_us=1012.000
+BENCH prebuild_16_cold_us=6560.600
+BENCH prebuild_16_hot_us=105.000
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=898.200
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8903.100
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4202.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1859.300
+BENCH submit_prepare_us=12
+BENCH submit_queue_and_fence_us=2314
+BENCH texture_full_us=31203.100
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8499.900
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3877.696
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5068.992
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=32975.900
+BENCH marked_writeback_frame_us=75990.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094766592
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 22, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=896.400
+BENCH pso_hot_us=58.300
+BENCH shader_batch_translate_us=2922.000
+BENCH shader_batch_cold_us=13283.500
+BENCH shader_batch_hot_us=1052.200
+BENCH prebuild_16_cold_us=7417.100
+BENCH prebuild_16_hot_us=105.100
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=688.000
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6606.300
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3552.800
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1123.600
+BENCH submit_prepare_us=20
+BENCH submit_queue_and_fence_us=1636
+BENCH texture_full_us=30351.100
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8616.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=5144.704
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=2492.608
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33672.400
+BENCH marked_writeback_frame_us=77997.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1137991680
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample A 23, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=870.000
+BENCH pso_hot_us=60.900
+BENCH shader_batch_translate_us=3031.000
+BENCH shader_batch_cold_us=13203.700
+BENCH shader_batch_hot_us=1073.900
+BENCH prebuild_16_cold_us=6880.600
+BENCH prebuild_16_hot_us=95.600
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=682.600
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6516.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3351.300
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1091.900
+BENCH submit_prepare_us=11
+BENCH submit_queue_and_fence_us=1484
+BENCH texture_full_us=31055.600
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8856.200
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7491.104
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5507.232
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33117.500
+BENCH marked_writeback_frame_us=77105.700
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1137655808
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample B 23, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=890.200
+BENCH pso_hot_us=52.300
+BENCH shader_batch_translate_us=2846.700
+BENCH shader_batch_cold_us=13684.500
+BENCH shader_batch_hot_us=1126.400
+BENCH prebuild_16_cold_us=7003.400
+BENCH prebuild_16_hot_us=106.200
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=841.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8709.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4058.300
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1105.100
+BENCH submit_prepare_us=23
+BENCH submit_queue_and_fence_us=1684
+BENCH texture_full_us=29948.800
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8748.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7693.216
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5747.296
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=32796.800
+BENCH marked_writeback_frame_us=76456.300
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094389760
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample B 24, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=880.000
+BENCH pso_hot_us=43.900
+BENCH shader_batch_translate_us=3128.800
+BENCH shader_batch_cold_us=13345.300
+BENCH shader_batch_hot_us=1014.500
+BENCH prebuild_16_cold_us=6955.300
+BENCH prebuild_16_hot_us=97.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=855.000
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8969.700
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3525.900
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1203.700
+BENCH submit_prepare_us=11
+BENCH submit_queue_and_fence_us=1635
+BENCH texture_full_us=30982.400
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8629.300
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7096.192
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4851.296
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33512.900
+BENCH marked_writeback_frame_us=76307.300
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094807552
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 24, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=864.200
+BENCH pso_hot_us=55.300
+BENCH shader_batch_translate_us=2946.400
+BENCH shader_batch_cold_us=13132.500
+BENCH shader_batch_hot_us=1017.500
+BENCH prebuild_16_cold_us=6806.200
+BENCH prebuild_16_hot_us=102.500
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=704.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6413.600
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3975.200
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1336.200
+BENCH submit_prepare_us=21
+BENCH submit_queue_and_fence_us=1875
+BENCH texture_full_us=30336.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8403.800
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6968.576
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5282.816
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33870.000
+BENCH marked_writeback_frame_us=80749.500
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094483968
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample A 25, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=875.700
+BENCH pso_hot_us=43.500
+BENCH shader_batch_translate_us=2967.000
+BENCH shader_batch_cold_us=13695.200
+BENCH shader_batch_hot_us=1009.500
+BENCH prebuild_16_cold_us=6526.800
+BENCH prebuild_16_hot_us=102.200
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=686.300
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6731.800
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4496.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=2082.900
+BENCH submit_prepare_us=13
+BENCH submit_queue_and_fence_us=2543
+BENCH texture_full_us=31534.600
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8612.700
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6706.944
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5111.360
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=32853.100
+BENCH marked_writeback_frame_us=78401.500
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094938624
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample B 25, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=828.600
+BENCH pso_hot_us=56.300
+BENCH shader_batch_translate_us=2875.600
+BENCH shader_batch_cold_us=12970.300
+BENCH shader_batch_hot_us=1103.900
+BENCH prebuild_16_cold_us=6903.500
+BENCH prebuild_16_hot_us=96.700
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=935.900
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=9146.400
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4077.200
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1565.900
+BENCH submit_prepare_us=28
+BENCH submit_queue_and_fence_us=2094
+BENCH texture_full_us=30034.900
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9078.900
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7392.480
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5702.240
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=32688.100
+BENCH marked_writeback_frame_us=75867.500
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094643712
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 1.00s
+
+
+exit 0
+
+Sample B 26, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=927.700
+BENCH pso_hot_us=41.000
+BENCH shader_batch_translate_us=3075.500
+BENCH shader_batch_cold_us=13086.200
+BENCH shader_batch_hot_us=1030.700
+BENCH prebuild_16_cold_us=6692.000
+BENCH prebuild_16_hot_us=99.100
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=873.200
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8675.800
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3569.200
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1193.500
+BENCH submit_prepare_us=13
+BENCH submit_queue_and_fence_us=1672
+BENCH texture_full_us=29357.600
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8450.900
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=4123.776
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5715.008
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=32579.800
+BENCH marked_writeback_frame_us=76927.800
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094733824
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample A 26, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=882.300
+BENCH pso_hot_us=48.000
+BENCH shader_batch_translate_us=3000.200
+BENCH shader_batch_cold_us=13152.400
+BENCH shader_batch_hot_us=992.200
+BENCH prebuild_16_cold_us=6362.600
+BENCH prebuild_16_hot_us=99.200
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=781.800
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6595.200
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3537.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1175.800
+BENCH submit_prepare_us=18
+BENCH submit_queue_and_fence_us=1641
+BENCH texture_full_us=29778.100
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8897.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=5204.288
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4599.712
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33319.500
+BENCH marked_writeback_frame_us=77872.700
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094451200
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 27, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=1133.700
+BENCH pso_hot_us=42.900
+BENCH shader_batch_translate_us=3261.300
+BENCH shader_batch_cold_us=13701.500
+BENCH shader_batch_hot_us=1081.000
+BENCH prebuild_16_cold_us=6810.700
+BENCH prebuild_16_hot_us=100.000
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=711.600
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6648.300
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=14652.400
+BENCH submit_count=32
+BENCH submit_fence_wait_us=11954.600
+BENCH submit_prepare_us=20
+BENCH submit_queue_and_fence_us=12495
+BENCH texture_full_us=30661.000
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=9225.700
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3961.024
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=2365.920
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=35253.200
+BENCH marked_writeback_frame_us=78598.300
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094418432
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.99s
+
+
+exit 0
+
+Sample B 27, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=958.300
+BENCH pso_hot_us=42.800
+BENCH shader_batch_translate_us=2850.500
+BENCH shader_batch_cold_us=13705.600
+BENCH shader_batch_hot_us=1090.400
+BENCH prebuild_16_cold_us=7064.900
+BENCH prebuild_16_hot_us=99.300
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=859.000
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8571.900
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3430.000
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1115.100
+BENCH submit_prepare_us=12
+BENCH submit_queue_and_fence_us=1551
+BENCH texture_full_us=31254.800
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8443.300
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=7354.752
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6326.976
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33307.600
+BENCH marked_writeback_frame_us=76235.400
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1094791168
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 28, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=867.000
+BENCH pso_hot_us=48.200
+BENCH shader_batch_translate_us=2778.600
+BENCH shader_batch_cold_us=13625.300
+BENCH shader_batch_hot_us=1005.500
+BENCH prebuild_16_cold_us=6750.800
+BENCH prebuild_16_hot_us=104.000
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=870.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8793.200
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4027.300
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1452.900
+BENCH submit_prepare_us=14
+BENCH submit_queue_and_fence_us=2153
+BENCH texture_full_us=30549.900
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8781.100
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=6741.696
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4849.472
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33562.400
+BENCH marked_writeback_frame_us=76949.200
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094447104
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 28, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=785.200
+BENCH pso_hot_us=47.300
+BENCH shader_batch_translate_us=3027.800
+BENCH shader_batch_cold_us=12708.300
+BENCH shader_batch_hot_us=971.600
+BENCH prebuild_16_cold_us=6781.800
+BENCH prebuild_16_hot_us=98.800
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=696.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6617.900
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3633.700
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1218.700
+BENCH submit_prepare_us=18
+BENCH submit_queue_and_fence_us=1714
+BENCH texture_full_us=29908.700
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8772.200
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=4201.504
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5413.344
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=32686.500
+BENCH marked_writeback_frame_us=75865.900
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094340608
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 29, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=817.000
+BENCH pso_hot_us=42.300
+BENCH shader_batch_translate_us=3169.300
+BENCH shader_batch_cold_us=13456.600
+BENCH shader_batch_hot_us=1024.900
+BENCH prebuild_16_cold_us=6312.200
+BENCH prebuild_16_hot_us=99.500
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=701.500
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6392.800
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3678.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1105.200
+BENCH submit_prepare_us=22
+BENCH submit_queue_and_fence_us=1626
+BENCH texture_full_us=30161.500
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8693.600
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=4856.608
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=2586.464
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=32196.200
+BENCH marked_writeback_frame_us=77295.000
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1137774592
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.97s
+
+
+exit 0
+
+Sample B 29, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=855.100
+BENCH pso_hot_us=51.500
+BENCH shader_batch_translate_us=2914.700
+BENCH shader_batch_cold_us=13228.000
+BENCH shader_batch_hot_us=980.900
+BENCH prebuild_16_cold_us=6506.500
+BENCH prebuild_16_hot_us=97.100
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=866.300
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8903.900
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3616.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1170.900
+BENCH submit_prepare_us=20
+BENCH submit_queue_and_fence_us=1692
+BENCH texture_full_us=30592.800
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8876.400
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3264.864
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=6746.912
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33623.900
+BENCH marked_writeback_frame_us=77603.900
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.542208
+BENCH peak_working_set_bytes=1157234688
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample B 30, position 1
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=856.200
+BENCH pso_hot_us=43.800
+BENCH shader_batch_translate_us=2831.400
+BENCH shader_batch_cold_us=13992.500
+BENCH shader_batch_hot_us=1001.700
+BENCH prebuild_16_cold_us=6657.600
+BENCH prebuild_16_hot_us=97.200
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=894.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=8608.700
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=4652.600
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1882.500
+BENCH submit_prepare_us=11
+BENCH submit_queue_and_fence_us=2376
+BENCH texture_full_us=30262.300
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8672.100
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=3657.472
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=5468.544
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33946.400
+BENCH marked_writeback_frame_us=75949.500
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1094373376
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.98s
+
+
+exit 0
+
+Sample A 30, position 2
+
+running 1 test
+test pipeline::hot::hot_paths ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH pso_cold_us=827.100
+BENCH pso_hot_us=63.800
+BENCH shader_batch_translate_us=3296.000
+BENCH shader_batch_cold_us=13428.700
+BENCH shader_batch_hot_us=1035.500
+BENCH prebuild_16_cold_us=6967.400
+BENCH prebuild_16_hot_us=101.400
+BENCH prebuild_count=16
+BENCH shader_digest=a0c629eda000e64f6a98240935c1cda672a72df20184c884832d2da2831b69f8
+BENCH shader_count=20
+BENCH shader_dxil_bytes=88177
+BENCH descriptors_1300_us=669.700
+BENCH descriptors_1300_scanned=22528
+BENCH descriptors_1300_changed=1300
+BENCH descriptors_14400_us=6642.000
+BENCH descriptors_14400_scanned=32768
+BENCH descriptors_14400_changed=14400
+BENCH submit_32_us=3253.100
+BENCH submit_count=32
+BENCH submit_fence_wait_us=1011.200
+BENCH submit_prepare_us=7
+BENCH submit_queue_and_fence_us=1399
+BENCH texture_full_us=31067.400
+BENCH texture_full_bytes=178257920
+BENCH texture_full_subresources=32
+BENCH texture_partial_us=8457.700
+BENCH texture_partial_bytes=33554432
+BENCH texture_partial_subresources=8
+BENCH texture_title_patch_bytes=8192
+BENCH wave_page_marks_gpu_us=8167.008
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=1895.552
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH shadow_refresh_us=33594.900
+BENCH marked_writeback_frame_us=76768.500
+BENCH shadow_refresh_bytes=268435456
+BENCH writeback_bytes=251658240
+BENCH writeback_withheld_bytes=16777216
+BENCH sampled_local_peak_mb=232.476672
+BENCH peak_working_set_bytes=1157500928
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.98s
+
+
+exit 0

@@ -1,0 +1,780 @@
+
+Sample A 1, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=100525.700
+BENCH held_wait_sum_us=1402424.500
+BENCH held_busy_us=98731.500
+BENCH execute_busy_us=38537.200
+BENCH host_mutex_wait_us=14.300
+BENCH native_fence_wait_us=13998.900
+BENCH list_recycle_us=59768.200
+BENCH list_reset_us=2930.500
+BENCH host_prepare_us=1523
+BENCH native_submit_and_fence_us=20688
+BENCH record_submit_us=153459.000
+BENCH lists_per_second=1668.198
+BENCH mirror_lock_us=297
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.45s
+
+
+exit 0
+
+Sample B 1, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=107825.600
+BENCH held_wait_sum_us=1492317.800
+BENCH held_busy_us=105554.000
+BENCH execute_busy_us=41304.600
+BENCH host_mutex_wait_us=16.600
+BENCH native_fence_wait_us=14814.900
+BENCH list_recycle_us=63776.000
+BENCH list_reset_us=2986.200
+BENCH host_prepare_us=1626
+BENCH native_submit_and_fence_us=23204
+BENCH record_submit_us=159550.300
+BENCH lists_per_second=1604.510
+BENCH mirror_lock_us=11
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.46s
+
+
+exit 0
+
+Sample B 2, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=103379.700
+BENCH held_wait_sum_us=1447386.000
+BENCH held_busy_us=101393.700
+BENCH execute_busy_us=39518.400
+BENCH host_mutex_wait_us=15.700
+BENCH native_fence_wait_us=13807.400
+BENCH list_recycle_us=61383.300
+BENCH list_reset_us=3330.100
+BENCH host_prepare_us=1645
+BENCH native_submit_and_fence_us=21248
+BENCH record_submit_us=156577.600
+BENCH lists_per_second=1634.972
+BENCH mirror_lock_us=40
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.44s
+
+
+exit 0
+
+Sample A 2, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=102713.100
+BENCH held_wait_sum_us=1441214.200
+BENCH held_busy_us=101023.600
+BENCH execute_busy_us=38572.500
+BENCH host_mutex_wait_us=13.100
+BENCH native_fence_wait_us=13359.500
+BENCH list_recycle_us=62036.500
+BENCH list_reset_us=3120.600
+BENCH host_prepare_us=1539
+BENCH native_submit_and_fence_us=20476
+BENCH record_submit_us=156275.700
+BENCH lists_per_second=1638.131
+BENCH mirror_lock_us=302
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.45s
+
+
+exit 0
+
+Sample A 3, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=112502.300
+BENCH held_wait_sum_us=1575886.100
+BENCH held_busy_us=110543.700
+BENCH execute_busy_us=48197.700
+BENCH host_mutex_wait_us=13.700
+BENCH native_fence_wait_us=23658.900
+BENCH list_recycle_us=61919.700
+BENCH list_reset_us=2874.400
+BENCH host_prepare_us=1630
+BENCH native_submit_and_fence_us=30667
+BENCH record_submit_us=166193.200
+BENCH lists_per_second=1540.376
+BENCH mirror_lock_us=71
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.49s
+
+
+exit 0
+
+Sample B 3, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=112171.800
+BENCH held_wait_sum_us=1575140.200
+BENCH held_busy_us=110304.500
+BENCH execute_busy_us=41672.500
+BENCH host_mutex_wait_us=13.600
+BENCH native_fence_wait_us=13391.600
+BENCH list_recycle_us=68043.700
+BENCH list_reset_us=3854.600
+BENCH host_prepare_us=1900
+BENCH native_submit_and_fence_us=22695
+BENCH record_submit_us=165749.800
+BENCH lists_per_second=1544.497
+BENCH mirror_lock_us=38
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.45s
+
+
+exit 0
+
+Sample B 4, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=112834.400
+BENCH held_wait_sum_us=1575435.600
+BENCH held_busy_us=110305.400
+BENCH execute_busy_us=41942.900
+BENCH host_mutex_wait_us=14.300
+BENCH native_fence_wait_us=13195.800
+BENCH list_recycle_us=67706.900
+BENCH list_reset_us=4164.100
+BENCH host_prepare_us=1912
+BENCH native_submit_and_fence_us=22644
+BENCH record_submit_us=164926.800
+BENCH lists_per_second=1552.204
+BENCH mirror_lock_us=40
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.46s
+
+
+exit 0
+
+Sample A 4, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=103580.800
+BENCH held_wait_sum_us=1445245.500
+BENCH held_busy_us=101576.500
+BENCH execute_busy_us=38772.500
+BENCH host_mutex_wait_us=15.500
+BENCH native_fence_wait_us=14155.000
+BENCH list_recycle_us=62318.800
+BENCH list_reset_us=3096.200
+BENCH host_prepare_us=1590
+BENCH native_submit_and_fence_us=21480
+BENCH record_submit_us=155724.700
+BENCH lists_per_second=1643.927
+BENCH mirror_lock_us=466
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.45s
+
+
+exit 0
+
+Sample A 5, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=105615.300
+BENCH held_wait_sum_us=1473880.800
+BENCH held_busy_us=102923.400
+BENCH execute_busy_us=39741.800
+BENCH host_mutex_wait_us=14.700
+BENCH native_fence_wait_us=13397.600
+BENCH list_recycle_us=62719.400
+BENCH list_reset_us=2932.700
+BENCH host_prepare_us=2012
+BENCH native_submit_and_fence_us=21341
+BENCH record_submit_us=156876.200
+BENCH lists_per_second=1631.860
+BENCH mirror_lock_us=294
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.44s
+
+
+exit 0
+
+Sample B 5, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=102121.200
+BENCH held_wait_sum_us=1436402.100
+BENCH held_busy_us=100189.700
+BENCH execute_busy_us=38726.100
+BENCH host_mutex_wait_us=13.100
+BENCH native_fence_wait_us=13189.900
+BENCH list_recycle_us=61026.000
+BENCH list_reset_us=3122.300
+BENCH host_prepare_us=1599
+BENCH native_submit_and_fence_us=20617
+BENCH record_submit_us=155150.500
+BENCH lists_per_second=1650.011
+BENCH mirror_lock_us=522
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.45s
+
+
+exit 0
+
+Sample B 6, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=101484.500
+BENCH held_wait_sum_us=1420775.700
+BENCH held_busy_us=99803.500
+BENCH execute_busy_us=37706.100
+BENCH host_mutex_wait_us=14.700
+BENCH native_fence_wait_us=13100.500
+BENCH list_recycle_us=61664.100
+BENCH list_reset_us=2930.100
+BENCH host_prepare_us=1533
+BENCH native_submit_and_fence_us=19799
+BENCH record_submit_us=154449.600
+BENCH lists_per_second=1657.499
+BENCH mirror_lock_us=1108
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.43s
+
+
+exit 0
+
+Sample A 6, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=120720.400
+BENCH held_wait_sum_us=1707656.400
+BENCH held_busy_us=118757.100
+BENCH execute_busy_us=51818.200
+BENCH host_mutex_wait_us=18.100
+BENCH native_fence_wait_us=23389.300
+BENCH list_recycle_us=66296.600
+BENCH list_reset_us=3778.100
+BENCH host_prepare_us=1928
+BENCH native_submit_and_fence_us=32392
+BENCH record_submit_us=174564.600
+BENCH lists_per_second=1466.506
+BENCH mirror_lock_us=40
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.47s
+
+
+exit 0
+
+Sample A 7, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=102138.900
+BENCH held_wait_sum_us=1435121.300
+BENCH held_busy_us=100285.500
+BENCH execute_busy_us=40089.000
+BENCH host_mutex_wait_us=13.500
+BENCH native_fence_wait_us=14193.500
+BENCH list_recycle_us=59770.800
+BENCH list_reset_us=2891.000
+BENCH host_prepare_us=2519
+BENCH native_submit_and_fence_us=21648
+BENCH record_submit_us=155188.700
+BENCH lists_per_second=1649.605
+BENCH mirror_lock_us=115
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.44s
+
+
+exit 0
+
+Sample B 7, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=102473.600
+BENCH held_wait_sum_us=1427864.600
+BENCH held_busy_us=100640.700
+BENCH execute_busy_us=39134.500
+BENCH host_mutex_wait_us=13.700
+BENCH native_fence_wait_us=13362.000
+BENCH list_recycle_us=60996.900
+BENCH list_reset_us=3474.200
+BENCH host_prepare_us=1735
+BENCH native_submit_and_fence_us=21174
+BENCH record_submit_us=153723.800
+BENCH lists_per_second=1665.324
+BENCH mirror_lock_us=77
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.46s
+
+
+exit 0
+
+Sample B 8, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=100649.700
+BENCH held_wait_sum_us=1412804.000
+BENCH held_busy_us=98748.000
+BENCH execute_busy_us=37328.600
+BENCH host_mutex_wait_us=15.000
+BENCH native_fence_wait_us=13248.100
+BENCH list_recycle_us=61009.400
+BENCH list_reset_us=2895.600
+BENCH host_prepare_us=1473
+BENCH native_submit_and_fence_us=19937
+BENCH record_submit_us=151383.100
+BENCH lists_per_second=1691.074
+BENCH mirror_lock_us=118
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.44s
+
+
+exit 0
+
+Sample A 8, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=100578.500
+BENCH held_wait_sum_us=1405494.100
+BENCH held_busy_us=98933.800
+BENCH execute_busy_us=38293.400
+BENCH host_mutex_wait_us=14.800
+BENCH native_fence_wait_us=13033.200
+BENCH list_recycle_us=60180.700
+BENCH list_reset_us=3160.600
+BENCH host_prepare_us=1653
+BENCH native_submit_and_fence_us=20460
+BENCH record_submit_us=151343.800
+BENCH lists_per_second=1691.513
+BENCH mirror_lock_us=299
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.44s
+
+
+exit 0
+
+Sample A 9, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=102607.100
+BENCH held_wait_sum_us=1435568.800
+BENCH held_busy_us=100668.500
+BENCH execute_busy_us=38807.400
+BENCH host_mutex_wait_us=17.900
+BENCH native_fence_wait_us=13215.000
+BENCH list_recycle_us=61352.200
+BENCH list_reset_us=3038.600
+BENCH host_prepare_us=1735
+BENCH native_submit_and_fence_us=20545
+BENCH record_submit_us=160597.300
+BENCH lists_per_second=1594.049
+BENCH mirror_lock_us=79
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.42s
+
+
+exit 0
+
+Sample B 9, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=122666.200
+BENCH held_wait_sum_us=1725776.000
+BENCH held_busy_us=119786.400
+BENCH execute_busy_us=54857.300
+BENCH host_mutex_wait_us=13.600
+BENCH native_fence_wait_us=25729.300
+BENCH list_recycle_us=64322.600
+BENCH list_reset_us=3838.500
+BENCH host_prepare_us=1976
+BENCH native_submit_and_fence_us=35232
+BENCH record_submit_us=178283.200
+BENCH lists_per_second=1435.918
+BENCH mirror_lock_us=206
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.46s
+
+
+exit 0
+
+Sample B 10, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=100263.900
+BENCH held_wait_sum_us=1403250.900
+BENCH held_busy_us=98579.100
+BENCH execute_busy_us=36985.900
+BENCH host_mutex_wait_us=14.900
+BENCH native_fence_wait_us=12364.300
+BENCH list_recycle_us=61172.000
+BENCH list_reset_us=2939.900
+BENCH host_prepare_us=1593
+BENCH native_submit_and_fence_us=19410
+BENCH record_submit_us=155328.400
+BENCH lists_per_second=1648.121
+BENCH mirror_lock_us=81
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.42s
+
+
+exit 0
+
+Sample A 10, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=106839.100
+BENCH held_wait_sum_us=1497032.500
+BENCH held_busy_us=104504.700
+BENCH execute_busy_us=38909.200
+BENCH host_mutex_wait_us=14.300
+BENCH native_fence_wait_us=12546.400
+BENCH list_recycle_us=65073.000
+BENCH list_reset_us=3394.600
+BENCH host_prepare_us=1843
+BENCH native_submit_and_fence_us=20645
+BENCH record_submit_us=161799.300
+BENCH lists_per_second=1582.207
+BENCH mirror_lock_us=50
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.44s
+
+
+exit 0
+
+Sample A 11, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=99466.000
+BENCH held_wait_sum_us=1384848.200
+BENCH held_busy_us=97946.500
+BENCH execute_busy_us=37149.900
+BENCH host_mutex_wait_us=15.500
+BENCH native_fence_wait_us=13581.400
+BENCH list_recycle_us=60409.900
+BENCH list_reset_us=2946.500
+BENCH host_prepare_us=1496
+BENCH native_submit_and_fence_us=20255
+BENCH record_submit_us=152840.100
+BENCH lists_per_second=1674.953
+BENCH mirror_lock_us=244
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.42s
+
+
+exit 0
+
+Sample B 11, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=114515.000
+BENCH held_wait_sum_us=1604310.600
+BENCH held_busy_us=112374.800
+BENCH execute_busy_us=51946.800
+BENCH host_mutex_wait_us=13.800
+BENCH native_fence_wait_us=24748.500
+BENCH list_recycle_us=59974.400
+BENCH list_reset_us=3222.600
+BENCH host_prepare_us=1645
+BENCH native_submit_and_fence_us=33199
+BENCH record_submit_us=167026.800
+BENCH lists_per_second=1532.688
+BENCH mirror_lock_us=178
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.45s
+
+
+exit 0
+
+Sample B 12, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=100335.000
+BENCH held_wait_sum_us=1409993.000
+BENCH held_busy_us=97990.000
+BENCH execute_busy_us=36843.100
+BENCH host_mutex_wait_us=14.600
+BENCH native_fence_wait_us=12281.100
+BENCH list_recycle_us=60717.300
+BENCH list_reset_us=2910.900
+BENCH host_prepare_us=1531
+BENCH native_submit_and_fence_us=19344
+BENCH record_submit_us=152609.000
+BENCH lists_per_second=1677.490
+BENCH mirror_lock_us=472
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.42s
+
+
+exit 0
+
+Sample A 12, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=100295.200
+BENCH held_wait_sum_us=1404056.600
+BENCH held_busy_us=98697.900
+BENCH execute_busy_us=37531.600
+BENCH host_mutex_wait_us=15.900
+BENCH native_fence_wait_us=13637.400
+BENCH list_recycle_us=60747.900
+BENCH list_reset_us=2735.500
+BENCH host_prepare_us=1469
+BENCH native_submit_and_fence_us=20472
+BENCH record_submit_us=155344.200
+BENCH lists_per_second=1647.953
+BENCH mirror_lock_us=282
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.43s
+
+
+exit 0
+
+Sample A 13, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=113008.700
+BENCH held_wait_sum_us=1505515.600
+BENCH held_busy_us=111247.800
+BENCH execute_busy_us=48361.200
+BENCH host_mutex_wait_us=15.200
+BENCH native_fence_wait_us=23763.600
+BENCH list_recycle_us=62459.400
+BENCH list_reset_us=2972.300
+BENCH host_prepare_us=1575
+BENCH native_submit_and_fence_us=30784
+BENCH record_submit_us=166480.700
+BENCH lists_per_second=1537.716
+BENCH mirror_lock_us=353
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.44s
+
+
+exit 0
+
+Sample B 13, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=103836.200
+BENCH held_wait_sum_us=1459600.800
+BENCH held_busy_us=101464.100
+BENCH execute_busy_us=38817.300
+BENCH host_mutex_wait_us=14.800
+BENCH native_fence_wait_us=12849.500
+BENCH list_recycle_us=62159.500
+BENCH list_reset_us=3065.000
+BENCH host_prepare_us=1653
+BENCH native_submit_and_fence_us=20891
+BENCH record_submit_us=156750.900
+BENCH lists_per_second=1633.164
+BENCH mirror_lock_us=111
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.41s
+
+
+exit 0
+
+Sample B 14, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=100144.800
+BENCH held_wait_sum_us=1400153.700
+BENCH held_busy_us=98616.600
+BENCH execute_busy_us=37005.000
+BENCH host_mutex_wait_us=14.200
+BENCH native_fence_wait_us=13266.600
+BENCH list_recycle_us=61213.200
+BENCH list_reset_us=2898.000
+BENCH host_prepare_us=1493
+BENCH native_submit_and_fence_us=19673
+BENCH record_submit_us=152145.400
+BENCH lists_per_second=1682.601
+BENCH mirror_lock_us=127
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.42s
+
+
+exit 0
+
+Sample A 14, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=107493.200
+BENCH held_wait_sum_us=1510028.300
+BENCH held_busy_us=105729.800
+BENCH execute_busy_us=43064.500
+BENCH host_mutex_wait_us=15.700
+BENCH native_fence_wait_us=12374.500
+BENCH list_recycle_us=62151.000
+BENCH list_reset_us=3682.900
+BENCH host_prepare_us=5889
+BENCH native_submit_and_fence_us=20897
+BENCH record_submit_us=169141.300
+BENCH lists_per_second=1513.527
+BENCH mirror_lock_us=88
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.44s
+
+
+exit 0
+
+Sample A 15, position 1
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=119882.200
+BENCH held_wait_sum_us=1683184.500
+BENCH held_busy_us=117718.700
+BENCH execute_busy_us=51232.400
+BENCH host_mutex_wait_us=16.500
+BENCH native_fence_wait_us=23914.000
+BENCH list_recycle_us=65950.600
+BENCH list_reset_us=3577.800
+BENCH host_prepare_us=1871
+BENCH native_submit_and_fence_us=32682
+BENCH record_submit_us=173054.600
+BENCH lists_per_second=1479.302
+BENCH mirror_lock_us=487
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.43s
+
+
+exit 0
+
+Sample B 15, position 2
+
+running 1 test
+test pipeline::hot::contention::recording ... BENCH submit_span_us=101688.000
+BENCH held_wait_sum_us=1429550.500
+BENCH held_busy_us=99608.200
+BENCH execute_busy_us=38855.700
+BENCH host_mutex_wait_us=24.800
+BENCH native_fence_wait_us=13224.000
+BENCH list_recycle_us=60278.800
+BENCH list_reset_us=2953.800
+BENCH host_prepare_us=1695
+BENCH native_submit_and_fence_us=20869
+BENCH record_submit_us=154553.500
+BENCH lists_per_second=1656.384
+BENCH mirror_lock_us=174
+BENCH guard_lock_us=0
+BENCH threads=16
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.42s
+
+
+exit 0
