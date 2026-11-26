@@ -1170,11 +1170,10 @@ impl HostHeap {
                 let made = self.made.lock().unwrap_or_else(|e| e.into_inner());
                 batch.refresh();
                 with_views(|views| {
-                    for index in batch.first..batch.end {
-                        if index == batch.end || constants.len() + changed.len() == PAGE as usize {
-                            batch.end = index;
-                            break;
-                        }
+                    let mut next = batch.first;
+                    while next < batch.end {
+                        let index = next;
+                        next += 1;
                         let Some(raw @ [tag, id, generation]) = batch.record(index) else { continue };
                         scanned += 1;
                         let entry = views.get(id as usize)
@@ -1193,6 +1192,9 @@ impl HostHeap {
                             // Finish scalar work on this virtual page before a
                             // later page can take the last physical page.
                             batch.end = batch.end.min(index - index % PAGE + PAGE);
+                        }
+                        if constants.len() + changed.len() == PAGE as usize {
+                            batch.end = next;
                         }
                     }
                 });
