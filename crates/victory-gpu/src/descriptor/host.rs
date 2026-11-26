@@ -31,35 +31,64 @@ mod overlap_test;
 const OS_PAGE_BYTES: usize = 4096;
 const RECORD_BYTES: usize = size_of::<[u32; 3]>();
 
+// Coalesce checked reads of normally contiguous memory. A 64 KiB window
+// starting mid-page touches at most 17 OS pages, which fit in the hole mask.
+const SCAN_BYTES: usize = crate::watch::PAGE;
+
 struct SlotBatch<'a> {
     first: u32,
     end: u32,
     address: u64,
     step: usize,
     bytes: &'a mut [u8],
+    holes: u32,
 }
 
 impl<'a> SlotBatch<'a> {
     fn new(first: u32, last: u32, start: u64, step: u64, scratch: &'a mut [u8]) -> Self {
         let address = start + u64::from(first) * step;
-        let remaining = OS_PAGE_BYTES - address as usize % OS_PAGE_BYTES;
-        // A record straddling an OS page is read alone. Failure must not
-        // discard complete readable records on either side of it.
-        let records = 1 + remaining.saturating_sub(RECORD_BYTES) / step as usize;
-        let count = (last - first).min(PAGE - first % PAGE).min(records as u32);
+        let records = 1 + (scratch.len() - RECORD_BYTES) / step as usize;
+        let count = (last - first).min(records as u32);
         let len = (count as usize - 1) * step as usize + RECORD_BYTES;
         Self {
             first, end: first + count, address, step: step as usize, bytes: &mut scratch[..len],
+            holes: 0,
         }
     }
 
-    fn refresh(&mut self) -> bool {
-        crate::host::read_into(self.address as *const u8, self.bytes)
+    fn refresh(&mut self) {
+        let src = self.address as *const u8;
+        let len = (self.end - self.first - 1) as usize * self.step + RECORD_BYTES;
+        let bytes = &mut self.bytes[..len];
+        self.holes = 0;
+        if crate::host::read_into(src, bytes) {
+            return;
+        }
+        // The kernel may have copied a prefix on failure. Reread each OS
+        // page separately; decode a straddling record only if both halves exist.
+        let mut offset = 0;
+        let mut bit = 1;
+        while offset < len {
+            let remaining = OS_PAGE_BYTES - (self.address as usize + offset) % OS_PAGE_BYTES;
+            let end = (offset + remaining).min(len);
+            if !crate::host::read_into(src.wrapping_add(offset), &mut bytes[offset..end]) {
+                self.holes |= bit;
+            }
+            bit <<= 1;
+            offset = end;
+        }
     }
 
-    fn record(&self, index: u32) -> [u32; 3] {
+    fn record(&self, index: u32) -> Option<[u32; 3]> {
         let offset = (index - self.first) as usize * self.step;
-        decode_record(self.bytes[offset..].first_chunk().expect("record fits in batch"))
+        if self.holes != 0 {
+            let byte = self.address as usize % OS_PAGE_BYTES + offset;
+            let pages = (1 << (byte / OS_PAGE_BYTES)) | (1 << ((byte + RECORD_BYTES - 1) / OS_PAGE_BYTES));
+            if self.holes & pages != 0 {
+                return None;
+            }
+        }
+        Some(decode_record(self.bytes[offset..].first_chunk().expect("record fits in batch")))
     }
 }
 
@@ -1119,30 +1148,31 @@ impl HostHeap {
             .collect()
     }
 
-    /// Mirrors dirty records in batches contained in one virtual descriptor
-    /// page. Return the count of records actually read from title memory.
+    /// Mirrors at most one virtual page's worth of changes per batch.
+    /// Return the count of readable records compared with host slots.
     pub(crate) fn sync_slots(&self, mut first: u32, last: u32, start: u64, step: u64) -> u64 {
         let at = |i: u32| start + u64::from(i) * step;
         if last > self.count && first < last {
             self.mirror(last - 1, at(last - 1), false);
         }
         let last = last.min(self.count);
-        let mut scratch = [0u8; OS_PAGE_BYTES];
+        let mut scratch = vec![0u8; SCAN_BYTES.min((last.saturating_sub(first) as usize).saturating_mul(step as usize))];
         let mut changed = Vec::new();
         let mut constants = Vec::new();
         let mut scanned = 0;
         while first < last {
             let mut batch = SlotBatch::new(first, last, start, step, &mut scratch);
-            first = batch.end;
             {
                 let made = self.made.lock().unwrap_or_else(|e| e.into_inner());
-                if !batch.refresh() {
-                    continue;
-                }
-                scanned += u64::from(batch.end - batch.first);
+                batch.refresh();
                 with_views(|views| {
                     for index in batch.first..batch.end {
-                        let raw @ [tag, id, generation] = batch.record(index);
+                        if index == batch.end || constants.len() + changed.len() == PAGE as usize {
+                            batch.end = index;
+                            break;
+                        }
+                        let Some(raw @ [tag, id, generation]) = batch.record(index) else { continue };
+                        scanned += 1;
                         let entry = views.get(id as usize)
                             .filter(|(_, g)| tag == VIEW_TAG && *g == generation);
                         let key = entry.map_or(0, |_| u64::from(generation) << 32 | u64::from(id));
@@ -1156,10 +1186,14 @@ impl HostHeap {
                             });
                         } else {
                             changed.push(index);
+                            // Finish scalar work on this virtual page before a
+                            // later page can take the last physical page.
+                            batch.end = batch.end.min(index - index % PAGE + PAGE);
                         }
                     }
                 });
             }
+            first = batch.end;
             self.sync_constants(&mut constants, &mut changed, &mut batch);
             for index in changed.drain(..) {
                 let handle = at(index);
@@ -1191,14 +1225,12 @@ impl HostHeap {
         let mut made = self.made.lock().unwrap_or_else(|e| e.into_inner());
         // Preparation may have allowed the title to unmap this OS page.
         // Use only the checked copy, even if the original address vanishes now.
-        if !batch.refresh() {
-            slots.clear();
-            return;
-        }
+        batch.refresh();
         slots.retain_mut(|slot| {
             // Constant views have permanent VIEWS entries. A recorder or a
             // byte copy can still replace the slot while preparation runs.
-            if batch.record(slot.index) != slot.record {
+            let Some(record) = batch.record(slot.index) else { return false };
+            if record != slot.record {
                 retry.push(slot.index);
                 return false;
             }
