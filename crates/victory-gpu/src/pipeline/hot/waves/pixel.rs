@@ -7,7 +7,7 @@ use windows::Win32::Graphics::Dxgi::Common::DXGI_FORMAT_R32_TYPELESS;
 
 #[test]
 #[ignore = "dedicated hardware or WARP process"]
-fn pixel_helper_marks() {
+pub(super) fn pixel_helper_marks() {
     let host = crate::host::host().unwrap();
     let graphics = victory_shader::emit::host::Host::from_device(host.device.clone());
     let vs = victory_shader::emit::translate(&super::super::gfx10::fullscreen()).unwrap();

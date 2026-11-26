@@ -614,8 +614,11 @@ pub(super) fn wave_container(source: Option<u64>) -> Vec<u8> {
 pub(super) fn wave_scenario(source: Option<u64>, case: WaveCase) -> Vec<u8> {
     let scatter = case.scatter();
     let mut a = Asm::default();
-    a.table(4, 0);
-    a.smem(2, 8, 4, 0);
+    let title_only = matches!(case, WaveCase::Title { .. });
+    if !title_only {
+        a.table(4, 0);
+        a.smem(2, 8, 4, 0);
+    }
     a.sop2(0x1e, 12, 1, 128 + 6); // group x * 64
     a.vop2(0x25, 1, 12, 0); // global thread index
     a.vop2(0x1a, 2, 128 + 2, 1); // dword byte offset
@@ -662,7 +665,7 @@ pub(super) fn wave_scenario(source: Option<u64>, case: WaveCase) -> Vec<u8> {
         a.vop2(0x25, 2, 128 + 4, 2);
         a.vop2(0x25, 4, ONE, 3);
         a.0.extend([0xe074_1000, 0x8002_0302]); // buffer_store_dwordx2
-    } else {
+    } else if !title_only {
         a.0.extend([0xe070_1000, 0x8002_0302]); // buffer_store_dword
     }
     a.end();

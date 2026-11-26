@@ -10,7 +10,17 @@ pub(super) fn run(host: &Host) {
 #[test]
 #[ignore = "dedicated GPU timing window"]
 fn wave_scenarios() {
-    scenarios(crate::host::host().unwrap(), true);
+    let host = crate::host::host().unwrap();
+    // SAFETY: this is the DXGI adapter that created the test device.
+    let desc = unsafe {
+        let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).unwrap();
+        let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(host.device.GetAdapterLuid()).unwrap();
+        adapter.GetDesc1().unwrap()
+    };
+    println!("BENCH adapter={}", String::from_utf16_lossy(&desc.Description).trim_end_matches('\0'));
+    scenarios(host, true);
+    pixel::pixel_helper_marks();
+    println!("BENCH verified=1");
 }
 
 /// Two hosts may share the same disk cache. The key and the pipeline name
@@ -165,7 +175,8 @@ fn scenarios(host: &Host, extended: bool) {
             )
             .unwrap();
         }
-        assert!(translated.view_marks);
+        assert_eq!(translated.view_marks, !title_store);
+        if title_store { assert!(translated.memory_writes); }
         assert_eq!(translated.memory, source.is_some());
         let mut pso = std::ptr::null();
         assert_eq!(
@@ -243,6 +254,7 @@ fn scenarios(host: &Host, extended: bool) {
                     expected,
                     "{name} title lane {i}"
                 );
+                continue;
             }
             if cross {
                 assert_eq!(out[2 * offset + 1], expected, "{name} lane {i}");
