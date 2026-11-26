@@ -238,6 +238,8 @@ struct Lower<'a> {
     /// Block zero's null SRV index, invariant for this draw or dispatch.
     memory_null: Option<V>,
     wave_marks: bool,
+    /// Page marks emitted with all lanes in the unique entry block.
+    entry_page_marks: HashSet<V>,
     /// Defining block and lazily decoded raw offset of each table buffer handle.
     table_bias: HashMap<V, (usize, Option<V>)>,
     /// Blocks splitting the edge from one IR block to another.
@@ -702,6 +704,7 @@ impl<'a> Lower<'a> {
             join_handles: HashMap::new(),
             guarded_stride: HashMap::new(),
             memory_null: None,
+            entry_page_marks: HashSet::new(),
             wave_marks,
             table_bias: HashMap::new(),
             edges: HashMap::new(),
@@ -3586,6 +3589,9 @@ impl<'a> Lower<'a> {
         for page in std::mem::take(&mut self.s.page_reads) {
             if r.is_ok() && self.s.pages_marked.insert((b, page)) {
                 self.mark_read_bit(super::VIEW_PAGE_READS, page, true);
+                if b == 0 && self.x.p.blocks[0].preds.is_empty() && self.s.guards == 0 {
+                    self.entry_page_marks.insert(page);
+                }
             }
         }
         match r {
@@ -5420,6 +5426,9 @@ impl<'a> Lower<'a> {
         // inside guarded code do not reach (marked there instead).
         if let Some(&(page, made)) = self.s.page_index.get(&h)
             && self.x.view_marks
+            // An entry-defined SSA value cannot change on a loop back
+            // edge. Its mark at the unconditional entry dominates here.
+            && !(made == self.s.entry && self.entry_page_marks.contains(&page))
         {
             if self.s.guards == 0 || made == self.s.entry {
                 self.s.page_reads.push(page);
