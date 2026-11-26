@@ -62,6 +62,8 @@ VIctory #2787 的 4,000 个预建键都与原流程一致。该步骤的 15 对�
 
 最终候选已合并描述符基线 4e3d95e。在该版本的 Windows 原生复测中，五个受影响 crate 在 GPU diagnostics 配置下共 643 项通过、0 项失败、22 项默认忽略；默认功能配置下 627 项通过、0 项失败、7 项默认忽略。硬件与 WARP 的坏缓存重建、WaveOps 缓存隔离、3 个独立进程的冒烟和合成像素回读也通过。[诊断配置测试计数与 DXIL](native-tests-final.txt) · [默认配置测试计数](native-tests-default.txt) · [深度流水线的四像素调度预检](first-valid-draw.txt) · [驱动库文件正被占用时的重启和重试](early-busy.md)
 
+纹理更新 dde121f 也已合入。新版本在 Windows 重新通过默认及 GPU diagnostics 两组测试、3 次冒烟、合成像素回读、硬件/WARP 坏库重建和仓库文件策略检查。[纹理合并后的实际测试数量与摘要](native-tests-delivery.md)
+
 ## 复核某个对照
 
 每个目录的 `paired.json` 记录 A、B 的确切提交和配对顺序，两个 `results.json` 记录可执行文件的 SHA-256、有效样本和正确性断言。标准及规模场景使用开发分支自带的基准。定向场景的清单在相邻的 [shader 与 PSO 场景目录](../shader-cache-community/README.md)；对应的测试源码保存在本任务独立副本的 Git 引用 `refs/benchmarks/shader-cache/forms/` 下，两臂均以相同基线添加测量代码。可以在独立目录检出任一原始记录的 A、B 提交，各自原生构建，再用同一清单重跑交替 A/B。工作集以 Windows 进程计数器为准，本地显存为 10 ms 轮询观察到的峰值。
