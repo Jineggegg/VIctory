@@ -10,6 +10,8 @@ fn process_usage() -> (usize, u32) {
         ..Default::default()
     };
     let mut handles = 0;
+    // SAFETY: Both out-parameters are writable and cb matches the size of counters for the
+    // current process.
     unsafe {
         let process = GetCurrentProcess();
         assert_ne!(
@@ -54,11 +56,13 @@ fn mixed() {
     while started.elapsed() < duration {
         let begin = Instant::now();
         // The CPU owns title memory outside execute. The shader operates on its host copy.
+        // SAFETY: The writable pool spans the full byte range, and no submission is in flight.
         unsafe { std::ptr::write_bytes(addr as *mut u8, round as u8, bytes) };
         let value = u32::from_ne_bytes([round as u8; 4]);
         let list = Arc::new(host.new_list().unwrap());
         copy.refresh(&list, addr as u64, bytes as u64);
         copy.gpu_writes(&list, addr as u64, bytes as u64, false);
+        // SAFETY: The matching root and PSO bind the live shadow UAV spanning the dispatch.
         unsafe {
             list.list.SetComputeRootSignature(&root);
             list.list.SetPipelineState(&pso);
@@ -68,6 +72,7 @@ fn mixed() {
         }
         list.close();
         crate::queue::bench_submit(list);
+        // SAFETY: bench_submit completed copy-back to this still-allocated, word-aligned pool.
         let result = unsafe { std::slice::from_raw_parts(addr as *const u32, bytes / 4) };
         failures += u64::from(
             !result
@@ -84,6 +89,7 @@ fn mixed() {
                 |p: usize| latencies[(latencies.len() * p).div_ceil(100) - 1] as f64 / 1000.;
             let (ws, handles) = process_usage();
             let [(local, budget), (system, _)] = crate::host::video_memory().unwrap();
+            // SAFETY: The device is live for this status query.
             let removed = unsafe { host.device.GetDeviceRemovedReason() }
                 .err()
                 .map_or(0, |e| e.code().0);
@@ -171,6 +177,7 @@ fn warm() {
     let words = 1 << 20;
     let (out, data) = host.shared_buffer(words * 4).unwrap();
     let list = host.new_list().unwrap();
+    // SAFETY: The matching root and PSO use the live output UAV sized for all dispatched words.
     unsafe {
         list.list.SetComputeRootSignature(&root);
         list.list.SetPipelineState(&pso);
@@ -198,6 +205,7 @@ fn warm() {
                 .wrapping_mul(1664525)
                 .wrapping_add(1013904223);
         }
+        // SAFETY: The submissions have completed and i is within the mapped output of words u32s.
         assert_eq!(unsafe { data.cast::<u32>().add(i as usize).read() }, v);
     }
     println!("BENCH verified=1");

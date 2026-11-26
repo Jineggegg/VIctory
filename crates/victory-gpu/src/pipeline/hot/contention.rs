@@ -24,6 +24,7 @@ fn recording() {
     crate::shadow::register(constants, constants as u64, PAGE as u64);
     let copy = crate::shadow::find(constants as u64, PAGE as u64).unwrap();
     for i in 0..JOBS {
+        // SAFETY: Each aligned word is inside the writable page returned by pool.
         unsafe { ((constants + 256 * i) as *mut u32).write(0xcafe0000 + i as u32) };
         cbv(table, constants, i, (i + 1) % JOBS);
     }
@@ -51,6 +52,8 @@ fn recording() {
                 for index in (lane..JOBS).step_by(threads) {
                     let list = Arc::new(host.new_list().unwrap());
                     let (out, data) = host.shared_buffer(4).unwrap();
+                    // SAFETY: Each recorder owns its open list and retains its output, heap and
+                    // matching pipeline through submission.
                     unsafe {
                         list.list.SetDescriptorHeaps(&[Some(heap.heap.clone())]);
                         list.list.SetComputeRootSignature(root);
@@ -72,6 +75,8 @@ fn recording() {
                 for (list, _out, data, index) in jobs {
                     crate::queue::bench_submit(list);
                     assert_eq!(
+                        // SAFETY: bench_submit has finished writing the mapped four-byte output,
+                        // still held by _out.
                         unsafe { data.cast::<u32>().read() },
                         0xcafe0000 + index as u32
                     );
@@ -146,6 +151,7 @@ fn write_overlap() {
         void main(uint3 id : SV_DispatchThreadID) { dst.Store(8*id.x,0x55555555); }
     "#,
     );
+    // SAFETY: The root matches the PSO, and the live shadow UAV covers the dispatched byte range.
     unsafe {
         list.list.SetComputeRootSignature(&root);
         list.list.SetPipelineState(&pso);
@@ -161,6 +167,8 @@ fn write_overlap() {
                 let (done, writes) = (&done, &writes);
                 s.spawn(move || {
                     sync.wait();
+                    // SAFETY: Each lane writes its own allocated page before the second
+                    // rendezvous permits copy-back.
                     unsafe { std::ptr::write_bytes((addr + lane * PAGE) as *mut u8, 0xaa, PAGE) };
                     let word = (addr + lane * PAGE + 4) as *mut u8;
                     let value = [0xbb; 4];
@@ -179,13 +187,16 @@ fn write_overlap() {
             crate::queue::bench_submit(list);
         })
     });
+    // SAFETY: Submission and writers have finished. The page-aligned pool still owns all bytes.
     let words = unsafe { std::slice::from_raw_parts(addr as *const u32, bytes / 4) };
-    for page in words.chunks_exact(PAGE / 4) {
+    for page in words.as_chunks::<{ PAGE / 4 }>().0 {
         assert_eq!(page[..2], [0x55555555, 0xbbbbbbbb]);
         assert!(
             page[2..]
-                .chunks_exact(2)
-                .all(|p| p == [0x55555555, 0xaaaaaaaa])
+                .as_chunks::<2>()
+                .0
+                .iter()
+                .all(|p| *p == [0x55555555, 0xaaaaaaaa])
         );
     }
     println!("BENCH overlap_cpu_writes={}", writes.load(Relaxed));
@@ -256,6 +267,8 @@ fn chain(tag: u64) {
     let a = host.default_buffer(8).unwrap();
     let b = host.default_buffer(8).unwrap();
     let (dst, output) = list(2).readback(host, 8).unwrap();
+    // SAFETY: All buffers cover eight bytes. Input is mapped and the resources outlive the
+    // ordered copies.
     unsafe {
         input.cast::<u64>().write(tag);
         list(0).list.CopyBufferRegion(&a, 0, &src, 0, 8);
@@ -287,6 +300,8 @@ fn chain(tag: u64) {
         edge(i, signal, i as u64 + 1);
     }
     assert_eq!(crate::fence::value(fence.0), 3);
+    // SAFETY: The final fence has completed the eight-byte copy and dst still owns the mapped
+    // output.
     assert_eq!(unsafe { output.cast::<u64>().read() }, tag);
 }
 
