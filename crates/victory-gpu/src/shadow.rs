@@ -819,6 +819,17 @@ impl Shadow {
     // the heap's views no list declared) keeps the title's bytes, losing
     // the shaders' there (counted).
     fn copy_back_marked(&self, page: usize, count: usize) -> usize {
+        self.copy_back_marked_with(page, count, |at, bytes| {
+            crate::host::read_into(at as *const u8, bytes)
+        })
+    }
+
+    fn copy_back_marked_with(
+        &self,
+        page: usize,
+        count: usize,
+        mut read_title: impl FnMut(usize, &mut [u8]) -> bool,
+    ) -> usize {
         let Some(t) = &self.tracked else { return 0 };
         let start = self.start as usize;
         let from = start.max(page);
@@ -847,7 +858,7 @@ impl Shadow {
             for (i, block) in host.chunks(title.len()).enumerate() {
                 let offset = i * title.len();
                 let bytes = &mut title[..block.len()];
-                if !crate::host::read_into((a + offset) as *const u8, bytes) {
+                if !read_title(a + offset, bytes) {
                     read = false;
                     break;
                 }
@@ -2092,6 +2103,47 @@ pub(crate) mod tests {
                 )
             };
         }
+    }
+
+    #[test]
+    fn title_write_mid_scan_uses_the_pre_write_snapshot() {
+        let Some(h) = host() else { return };
+        let p = crate::watch::tests::pool(1);
+        let (resource, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(resource, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p, PAGE, true);
+        copy.write_host((p + 9) as u64, &[0xa1]);
+        copy.write_host((p + PAGE - 3) as u64, &[0xa2]);
+        let mut raced = false;
+        let written = copy.copy_back_marked_with(p, 1, |address, out| {
+            let read = crate::host::read_into(address as *const u8, out);
+            if address == p {
+                assert!(out.len() < PAGE);
+                // SAFETY: both bytes are in the live allocation. One was
+                // already read, while the other will be read in a later block.
+                std::thread::spawn(move || unsafe {
+                    ((p + 10) as *mut u8).write_volatile(0xc1);
+                    ((p + PAGE - 2) as *mut u8).write_volatile(0xc2);
+                })
+                .join()
+                .unwrap();
+                raced = true;
+            }
+            read
+        });
+        assert!(raced);
+        assert_eq!(written, PAGE);
+        for (a, expected) in [(p + 9, [0xa1, 0xc1]), (p + PAGE - 3, [0xa2, 0xc2])] {
+            let mut bytes = [0; 2];
+            assert!(crate::host::read_into(a as *const u8, &mut bytes));
+            assert_eq!(bytes, expected);
+        }
+        assert_eq!(copy.update(p, PAGE), 0);
+        assert_eq!(copy.read_host((p + 8) as u64, 1)[0], 0x00c1a100);
+        assert_eq!(copy.read_host((p + PAGE - 4) as u64, 1)[0], 0x00c2a200);
+        drop(copy);
+        crate::watch::tests::free(p);
     }
 
     #[test]
