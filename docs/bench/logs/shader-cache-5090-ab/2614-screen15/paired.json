@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "disk-shaders",
+  "test": "pipeline::hot::shader_bench::disk",
+  "parameters": {
+    "VICTORY_BENCH_DISK": "shaders"
+  },
+  "family_size": 6,
+  "pairs": 15,
+  "a_commit": "42151090eb15115604b18fe284e3113477fdcedb",
+  "b_commit": "b9ac813a60ad89cf1913ead7802cc59ea53c7eaa",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 17:14:50Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=4168\/32607 MiB | power=45.62 W | temp=35.87 C | graphics=262 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=none",
+    "tolerated_background": "none"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [
+    "cache_warm_open_us",
+    "cache_warm_ready_us",
+    "cache_warm_saved_us"
+  ],
+  "family_excludes_zero": [
+    "cache_warm_open_us",
+    "cache_warm_ready_us",
+    "cache_warm_saved_us"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "cache_cold_open_us": {
+      "a_median": 727.9,
+      "b_median": 738.5,
+      "change_pct": 1.456243989559014,
+      "ci95_pct": [
+        -4.6248850348180266,
+        5.6497967194728771
+      ],
+      "family95_pct": [
+        -6.5815085158150932,
+        11.289833080424883
+      ]
+    },
+    "cache_cold_ready_us": {
+      "a_median": 14401.1,
+      "b_median": 14684.4,
+      "change_pct": 1.781047403150593,
+      "ci95_pct": [
+        -2.7989176391002957,
+        3.1995325404573505
+      ],
+      "family95_pct": [
+        -4.4395551803673161,
+        4.85287342094225
+      ]
+    },
+    "cache_cold_saved_us": {
+      "a_median": 14581.6,
+      "b_median": 15281,
+      "change_pct": 4.5459320526378244,
+      "ci95_pct": [
+        -0.25412872141922227,
+        6.6567034061896679
+      ],
+      "family95_pct": [
+        -2.5846679089404634,
+        7.62202778927934
+      ]
+    },
+    "cache_warm_open_us": {
+      "a_median": 566.9,
+      "b_median": 630.2,
+      "change_pct": 11.136685552407943,
+      "ci95_pct": [
+        5.8465697870902389,
+        16.054545454545455
+      ],
+      "family95_pct": [
+        5.2954197173505912,
+        17.48251748251748
+      ]
+    },
+    "cache_warm_ready_us": {
+      "a_median": 1765.2,
+      "b_median": 1680.7,
+      "change_pct": -4.6381331947091713,
+      "ci95_pct": [
+        -5.3250423968343679,
+        -3.1207751239296977
+      ],
+      "family95_pct": [
+        -7.4549395391284579,
+        -3.1012732157458367
+      ]
+    },
+    "cache_warm_saved_us": {
+      "a_median": 1931.1,
+      "b_median": 1831.1,
+      "change_pct": -4.0141282039043436,
+      "ci95_pct": [
+        -6.7462138595686056,
+        -2.8740096318160657
+      ],
+      "family95_pct": [
+        -9.5038054759316033,
+        -2.3608041826119752
+      ]
+    },
+    "shader_count": {
+      "a_median": 20,
+      "b_median": 20,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}
