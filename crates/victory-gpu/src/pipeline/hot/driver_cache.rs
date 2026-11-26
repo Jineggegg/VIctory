@@ -4,7 +4,7 @@ use crate::pipeline::{Prebuild, gfx10, pipeline_counts};
 use std::collections::{HashSet, VecDeque};
 use std::hash::{BuildHasher, RandomState};
 use std::process::Command;
-use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering::Relaxed};
 use std::sync::{Condvar, Mutex};
 use windows::Win32::Graphics::Dxgi::*;
 use std::time::Instant;
@@ -75,6 +75,10 @@ fn compile_one_process() {
     let finished = Condvar::new();
     assert_eq!(pipeline_counts(), (0, 0));
     let first = AtomicU64::new(u64::MAX);
+    let active_bytes = AtomicUsize::new(0);
+    let high_bytes = AtomicUsize::new(0);
+    let active_jobs = AtomicUsize::new(0);
+    let high_jobs = AtomicUsize::new(0);
     let start = Instant::now();
     std::thread::scope(|scope| {
         for _ in 0..workers.min(count) {
@@ -95,7 +99,11 @@ fn compile_one_process() {
                     state = finished.wait(state).unwrap();
                 };
                 drop(state);
+                high_bytes.fetch_max(active_bytes.fetch_add(cost, Relaxed) + cost, Relaxed);
+                high_jobs.fetch_max(active_jobs.fetch_add(1, Relaxed) + 1, Relaxed);
                 let result = job.make();
+                active_bytes.fetch_sub(cost, Relaxed);
+                active_jobs.fetch_sub(1, Relaxed);
                 first.fetch_min(start.elapsed().as_micros() as u64, Relaxed);
                 if budget != 0 {
                     let mut state = queue.lock().unwrap();
@@ -109,6 +117,10 @@ fn compile_one_process() {
     });
     let elapsed = start.elapsed().as_micros();
     let first = first.load(Relaxed);
+    let high_bytes = high_bytes.load(Relaxed);
+    let high_jobs = high_jobs.load(Relaxed);
+    assert!(budget == 0 || high_bytes <= budget.max(largest));
+    assert!((1..=workers.min(count)).contains(&high_jobs));
     assert!(u128::from(first) <= elapsed);
     assert_eq!(pipeline_counts(), (count as u64, 0));
     let mut memory = PROCESS_MEMORY_COUNTERS {
@@ -121,7 +133,7 @@ fn compile_one_process() {
     assert_eq!(pixels, [[1., 0.5, -0.25, 2.], [0.; 4]]);
     let name = String::from_utf16_lossy(&adapter.Description);
     println!("DRIVER_ADAPTER {}", name.trim_end_matches('\0'));
-    println!("DRIVER_RESULT {} {bytes} {elapsed} {} {count} {workers} {largest} {first}",
+    println!("DRIVER_RESULT {} {bytes} {elapsed} {} {count} {workers} {largest} {first} {high_bytes} {high_jobs}",
         digest.finalize().to_hex(), memory.PeakWorkingSetSize);
 }
 
@@ -147,8 +159,8 @@ fn fresh_and_replayed() {
     let (adapter, fresh) = sample();
     let (replay_adapter, replay) = sample();
     assert_eq!(adapter, replay_adapter);
-    assert_eq!(fresh.len(), 8);
-    assert_eq!(replay.len(), 8);
+    assert_eq!(fresh.len(), 10);
+    assert_eq!(replay.len(), 10);
     assert_eq!(fresh[..2], replay[..2], "both processes must compile identical bytes");
     assert_eq!(fresh[4..7], replay[4..7], "workload and worker count");
     println!("driver seed={seed} digest={} DXIL bytes={} workers={}", fresh[0], fresh[1], fresh[5]);
@@ -156,6 +168,10 @@ fn fresh_and_replayed() {
     println!("BENCH driver_seed={seed}");
     println!("BENCH driver_fresh_first_us={}", fresh[7]);
     println!("BENCH driver_replay_first_us={}", replay[7]);
+    println!("BENCH driver_fresh_inflight_bytes={}", fresh[8]);
+    println!("BENCH driver_fresh_inflight_jobs={}", fresh[9]);
+    println!("BENCH driver_replay_inflight_bytes={}", replay[8]);
+    println!("BENCH driver_replay_inflight_jobs={}", replay[9]);
     println!("BENCH driver_largest_dxil_bytes={}", fresh[6]);
     println!("BENCH driver_total_dxil_bytes={}", fresh[1]);
     println!("BENCH driver_fresh_us={}", fresh[2]);
