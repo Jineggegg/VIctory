@@ -608,7 +608,7 @@ fn check_writes_through_views_mark_their_pages(wave_marks: bool) {
         .unwrap_or_else(|e| e.into_inner());
     let value = 0x1234_5678;
     let marks = vec![100, 0xFFF0, super::VIEW_MARK_NONE, 0, 200, 0];
-    let mut ran = 0;
+    let mut ran_required_device = false;
     for (label, warp) in [("hardware", false), ("warp", true)] {
         let Ok(host) = Host::new(warp) else {
             eprintln!("no SM 6.6 {label} device; skipped");
@@ -646,9 +646,9 @@ fn check_writes_through_views_mark_their_pages(wave_marks: bool) {
             .filter(|&b| out[3][b / 32] >> (b % 32) & 1 != 0)
             .collect();
         assert_eq!(marked, [100, 101, 200], "{label}: pages");
-        ran += 1;
+        ran_required_device |= !wave_marks || warp;
     }
-    assert!(ran > 0 || wave_marks, "neither hardware nor WARP SM 6.6 device available");
+    assert!(ran_required_device, "wave variants require WARP; scalar variants require an SM 6.6 device");
 }
 
 /// Reads of texture views the program takes from the resource heap itself
@@ -882,7 +882,7 @@ fn check_straddling_writes(wave_marks: bool) {
     let _one = super::valu_tests::ONE_AT_A_TIME
         .lock()
         .unwrap_or_else(|e| e.into_inner());
-    let mut ran = 0;
+    let mut ran_required_device = false;
     for (label, warp) in [("hardware", false), ("warp", true)] {
         let Ok(host) = Host::new(warp) else {
             eprintln!("no SM 6.6 {label} device; skipped");
@@ -955,7 +955,7 @@ fn check_straddling_writes(wave_marks: bool) {
                 .collect();
             assert_eq!(marked, want_bits, "{label} ({case}): dirty bits");
         }
-        ran += 1;
+        ran_required_device |= !wave_marks || warp;
     }
-    assert!(ran > 0 || wave_marks, "neither hardware nor WARP SM 6.6 device available");
+    assert!(ran_required_device, "wave variants require WARP; scalar variants require an SM 6.6 device");
 }
