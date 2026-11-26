@@ -387,8 +387,10 @@ fn heap_indexed_structured_buffers_with_distinct_strides() {
     assert!(ran > 0, "neither hardware nor WARP SM 6.6 device available");
 }
 
-/// Table-bound structured buffer read by element (`idxen` + `offset:4`) and
-/// record count (`num_records` read as data) over a raw host descriptor.
+/// Table-bound structured buffer read by element (`idxen` + `offset:4`) or by
+/// byte (`offen` + `offset:4`), and its record count (`num_records` read as
+/// data) over a raw host descriptor: in elements, or in bytes without the raw
+/// view's start bias.
 #[test]
 fn table_bound_structured_buffer_reads_by_element_and_dimensions() {
     // s0: table with Structured(12) SRV, s2: table with raw UAV.
@@ -413,14 +415,21 @@ fn table_bound_structured_buffer_reads_by_element_and_dimensions() {
         0x8004_0201, // buffer_store_dword v2, v1, s[16:19], 0 offen
         0xBF81_0000, // s_endpgm
     ];
-    let mut srv_used = entry(ResourceType::Srv, 4, 0);
-    srv_used.stride = 12;
-    let shader = build(
-        TABLE_STRUCT_DIMS_WAVE32,
-        vec![param(RootType::Table, 0), param(RootType::Table, 2)],
-        vec![srv_used, entry(ResourceType::Uav, 4, 2)],
-        32,
-    );
+    let compile = |code: &[u32]| {
+        let mut srv_used = entry(ResourceType::Srv, 4, 0);
+        srv_used.stride = 12;
+        build(
+            code,
+            vec![param(RootType::Table, 0), param(RootType::Table, 2)],
+            vec![srv_used, entry(ResourceType::Uav, 4, 2)],
+            32,
+        )
+    };
+    let elements = compile(TABLE_STRUCT_DIMS_WAVE32);
+    // The same read by byte: buffer_load_dword v2, v1, s[8:11], 0 offen offset:4.
+    let mut by_byte = TABLE_STRUCT_DIMS_WAVE32.to_vec();
+    by_byte[10..12].copy_from_slice(&[0xE030_1004, 0x8002_0201]);
+    let bytes = compile(&by_byte);
     // 32 elements of 12 bytes (3 dwords each), plus a biased copy preceded by
     // 3 dwords (12 bytes = `3 << VIEW_RAW_OFFSET_SHIFT`) simulating a raw host
     // view rounded down to the preceding 16-byte boundary.
@@ -447,39 +456,47 @@ fn table_bound_structured_buffer_reads_by_element_and_dimensions() {
             eprintln!("no SM 6.6 {label} device; skipped");
             continue;
         };
-        let (root, pso) = host
-            .compute_pipeline(&shader)
-            .unwrap_or_else(|e| panic!("{label}: compute_pipeline failed: {e}"));
-        for (slot, tag) in [(1u32, "aligned"), (2u32, "bias-12")] {
-            let mut ud = vec![0u32; shader.user_data_dwords().max(1) as usize];
-            for u in &shader.user_data {
-                // The SRV's table is at heap index `slot` (32 * slot bytes in), the UAV's at 0.
-                ud[u.index as usize] = if u.slot == 0 { 32 * slot } else { 0 };
+        for (shader, by_element) in [(&elements, true), (&bytes, false)] {
+            let (root, pso) = host
+                .compute_pipeline(shader)
+                .unwrap_or_else(|e| panic!("{label}: compute_pipeline failed: {e}"));
+            for (slot, tag) in [(1u32, "aligned"), (2u32, "bias-12")] {
+                let mut ud = vec![0u32; shader.user_data_dwords().max(1) as usize];
+                for u in &shader.user_data {
+                    // The SRV's table is at heap index `slot` (32 * slot bytes in), the UAV's at 0.
+                    ud[u.index as usize] = if u.slot == 0 { 32 * slot } else { 0 };
+                }
+                let words = host
+                    .dispatch(
+                        &root,
+                        &pso,
+                        &Dispatch {
+                            roots: vec![
+                                (0, Root::Constants(ud)),
+                                (
+                                    1,
+                                    Root::View {
+                                        srv: true,
+                                        data: vec![4, 12, 12 | (3 << VIEW_RAW_OFFSET_SHIFT)],
+                                    },
+                                ),
+                            ],
+                            views: &views,
+                            samplers: &[],
+                            groups: [1, 1, 1],
+                        },
+                    )
+                    .unwrap_or_else(|e| panic!("{label} ({tag}): dispatch failed: {e}"));
+                let mut want: Vec<u32> = if by_element {
+                    (0..32).map(|l| 200 + l).collect()
+                } else {
+                    data[1..33].to_vec()
+                };
+                // getDimensions: (bytes - bias) / 12 elements, or bytes - bias.
+                want[31] = if by_element { 32 } else { 32 * 12 };
+                let by = if by_element { "element" } else { "byte" };
+                assert_eq!(words[0], want, "{label} ({tag}, by {by})");
             }
-            let words = host
-                .dispatch(
-                    &root,
-                    &pso,
-                    &Dispatch {
-                        roots: vec![
-                            (0, Root::Constants(ud)),
-                            (
-                                1,
-                                Root::View {
-                                    srv: true,
-                                    data: vec![4, 12, 12 | (3 << VIEW_RAW_OFFSET_SHIFT)],
-                                },
-                            ),
-                        ],
-                        views: &views,
-                        samplers: &[],
-                        groups: [1, 1, 1],
-                    },
-                )
-                .unwrap_or_else(|e| panic!("{label} ({tag}): dispatch failed: {e}"));
-            let mut want: Vec<u32> = (0..32).map(|l| 200 + l).collect();
-            want[31] = 32; // getDimensions ((bytes - bias) / 12) == 32 elements
-            assert_eq!(words[0], want, "{label} ({tag})");
         }
         ran += 1;
     }

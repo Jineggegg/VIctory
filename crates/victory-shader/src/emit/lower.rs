@@ -4444,7 +4444,7 @@ impl<'a> Lower<'a> {
             }
             None => {
                 let mut records = field(self, 0);
-                if (div_stride.is_some() || self.is_heap_direct(&src))
+                if (self.is_heap_direct(&src) || used.is_some_and(|u| u.stride >= 4))
                     && let Some(bias) = self.view_raw_bias(h)
                 {
                     records = self.s.m.bin(c, Bin::Sub, records, bias);
