@@ -63,6 +63,28 @@ fn writeback_merge_matches_bytewise_oracle() {
     }
 }
 
+/// Write contiguous shader changes without replaying adjacent CPU bytes.
+fn store_snapshot_changes(at: usize, gpu: &[u8], old: &[u8], title: &[u8]) -> bool {
+    let mut guard = None;
+    let mut i = 0;
+    while i < gpu.len() {
+        if gpu[i] == old[i] {
+            i += 1;
+            continue;
+        }
+        let start = i;
+        i += 1;
+        while i < gpu.len() && gpu[i] != old[i] {
+            i += 1;
+        }
+        if gpu[start..i] != title[start..i] {
+            guard.get_or_insert_with(|| crate::watch::writing(at, gpu.len()));
+            crate::host::write_mapped((at + start) as *mut u8, gpu[start..i].as_ptr(), i - start);
+        }
+    }
+    guard.is_some()
+}
+
 /// A title buffer's host copy.
 pub(crate) struct Shadow {
     pub(crate) buffer: ID3D12Resource,
@@ -406,16 +428,23 @@ impl Shadow {
     }
 
     fn copy_back_or_not(&self, address: usize, len: usize, back: bool) -> usize {
+        self.copy_back_or_not_with(address, len, back, crate::host::read_into)
+    }
+
+    fn copy_back_or_not_with(
+        &self, address: usize, len: usize, back: bool,
+        mut read_title: impl FnMut(*const u8, &mut [u8]) -> bool,
+    ) -> usize {
         let mut snapshot = self.before.lock().unwrap_or_else(|e| e.into_inner());
         let (segments, compared) = &mut *snapshot;
         let mut written = 0;
         let (from, to) = self.inside(address, len);
         let start = self.start as usize;
-        if let Some((taken, before)) = segments.iter().find(|(at, bytes)| *at <= from && to <= at + bytes.len())
+        if let Some((taken, before)) = segments.iter_mut().find(|(at, bytes)| *at <= from && to <= at + bytes.len())
             && back
             && from < to
         {
-            let before = &before[from - taken..to - taken];
+            let before = &mut before[from - *taken..to - *taken];
             #[cfg(feature = "diagnostics")]
             let _timed = crate::watch::Timed(std::time::Instant::now(), crate::copystat::C::CompareUs);
             // By 64 KiB piece: the copy compared with its bytes before the
@@ -440,15 +469,13 @@ impl Shadow {
                 }
                 #[cfg(feature = "diagnostics")]
                 crate::copystat::add(crate::copystat::C::CompareBytes, n as u64);
-                if host != old && crate::host::read_into((start + at) as *const u8, title) {
-                    // Title memory with the GPU's bytes put in; the copy
-                    // takes the title's bytes in turn.
-                    if merge_writeback(title, host, old) {
-                        let _writing = crate::watch::writing(start + at, n);
-                        crate::host::write_mapped((start + at) as *mut u8, title.as_ptr(), n);
+                if host != old && read_title((start + at) as *const u8, title) {
+                    // A title writer can run after this read, even in the gap
+                    // between two shader writes. Never include a gap in a store.
+                    if store_snapshot_changes(start + at, host, old, title) {
                         written += n;
                     }
-                    synced.push((start + at) / PAGE);
+                    synced.push((at, n));
                 }
                 at += n;
             }
@@ -457,8 +484,20 @@ impl Shadow {
             // they had (a title write there shows at the next refresh).
             let (first, last) = ((start + from).div_ceil(PAGE), (start + to) / PAGE);
             if let Some(t) = &self.tracked {
-                let whole: Vec<usize> = synced.into_iter().filter(|p| (first..last).contains(p)).collect();
+                let whole: Vec<usize> = synced.iter()
+                    .map(|&(at, _)| (start + at) / PAGE)
+                    .filter(|p| (first..last).contains(p)).collect();
                 t.taken(&whole);
+            }
+            for (at, n) in synced {
+                // Rearm first. A later CPU write will mark the copy dirty again.
+                // SAFETY: this piece lies inside the mapped shadow.
+                let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(at), n) };
+                if crate::host::read_into((start + at) as *const u8, host) && n != PIECE {
+                    // An overlapping declaration may visit a partial piece again.
+                    // The CPU bytes the shadow just took are now its baseline.
+                    before[at - from..at - from + n].copy_from_slice(host);
+                }
             }
         }
         // Every submitted step that declared the range is done with it (one
@@ -1724,6 +1763,42 @@ pub(crate) mod tests {
         assert_eq!([read(PAGE + 10), read(PAGE + 20)], [0xbb, 0x77]);
         copy.copy_back(p, PAGE + 16);
         unregister(p, p as u64);
+    }
+
+    #[test]
+    fn overlapping_snapshots_keep_late_cpu_stores() {
+        let h = host().expect("D3D12 adapter");
+        let p = crate::watch::tests::pool(1);
+        let (buffer, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p + 2, 4, false);
+        copy.writing(p + 3, 5, false);
+        copy.write_host((p + 2) as u64, &[0xa1]);
+        copy.write_host((p + 5) as u64, &[0xa2]);
+
+        let mut raced = false;
+        copy.copy_back_or_not_with(p + 2, 4, true, |at, title| {
+            assert!(crate::host::read_into(at, title));
+            std::thread::spawn(move || {
+                // SAFETY: the CPU writes one byte inside the live allocation.
+                unsafe { ((p + 4) as *mut u8).write_volatile(0xc1) };
+            }).join().unwrap();
+            raced = true;
+            true
+        });
+        assert!(raced);
+        let mut first = [0; 4];
+        assert!(crate::host::read_into((p + 2) as *const u8, &mut first));
+        // SAFETY: the same CPU byte, before the overlapping declaration drains.
+        unsafe { ((p + 4) as *mut u8).write_volatile(0xc2) };
+        copy.copy_back(p + 3, 5);
+        let mut second = [0; 4];
+        assert!(crate::host::read_into((p + 2) as *const u8, &mut second));
+        drop(copy);
+        crate::watch::tests::free(p);
+        assert_eq!(first, [0xa1, 0, 0xc1, 0xa2], "CPU store during first snapshot");
+        assert_eq!(second, [0xa1, 0, 0xc2, 0xa2], "CPU store before overlapping snapshot");
     }
 
     /// Mark bits are handed out in runs and come back joined.
