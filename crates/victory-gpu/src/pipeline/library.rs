@@ -866,6 +866,47 @@ mod tests {
         assert_ne!(base, namespace(&warp, Some(1)));
     }
 
+    /// Run in separate processes so an in-memory library cannot satisfy
+    /// a disk hit. The third process gets the same pipeline name and a
+    /// deliberately rejected blob and must compile and dispatch it again.
+    #[cfg(feature = "diagnostics")]
+    #[test]
+    #[ignore = "requires an SM 6.6 adapter with a persistent pipeline library"]
+    fn reopened_library_loads_then_recovers_a_rejected_blob() {
+        const PHASE: &str = "VICTORY_TEST_PSO_PHASE";
+        const ROOT: &str = "VICTORY_TEST_PSO_ROOT";
+        if let Ok(phase) = std::env::var(PHASE) {
+            let root = PathBuf::from(std::env::var_os(ROOT).unwrap());
+            use_pipeline_cache(root);
+            let host = crate::host::host().expect("D3D12 device");
+            let dir = library_dir().expect("cacheable driver version");
+            let blob = dir.join(LIBRARY_FILE);
+            if phase == "damaged" {
+                assert!(blob.is_file());
+                std::fs::write(&blob, b"invalid host pipeline library").unwrap();
+            }
+            let pixels = super::super::placed_uav_tests::run_store(host, |_| {}).unwrap();
+            assert_eq!(pixels, [[1.0, 0.5, -0.25, 2.0], [0.0; 4]]);
+            let hit = phase == "hit" || phase == "repaired";
+            assert_eq!(LOADED.load(Ordering::Relaxed), u64::from(hit));
+            assert_eq!(MADE.load(Ordering::Relaxed), u64::from(!hit));
+            save(true);
+            assert!(std::fs::metadata(blob).unwrap().len() > 32);
+            return;
+        }
+
+        let root = tempfile::tempdir().unwrap();
+        for phase in ["empty", "hit", "damaged", "repaired"] {
+            let child = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "pipeline::library::tests::reopened_library_loads_then_recovers_a_rejected_blob", "--ignored", "--nocapture"])
+                .env(PHASE, phase)
+                .env(ROOT, root.path())
+                .status()
+                .unwrap();
+            assert!(child.success(), "{phase}: {child}");
+        }
+    }
+
     #[test]
     fn a_rejected_blob_gives_an_empty_library() {
         let Some(device) = crate::host::host().and_then(|h| h.device.cast::<ID3D12Device1>().ok()) else {
