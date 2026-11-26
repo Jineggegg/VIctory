@@ -1,0 +1,25 @@
+Windows 原生，定向测试构建 7c03d23a4f865b63114b2a5e6e61a6327e41e522。非正式测试，在普通构建间隙运行。
+硬件适配器的内核查询必须与 DXGI 提供的完整命名空间相同；WARP 验证回退到软件适配器的驱动身份。
+IDENTITY kind=hw kmt_us=16.100 dxgi_us=512.400
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 296 filtered out; finished in 0.37s
+hw 的原生五阶段跨进程验证与父测试均通过，覆盖迟配置、坏 blob 重建及修复后重开。
+IDENTITY kind=sw kmt_us=5.100 dxgi_us=366.300
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 296 filtered out; finished in 0.03s
+warp 的原生五阶段跨进程验证与父测试均通过，覆盖迟配置、坏 blob 重建及修复后重开。
+
+以下五轮每轮更换三个候选的先后顺序。每次校验真正的驱动库命中和像素回读。计时单位为微秒，这批运行与其他构建共用机器。
+baseline BENCH pso_fresh_us=1115.200 BENCH pso_disk_hit_us=1155.700 BENCH verified=1
+combined-meta BENCH pso_fresh_us=822.500 BENCH pso_disk_hit_us=1830.300 BENCH verified=1
+identity-kmt BENCH pso_fresh_us=1067.300 BENCH pso_disk_hit_us=1467.500 BENCH verified=1
+combined-meta BENCH pso_fresh_us=1506.300 BENCH pso_disk_hit_us=2269.200 BENCH verified=1
+identity-kmt BENCH pso_fresh_us=928.500 BENCH pso_disk_hit_us=1291.900 BENCH verified=1
+baseline BENCH pso_fresh_us=1281.400 BENCH pso_disk_hit_us=1315.100 BENCH verified=1
+identity-kmt BENCH pso_fresh_us=1234.900 BENCH pso_disk_hit_us=1391.000 BENCH verified=1
+baseline BENCH pso_fresh_us=6656.300 BENCH pso_disk_hit_us=6763.700 BENCH verified=1
+combined-meta BENCH pso_fresh_us=1036.700 BENCH pso_disk_hit_us=1721.900 BENCH verified=1
+baseline BENCH pso_fresh_us=1117.900 BENCH pso_disk_hit_us=1471.700 BENCH verified=1
+combined-meta BENCH pso_fresh_us=1060.400 BENCH pso_disk_hit_us=19853.200 BENCH verified=1
+identity-kmt BENCH pso_fresh_us=1057.300 BENCH pso_disk_hit_us=1647.500 BENCH verified=1
+combined-meta BENCH pso_fresh_us=904.600 BENCH pso_disk_hit_us=2506.700 BENCH verified=1
+identity-kmt BENCH pso_fresh_us=904.400 BENCH pso_disk_hit_us=1604.900 BENCH verified=1
+baseline BENCH pso_fresh_us=993.100 BENCH pso_disk_hit_us=1197.300 BENCH verified=1
