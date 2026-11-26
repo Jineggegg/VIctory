@@ -74,6 +74,8 @@ struct ConstantSlot {
     record: [u32; 3],
     address: u64,
     size: u32,
+    destination: D3D12_CPU_DESCRIPTOR_HANDLE,
+    placed: bool,
 }
 
 impl ConstantSlot {
@@ -1150,6 +1152,7 @@ impl HostHeap {
                         if !self.sampler && let Some((View::Constant(address, size), _)) = entry {
                             constants.push(ConstantSlot {
                                 index, record: raw, address: *address, size: *size,
+                                destination: D3D12_CPU_DESCRIPTOR_HANDLE::default(), placed: false,
                             });
                         } else {
                             changed.push(index);
@@ -1192,7 +1195,7 @@ impl HostHeap {
             slots.clear();
             return;
         }
-        slots.retain(|slot| {
+        slots.retain_mut(|slot| {
             // Constant views have permanent VIEWS entries. A recorder or a
             // byte copy can still replace the slot while preparation runs.
             if batch.record(slot.index) != slot.record {
@@ -1202,25 +1205,27 @@ impl HostHeap {
             if made[slot.index as usize] == slot.key() {
                 return false;
             }
-            // Constants become read-only raw SRVs with zero address bias.
-            let view = slot.view();
-            self.set_stride(slot.index, Some(&view), 0);
-            self.set_mark(slot.index, None);
-            self.note_address(slot.index, Some(&view));
+            (slot.destination, slot.placed) = self.cpu_placed(slot.index);
             true
         });
-        for slot in slots.drain(..) {
+        for slot in slots.iter() {
             let view = slot.view();
-            let (at, placed) = self.cpu_placed(slot.index);
-            if !placed {
-                // The guest slot still resolves to the null texture page.
+            if slot.placed {
+                self.set_stride(slot.index, Some(&view), 0);
+            } else {
                 self.write_stride(slot.index, 0);
             }
+            self.set_mark(slot.index, None);
+            self.note_address(slot.index, Some(&view));
+        }
+        for slot in slots.drain(..) {
+            let view = slot.view();
+            let at = slot.destination;
             let (kept, _, _) = make_marked(&view, at);
             if kept.is_none() {
                 null_for(&view, at);
             }
-            let kept = kept.filter(|_| placed);
+            let kept = kept.filter(|_| slot.placed);
             self.viewed.set(slot.index, Some(&view), kept.is_some());
             self.keep(slot.index, kept.flatten());
             made[slot.index as usize] = slot.key();
