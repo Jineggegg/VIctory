@@ -174,7 +174,8 @@ fn build(
     used: Vec<UsedResource>,
     threads: u32,
 ) -> HostShader {
-    build_with(words, layout, used, threads, false, false)
+    let cs = ComputeIo { rsrc2: 3 << 1, threads: [threads, 1, 1] };
+    build_with(words, layout, used, cs, false, false)
 }
 
 /// [`build`], with read and write marks (`view_marks`).
@@ -182,7 +183,7 @@ fn build_with(
     words: &[u32],
     layout: Vec<RootParam>,
     used: Vec<UsedResource>,
-    threads: u32,
+    cs: ComputeIo,
     view_marks: bool,
     wave_marks: bool,
 ) -> HostShader {
@@ -192,10 +193,7 @@ fn build_with(
         vgprs: 8,
         layout,
         used,
-        io: StageIo::Cs(ComputeIo {
-            rsrc2: 3 << 1,
-            threads: [threads, 1, 1],
-        }),
+        io: StageIo::Cs(cs),
         code: words.iter().flat_map(|w| w.to_le_bytes()).collect(),
     };
     let p = ir::build(&native.code, native.wave64, native.vgprs).expect("ir::build");
@@ -613,22 +611,36 @@ fn a_heap_index_in_a_paged_view_heap_reads_where_its_page_is() {
 #[test]
 fn views_read_in_a_paged_view_heap_mark_their_pages() {
     for wave_marks in [false, true] {
-        verify_paged_read_marks(wave_marks);
+        verify_paged_read_marks(wave_marks, false, 1);
+        verify_paged_read_marks(wave_marks, true, 1);
+        verify_paged_read_marks(wave_marks, true, 2);
     }
 }
 
-fn verify_paged_read_marks(wave_marks: bool) {
+fn verify_paged_read_marks(wave_marks: bool, skip_first_group: bool, groups: u32) {
+    // If group zero exits before either descriptor access, one group touches
+    // no pages at all; with two groups the second still marks both pages.
+    let mut code = Vec::new();
+    if skip_first_group {
+        code.push(0xbf06_8003); // s_cmp_eq_u32 s3, 0 (thread group x)
+        code.push(0xbf85_0000 | (HEAP_ELEMENT_WAVE32.len() as u32 - 1)); // branch to endpgm
+    }
+    code.extend_from_slice(HEAP_ELEMENT_WAVE32);
+    let cs = ComputeIo {
+        rsrc2: 3 << 1 | u32::from(skip_first_group) << 7,
+        threads: [32, 1, 1],
+    };
     let shader = {
         let _paged = super::shader::view_pages(true);
         build_with(
-            HEAP_ELEMENT_WAVE32,
+            &code,
             vec![
                 param(RootType::Constants, 0),
                 param(RootType::ResourceHeap, 1),
                 param(RootType::Table, 2),
             ],
             vec![entry(ResourceType::Uav, 4, 2)],
-            32,
+            cs,
             true,
             wave_marks,
         )
@@ -687,7 +699,7 @@ fn verify_paged_read_marks(wave_marks: bool) {
                         ],
                         views: &views,
                         samplers: &[],
-                        groups: [1, 1, 1],
+                        groups: [groups, 1, 1],
                     },
                 )
                 .unwrap_or_else(|e| panic!("{label}: dispatch failed: {e}"));
@@ -696,8 +708,10 @@ fn verify_paged_read_marks(wave_marks: bool) {
                 .filter(|&b| bits[(b / 32) as usize] >> (b % 32) & 1 != 0)
                 .collect();
             let pages = super::VIEW_PAGE_READS;
-            assert_eq!(set, [pages, pages + 4296], "{label}: the pages read");
-            let expected: [u32; 32] = std::array::from_fn(|i| if stride == 0 { 0 } else { 200 + i as u32 });
+            let skipped = skip_first_group && groups == 1;
+            let want = if skipped { vec![] } else { vec![pages, pages + 4296] };
+            assert_eq!(set, want, "{label}: the pages read with {groups} groups");
+            let expected: [u32; 32] = std::array::from_fn(|i| if skipped || stride == 0 { 0 } else { 200 + i as u32 });
             assert_eq!(out[0], expected, "{label}: data at stride {stride}");
         }
         ran += 1;
