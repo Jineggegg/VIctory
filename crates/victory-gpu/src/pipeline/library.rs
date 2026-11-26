@@ -56,14 +56,17 @@ static DRIVER_GUARD: OnceLock<File> = OnceLock::new();
 
 /// Keeps the compiled library and the title's shared early list under `root`.
 pub fn use_pipeline_cache(root: PathBuf) {
-    DIR.get_or_init(|| {
+    let mut check_drivers = false;
+    let source = DIR.get_or_init(|| {
         let source = root.join(victory_shader::SOURCE_HASH);
         if let Ok(_root) = dirs::hold(&root, false) {
             if let Ok(guard) = dirs::hold(&source, false) {
                 let _ = SOURCE_GUARD.set(guard);
             }
             // Rescue legacy early lists before retiring any of their owners.
-            if let Err(error) = migrate_early(&root) {
+            let (lists, excess) = dirs::legacy_layout(&root, &source);
+            check_drivers = excess;
+            if let Err(error) = migrate_early(&root, &lists) {
                 tracing::warn!(%error, "could not migrate early pipeline lists");
             } else {
                 dirs::prune_sources(&root, &source);
@@ -71,7 +74,14 @@ pub fn use_pipeline_cache(root: PathBuf) {
         }
         source
     });
-    let root = DIR.get().unwrap().parent().unwrap();
+    // A fully warmed run might never write another PSO. Retire excess
+    // generations left by older releases in that case too.
+    if check_drivers && SOURCE_GUARD.get().is_some()
+        && let Some(adapter) = library_dir().and_then(|d| d.parent())
+    {
+        dirs::prune_drivers(source, adapter);
+    }
+    let root = source.parent().unwrap();
     let path = root.join(LIBRARY_FILE);
     if dirs::regular(&path) && let Ok(_root) = dirs::hold(root, false) {
         // Legacy blobs are opaque. Only the driver can accept them; keep the
@@ -85,7 +95,7 @@ pub fn use_pipeline_cache(root: PathBuf) {
 
 fn migrate_blob(path: &Path, target: Option<&Path>) -> io::Result<()> {
     if let Some(target) = target {
-        prepare_dir(target)?;
+        let _leaf = prepare_dir(target)?;
         if !target.join(LIBRARY_FILE).exists() {
             // Unsupported hard links or an incompatible layout just cost a
             // rebuild. Never replace an already-published library.
@@ -120,7 +130,7 @@ fn library_dir() -> Option<&'static PathBuf> {
     }).as_ref()
 }
 
-fn prepare_dir(dir: &Path) -> io::Result<()> {
+fn prepare_dir(dir: &Path) -> io::Result<File> {
     let adapter = dir.parent().unwrap();
     let source = adapter.parent().unwrap();
     let root = source.parent().unwrap();
@@ -133,8 +143,7 @@ fn prepare_dir(dir: &Path) -> io::Result<()> {
         }
     }
     fs::create_dir_all(dir)?;
-    let _leaf = dirs::hold(dir, false)?;
-    Ok(())
+    dirs::hold(dir, false)
 }
 
 fn adapter_namespace(device: &ID3D12Device) -> Option<String> {
@@ -580,7 +589,7 @@ fn save_library(dir: &std::path::Path, library: &Shared) {
     let mut keys = prebuilt;
     keys.extend(library.initial_keys().iter().cloned());
     let index = (!keys.is_empty()).then(|| list(&tag(&blob), &keys));
-    let written = prepare_dir(dir).and_then(|()| write_cache(dir, &blob, index.as_deref()));
+    let written = prepare_dir(dir).and_then(|_leaf| write_cache(dir, &blob, index.as_deref()));
     if written.is_ok() {
         static CLEANED: OnceLock<()> = OnceLock::new();
         CLEANED.get_or_init(|| {
@@ -707,8 +716,9 @@ impl Used {
 static USED: Mutex<Option<Used>> = Mutex::new(None);
 static USED_CHANGED: AtomicBool = AtomicBool::new(false);
 
-fn migrate_early(root: &Path) -> io::Result<()> {
-    let old = dirs::early_lists(root);
+static UNPUBLISHED_HINTS: OnceLock<String> = OnceLock::new();
+
+fn migrate_early(root: &Path, old: &[PathBuf]) -> io::Result<()> {
     if old.is_empty() { return Ok(()); }
     let path = root.join(EARLY_FILE);
     let mut ordered = match fs::read_to_string(&path) {
@@ -719,7 +729,7 @@ fn migrate_early(root: &Path) -> io::Result<()> {
     // Pin every ancestor of each validated legacy entry until its removal.
     // A junction or a concurrent directory rename must not redirect cleanup.
     let mut guards = Vec::new();
-    for (_, file) in &old {
+    for file in old {
         let leaf = file.parent().unwrap();
         let adapter = leaf.parent().unwrap();
         for dir in [adapter.parent().unwrap(), adapter, leaf] {
@@ -730,8 +740,11 @@ fn migrate_early(root: &Path) -> io::Result<()> {
         ordered.push_str(&fs::read_to_string(file)?);
     }
     let merged = Used::read(&ordered).list().join("\n");
-    write_atomically(&path, merged.as_bytes())?;
-    for (_, file) in old { fs::remove_file(file)?; }
+    if let Err(error) = write_atomically(&path, merged.as_bytes()) {
+        let _ = UNPUBLISHED_HINTS.set(merged);
+        return Err(error);
+    }
+    for file in old { fs::remove_file(file)?; }
     Ok(())
 }
 
@@ -742,7 +755,7 @@ fn used() -> std::sync::MutexGuard<'static, Option<Used>> {
         let listed = DIR.get().and_then(|d| d.parent())
             .and_then(|d| std::fs::read_to_string(d.join(EARLY_FILE)).ok())
             .unwrap_or_default();
-        let before = Used::read(&listed).before;
+        let before = Used::read(UNPUBLISHED_HINTS.get().unwrap_or(&listed)).before;
         tracing::info!(pipelines = before.len(), "title pipelines to start early");
         used.get_or_insert_with(Used::default).before = before;
         let _ = READ_DISK.set(());
@@ -798,10 +811,23 @@ mod tests {
             .join("fedcba9876543210");
         fs::create_dir_all(&legacy).unwrap();
         fs::write(legacy.join(EARLY_FILE), "legacy-draw").unwrap();
+        let source = root.path().join(victory_shader::SOURCE_HASH);
+        let mut drivers = Vec::new();
+        for version in 1..=4 {
+            let driver = source.join(namespace(&DXGI_ADAPTER_DESC1::default(), Some(version)).unwrap());
+            let leaf = driver.join("0123456789abcdef");
+            fs::create_dir_all(&leaf).unwrap();
+            fs::write(leaf.join(LIBRARY_FILE), b"synthetic driver blob").unwrap();
+            drivers.push(driver);
+        }
         for phase in ["1", "unknown", "2"] {
             assert!(std::process::Command::new(std::env::current_exe().unwrap())
                 .args(["--exact", "pipeline::library::tests::early_list_survives_driver_changes_and_unknown_drivers"])
                 .env(ROOT, root.path()).env(PHASE, phase).status().unwrap().success());
+            if phase == "1" {
+                assert!(drivers[0].exists());
+                assert_eq!(drivers.iter().filter(|dir| dir.exists()).count(), 2);
+            }
         }
     }
 

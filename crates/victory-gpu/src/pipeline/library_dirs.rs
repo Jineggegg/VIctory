@@ -188,10 +188,15 @@ pub(super) fn prune_drivers(source: &Path, current: &Path) {
 
 // Only needed for upgrades. Collect every legacy list, newest first, even
 // if the old driver, build settings or translator can no longer be selected.
-pub(super) fn early_lists(root: &Path) -> Vec<(SystemTime, PathBuf)> {
+pub(super) fn legacy_layout(root: &Path, current: &Path) -> (Vec<PathBuf>, bool) {
+    let mut check_drivers = false;
     let mut lists = Vec::new();
     for (_, source) in hashes(root) {
-        for (_, namespace) in adapters(&source) {
+        let namespaces = adapters(&source);
+        if source == current && namespaces.len() > KEPT {
+            check_drivers = true;
+        }
+        for (_, namespace) in namespaces {
             for (_, leaf) in hashes(&namespace) {
                 let path = leaf.join(EARLY_FILE);
                 if regular(&path)
@@ -203,7 +208,7 @@ pub(super) fn early_lists(root: &Path) -> Vec<(SystemTime, PathBuf)> {
         }
     }
     lists.sort_unstable_by(|a, b| b.cmp(a));
-    lists
+    (lists.into_iter().map(|(_, path)| path).collect(), check_drivers)
 }
 
 #[cfg(test)]
