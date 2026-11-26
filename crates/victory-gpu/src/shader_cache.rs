@@ -496,6 +496,29 @@ mod tests {
     }
 
     #[test]
+    fn interrupted_writer_preserves_only_committed_rows() {
+        const CHILD: &str = "VICTORY_TEST_INTERRUPTED_SHADER_WRITER";
+        if let Some(dir) = std::env::var_os(CHILD) {
+            let cache = Cache::open(Path::new(&dir)).unwrap();
+            assert!(!cached(&cache, &[7; 32], b"committed", |_| Ok(shader())).1);
+            cache.with_db(|db| db.execute_batch("BEGIN IMMEDIATE")).unwrap();
+            assert!(!cached(&cache, &[7; 32], b"unfinished", |_| Ok(shader())).1);
+            // Exit without destructors, while the second transaction is open.
+            std::process::exit(71);
+        }
+
+        let dir = tempfile::tempdir().unwrap();
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", "shader_cache::tests::interrupted_writer_preserves_only_committed_rows"])
+            .env(CHILD, dir.path())
+            .status().unwrap();
+        assert_eq!(status.code(), Some(71));
+        let cache = Cache::open(dir.path()).unwrap();
+        assert_eq!(cached(&cache, &[7; 32], b"committed", |_| panic!()), (Ok(shader()), true));
+        assert_eq!(cached(&cache, &[7; 32], b"unfinished", |_| Ok(shader())), (Ok(shader()), false));
+    }
+
+    #[test]
     fn a_translation_is_made_once_when_its_entry_cannot_be_written() {
         let dir = tempfile::tempdir().unwrap();
         let cache = Cache::open(dir.path()).unwrap();
