@@ -2260,49 +2260,77 @@ void main() {
     /// texture there that no shader reads stays unmade.
     #[test]
     fn a_placed_texture_read_with_no_page_free_is_made_after_one_submission() {
-        if crate::host::host().is_none() {
-            return;
-        }
-        let Some((title_heap, heap_host)) = crate::host::tests::paged_view_heap(4) else {
-            return;
-        };
+        let Some(host) = crate::host::host() else { return };
+        // Page marks are shared by all registered heaps. Use pages distinct
+        // from the other submission fixtures, and set up pressure atomically:
+        // a foreign submission between eviction and the replacement write
+        // could otherwise place the original page before it is read here.
         let page = victory_shader::emit::VIEW_PAGE_SLOTS;
-        let at = |s: u32| title_heap.start + u64::from(s) * 32;
-        // Page 3: a placed texture read, one not read, a buffer's raw view.
-        let (read, unread, buffer_view) = (3 * page + 99, 3 * page + 50, 3 * page + 1);
-        let _read = placed_texture_view(title_heap, read);
-        let _unread = placed_texture_view(title_heap, unread);
-        let (_, buffer) = crate::host::tests::title_buffer();
-        let desc: [u32; 10] = [39, 1, 0x1688, 0, 0, 0, 64, 0, 1, 0];
-        crate::descriptor::create_srv(std::ptr::null(), buffer, &desc, at(buffer_view));
-        assert!(heap_host.mirror(read, at(read), true).is_some());
-        assert!(heap_host.mirror(buffer_view, at(buffer_view), true).is_some());
-        assert!(heap_host.kept(read) && heap_host.kept(buffer_view), "made for a draw");
-        let first = heap_host.host_page_of(read).unwrap();
-        crate::host::tests::without_submissions(|| {
+        let (read, unread, buffer_view) = (37 * page + 99, 37 * page + 50, 37 * page + 1);
+        let other = 36 * page + 7;
+        let Some((title_heap, heap_host, memories, first)) = crate::host::tests::without_submissions(|| {
+            let (title_heap, heap_host) = crate::host::tests::paged_view_heap(38)?;
+            let at = |s: u32| title_heap.start + u64::from(s) * 32;
+            let mut source = placed_texture_view(title_heap, read);
+            source[..4].copy_from_slice(&[255, 0, 255, 255]);
+            let unread_memory = placed_texture_view(title_heap, unread);
+            let (_, buffer) = crate::host::tests::title_buffer();
+            let desc: [u32; 10] = [39, 1, 0x1688, 0, 0, 0, 64, 0, 1, 0];
+            crate::descriptor::create_srv(std::ptr::null(), buffer, &desc, at(buffer_view));
+            assert!(heap_host.mirror(read, at(read), true).is_some());
+            assert!(heap_host.mirror(buffer_view, at(buffer_view), true).is_some());
+            assert!(heap_host.kept(read) && heap_host.kept(buffer_view), "made for a draw");
+            let first = heap_host.host_page_of(read).unwrap();
+            assert_ne!(first, 0);
+            // Withhold unused host pages before giving back the only resident
+            // one. The replacement and the recovered page must both reuse it.
+            heap_host.hold_page_room(true);
             crate::host::tests::take_back_all(heap_host, &mut std::time::Instant::now());
-        });
-        assert_eq!(heap_host.host_page_of(read), Some(0), "taken back");
-        // Page 2, written next, takes its host page.
-        let other = 2 * page + 7;
-        let _other = placed_texture_view(title_heap, other);
-        assert_eq!(heap_host.host_page_of(other), Some(first), "page 3's host page");
-        fill_view_heap(heap_host);
-        age_view_heap_pages(heap_host);
+            assert_eq!(heap_host.host_page_of(read), Some(0), "taken back");
+            let replacement = placed_texture_view(title_heap, other);
+            assert_eq!(heap_host.host_page_of(other), Some(first), "reused the released page");
+            for _ in 0..40 {
+                heap_host.take_back_pages(std::time::Instant::now());
+            }
+            heap_host.set_page_water(1, 1);
+            Some((title_heap, heap_host, (source, unread_memory, replacement), first))
+        }) else { return };
         let shader = compile_cs(READ_MARK_SOURCE);
         let mut made = Vec::new();
         for _ in 0..4 {
             submit_read(&shader, read);
             made.push((heap_host.kept(read), heap_host.kept(buffer_view)));
         }
-        unfill_view_heap(heap_host);
         assert_eq!(
             made, [(true, true); 4],
             "the texture and the buffer view made after the first submission"
         );
         assert_eq!(heap_host.host_page_of(read), Some(first), "placed again");
-        assert_eq!(heap_host.host_page_of(other), Some(0), "page 2 taken back for it");
+        assert_eq!(heap_host.page_table_entry(read / page), first, "GPU page table restored");
+        assert_eq!(heap_host.host_page_of(other), Some(0), "the replacement page taken back for it");
         assert!(!heap_host.kept(unread), "a placed texture not read stays unmade");
+
+        let view = crate::descriptor::view(title_heap.start + u64::from(read) * 32).unwrap();
+        let list = host.new_list().unwrap();
+        readable(&list, &used(ResourceType::Srv), &view, false);
+        let (root, pso) = compile_cs(READ);
+        let (out, mapped) = host.shared_buffer(64 * 8 * 16).unwrap();
+        // SAFETY: one group of READ writes 8 rows with a 64-texel output pitch.
+        // The descriptor is the one recovered above; all objects outlive the fence.
+        unsafe {
+            list.list.SetDescriptorHeaps(&[Some(heap_host.heap.clone())]);
+            list.list.SetComputeRootSignature(&root);
+            list.list.SetPipelineState(&pso);
+            list.list.SetComputeRootDescriptorTable(0, heap_host.gpu(read));
+            list.list.SetComputeRootUnorderedAccessView(1, out.GetGPUVirtualAddress());
+            list.list.Dispatch(1, 1, 1);
+        }
+        list.close();
+        host.execute(&[&list]);
+        // SAFETY: the fence completed and READ stored the first float4 here.
+        assert_eq!(unsafe { mapped.cast::<[f32; 4]>().read() }, [1.0, 0.0, 1.0, 1.0]);
+        unfill_view_heap(heap_host);
+        drop(memories);
     }
 
     /// Paged view heaps with no host page free, through `Host::execute`: a
