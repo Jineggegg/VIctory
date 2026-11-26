@@ -65,11 +65,13 @@ fn build() -> &'static [u8; 32] {
                 "VICTORY_SHADER_LOOP_LIMIT: translated loops stop sooner"
             );
         }
+        let options = options();
         key(
             victory_shader::SOURCE_HASH,
             ENCODING,
             limit,
-            options().view_pages,
+            options.view_pages,
+            options.wave_marks,
         )
     })
 }
@@ -83,18 +85,36 @@ pub fn options() -> victory_shader::emit::Options {
     victory_shader::emit::Options {
         view_marks: true,
         view_pages: crate::descriptor::view_pages(),
+        wave_marks: host_wave_marks(),
     }
+}
+
+fn host_wave_marks() -> bool {
+    use windows::Win32::Graphics::Direct3D12::*;
+    static CAPABLE: OnceLock<bool> = OnceLock::new();
+    *CAPABLE.get_or_init(|| {
+        let Some(host) = crate::host::host() else { return false };
+        let mut caps = D3D12_FEATURE_DATA_D3D12_OPTIONS1::default();
+        // SAFETY: the queried feature matches the structure and its size.
+        unsafe {
+            host.device.CheckFeatureSupport(
+                D3D12_FEATURE_D3D12_OPTIONS1,
+                (&raw mut caps).cast(),
+                size_of_val(&caps) as u32,
+            )
+        }.is_ok() && caps.WaveOps.as_bool()
+    })
 }
 
 /// This file, whose `encode` and `decode` define the entries.
 const ENCODING: &[u8] = include_bytes!("shader_cache.rs");
 
-fn key(translator: &str, encoding: &[u8], limit: u32, view_pages: bool) -> [u8; 32] {
+pub(crate) fn key(translator: &str, encoding: &[u8], limit: u32, view_pages: bool, wave_marks: bool) -> [u8; 32] {
     let mut h = blake3::Hasher::new();
     h.update(translator.as_bytes());
     h.update(blake3::hash(encoding).as_bytes());
     h.update(&limit.to_le_bytes());
-    h.update(&[u8::from(view_pages)]);
+    h.update(&[u8::from(view_pages), u8::from(wave_marks)]);
     *h.finalize().as_bytes()
 }
 
@@ -137,7 +157,7 @@ impl<F: Fn(&[u8]) -> Result<HostShader, String> + Send + Sync> Converter for Tra
     }
 }
 
-fn cached(
+pub(crate) fn cached(
     cache: &Cache,
     build: &[u8; 32],
     container: &[u8],
@@ -497,19 +517,20 @@ mod tests {
     /// written before it is read.
     #[test]
     fn the_key_covers_translator_encoding_and_settings() {
-        let k = key("0123456789abcdef", b"encoding", 1 << 20, false);
-        assert_eq!(k, key("0123456789abcdef", b"encoding", 1 << 20, false));
-        assert_ne!(k, key("0123456789abcdee", b"encoding", 1 << 20, false));
-        assert_ne!(k, key("0123456789abcdef", b"encoding.", 1 << 20, false));
-        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 19, false));
-        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 20, true));
+        let k = key("0123456789abcdef", b"encoding", 1 << 20, false, false);
+        assert_eq!(k, key("0123456789abcdef", b"encoding", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdee", b"encoding", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding.", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 19, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 20, true, false));
         assert_eq!(
             *build(),
             key(
                 victory_shader::SOURCE_HASH,
                 ENCODING,
                 victory_shader::emit::loop_limit(),
-                options().view_pages
+                options().view_pages,
+                options().wave_marks
             )
         );
         // The encoding part is this file as built.

@@ -13,6 +13,9 @@ impl Lower<'_> {
     /// that leads is the first that is no helper: a helper's writes are
     /// dropped.
     pub(super) fn mark_lead(&mut self, n: V) -> Option<V> {
+        if !self.wave_marks {
+            return None;
+        }
         self.s.flags |= flags::WAVE_OPS;
         let c = self.cur;
         let (i1, i32t) = (self.s.t.i1, self.s.t.i32);

@@ -1,5 +1,49 @@
 use super::*;
 
+/// Two hosts may share the same disk cache. The key and the pipeline name
+/// must change only when the generated shader changes.
+#[test]
+fn wave_mark_capability_selects_its_cached_dxil() {
+    use crate::shader_cache::{cached, key};
+    use victory_shader::emit::{Options, translate_with};
+    let dir = tempfile::tempdir().unwrap();
+    let cache = victory_pipeline::Cache::open(dir.path()).unwrap();
+    let container = super::gfx10::wave_container(None);
+    let mut outputs = Vec::new();
+    for wave_marks in [false, true] {
+        let build = key(
+            "test",
+            b"test",
+            victory_shader::emit::DEFAULT_LOOP_LIMIT,
+            true,
+            wave_marks,
+        );
+        let translate = |bytes: &[u8]| {
+            translate_with(
+                bytes,
+                Options {
+                    view_marks: true,
+                    view_pages: true,
+                    wave_marks,
+                },
+            )
+            .map_err(|e| e.to_string())
+        };
+        let (first, hit) = cached(&cache, &build, &container, translate);
+        assert!(!hit);
+        let (again, hit) = cached(&cache, &build, &container, |_| {
+            panic!("cached translation missed")
+        });
+        assert!(hit);
+        assert_eq!(first, again);
+        let bytes = first.unwrap().dxil;
+        let pso_name = super::super::library::name("compute", &[], &[&bytes], "");
+        outputs.push((bytes, pso_name));
+    }
+    assert_ne!(outputs[0].0, outputs[1].0);
+    assert_ne!(outputs[0].1, outputs[1].1);
+}
+
 pub(super) fn run(host: &Host) {
     use windows_sys::Win32::System::Memory::{
         MEM_COMMIT, MEM_RESERVE, PAGE_READWRITE, VirtualAlloc,

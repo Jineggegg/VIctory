@@ -101,9 +101,13 @@ enum Stop {
 }
 
 pub(crate) fn lower(parts: &Parts) -> Result<Lowered, ShaderError> {
+    lower_with_marks(parts, false)
+}
+
+pub(crate) fn lower_with_marks(parts: &Parts, wave_marks: bool) -> Result<Lowered, ShaderError> {
     let mut bad = HashMap::new();
     loop {
-        match Lower::new(parts, &bad).run() {
+        match Lower::new(parts, &bad, wave_marks).run() {
             Ok(l) => return Ok(l),
             Err(Stop::Retry(v, why)) => {
                 if bad.insert(v, why).is_some() {
@@ -233,6 +237,7 @@ struct Lower<'a> {
     guarded_stride: HashMap<V, V>,
     /// Block zero's null SRV index, invariant for this draw or dispatch.
     memory_null: Option<V>,
+    wave_marks: bool,
     /// Defining block and lazily decoded raw offset of each table buffer handle.
     table_bias: HashMap<V, (usize, Option<V>)>,
     /// Blocks splitting the edge from one IR block to another.
@@ -553,7 +558,7 @@ fn code_table_start(p: &crate::ir::Program, addresses: &[&crate::resource::Addre
 }
 
 impl<'a> Lower<'a> {
-    fn new(x: &'a Parts<'a>, bad: &'a HashMap<Value, Why>) -> Self {
+    fn new(x: &'a Parts<'a>, bad: &'a HashMap<Value, Why>, wave_marks: bool) -> Self {
         let p = x.p;
         let mut phi_at = HashMap::new();
         for (b, block) in p.blocks.iter().enumerate() {
@@ -697,6 +702,7 @@ impl<'a> Lower<'a> {
             join_handles: HashMap::new(),
             guarded_stride: HashMap::new(),
             memory_null: None,
+            wave_marks,
             table_bias: HashMap::new(),
             edges: HashMap::new(),
             exported: vec![false; p.blocks.len()],
@@ -4749,33 +4755,40 @@ impl<'a> Lower<'a> {
         let shift = self.s.m.bin(c, Bin::And, n, low);
         let bit = self.s.m.bin(c, Bin::Shl, one, shift);
 
-        // One active lane can mark the whole wave only when the word is shared.
-        // Otherwise each lane keeps its own word and bit. No fixed wave size.
-        self.s.flags |= flags::WAVE_OPS;
-        let same = self.s.op(
-            c,
-            "waveActiveAllEqual.i32",
-            Attr::NoUnwind,
-            self.s.t.i1,
-            115,
-            &[word],
-        );
-        let or = self.s.m.i8(1);
-        let bits = self.s.op(
-            c,
-            "waveActiveBit.i32",
-            Attr::NoUnwind,
-            self.s.t.i32,
-            120,
-            &[bit, or],
-        );
-        let first = self
-            .s
-            .op(c, "waveIsFirstLane", Attr::NoUnwind, self.s.t.i1, 110, &[]);
-        let mask = self.s.m.select(c, same, bits, bit);
-        let yes = self.s.m.bool(true);
-        let writer = self.s.m.select(c, same, first, yes);
-        let at = self.begin_guarded(Some(writer));
+        // With helper lanes included, the first lane in a pixel wave could
+        // be a helper whose stores are dropped. Keep those marks per lane.
+        let (writer, mask) = if self.wave_marks && !self.s.pixel {
+            // One active lane can mark the whole wave only when the word is shared.
+            // Otherwise each lane keeps its own word and bit. No fixed wave size.
+            self.s.flags |= flags::WAVE_OPS;
+            let same = self.s.op(
+                c,
+                "waveActiveAllEqual.i32",
+                Attr::NoUnwind,
+                self.s.t.i1,
+                115,
+                &[word],
+            );
+            let or = self.s.m.i8(1);
+            let bits = self.s.op(
+                c,
+                "waveActiveBit.i32",
+                Attr::NoUnwind,
+                self.s.t.i32,
+                120,
+                &[bit, or],
+            );
+            let first = self
+                .s
+                .op(c, "waveIsFirstLane", Attr::NoUnwind, self.s.t.i1, 110, &[]);
+            let mask = self.s.m.select(c, same, bits, bit);
+            let yes = self.s.m.bool(true);
+            let writer = self.s.m.select(c, same, first, yes);
+            (Some(writer), mask)
+        } else {
+            (None, bit)
+        };
+        let at = self.begin_guarded(writer);
 
         // Until the submission finishes bits only accumulate. A stale load can
         // cause an extra OR, and a partially set mask still needs the atomic.

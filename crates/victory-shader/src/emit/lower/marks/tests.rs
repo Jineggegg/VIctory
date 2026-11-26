@@ -2,13 +2,16 @@
 //! bitmap on hardware and WARP, including writes under a narrowed EXEC.
 
 use crate::dxbc::Container;
-use crate::emit::{HostShader, emit, host::{Dispatch, Host, Root, View}};
+use crate::emit::{
+    HostShader, Options, emit_with,
+    host::{Dispatch, Host, Root, View},
+};
 use crate::native::{ComputeIo, HwStage, NativeProgram, RootType, StageIo};
 use crate::{io, ir, resource, structure};
 
 /// Write to a title address offset by the local thread id shifted by s2.
 /// A preceding store to page zero leaves the first bit already set.
-fn dirty_mark_program(divergent: bool) -> HostShader {
+fn dirty_mark_program(divergent: bool, threads: u32, wave_marks: bool) -> HostShader {
     let mut words: Vec<u32> = vec![
         0x3402_0082, // v_lshlrev_b32 v1, 2, v0
         0xDC70_8000,
@@ -39,7 +42,7 @@ fn dirty_mark_program(divergent: bool) -> HostShader {
         used: vec![],
         io: StageIo::Cs(ComputeIo {
             rsrc2: 3 << 1,
-            threads: [32, 1, 1],
+            threads: [threads, 1, 1],
         }),
         code: words.into_iter().flat_map(u32::to_le_bytes).collect(),
     };
@@ -48,13 +51,17 @@ fn dirty_mark_program(divergent: bool) -> HostShader {
     let res = resource::track(&p, &native.layout, native.stage, Some(&st)).unwrap();
     let io = io::raise(&p, &native).unwrap();
     let bytes = crate::dxbc::build(&[]);
-    emit(
+    emit_with(
         &Container::parse(&bytes).unwrap(),
         &native,
         &p,
         &st,
         &io,
         &res,
+        Options {
+            wave_marks,
+            ..Default::default()
+        },
     )
     .unwrap()
 }
@@ -64,16 +71,80 @@ fn title_page_marks_keep_every_lanes_bit() {
     let _one = crate::emit::valu_tests::ONE_AT_A_TIME
         .lock()
         .unwrap_or_else(|e| e.into_inner());
-    for warp in [false, true] {
-        let Ok(host) = Host::new(warp) else { continue };
-        for divergent in [false, true] {
-            verify_marks(&host, divergent);
+    use windows::Win32::Graphics::{Direct3D::D3D_FEATURE_LEVEL_12_0, Direct3D12::*, Dxgi::*};
+    // Exercise every installed hardware adapter (including integrated GPUs).
+    // WARP is selected separately and may occur in the DXGI list as well.
+    let factory: IDXGIFactory4 =
+        unsafe { CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)) }.unwrap();
+    for i in 0.. {
+        let Ok(adapter) = (unsafe { factory.EnumAdapters1(i) }) else {
+            break;
+        };
+        let desc = unsafe { adapter.GetDesc1() }.unwrap();
+        if desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 != 0 {
+            continue;
         }
+        let mut device: Option<ID3D12Device> = None;
+        if unsafe { D3D12CreateDevice(&adapter, D3D_FEATURE_LEVEL_12_0, &mut device) }.is_err() {
+            continue;
+        }
+        let name = String::from_utf16_lossy(&desc.Description);
+        verify_adapter(
+            &Host::from_device(device.unwrap()),
+            name.trim_end_matches('\0'),
+        );
+    }
+    if let Ok(warp) = Host::new(true) {
+        verify_adapter(&warp, "WARP");
     }
 }
 
-fn verify_marks(host: &Host, divergent: bool) {
-    let shader = dirty_mark_program(divergent);
+fn verify_adapter(host: &Host, name: &str) {
+    use windows::Win32::Graphics::Direct3D12::*;
+    let mut sm = D3D12_FEATURE_DATA_SHADER_MODEL {
+        HighestShaderModel: D3D_SHADER_MODEL_6_6,
+    };
+    let mut caps = D3D12_FEATURE_DATA_D3D12_OPTIONS1::default();
+    // SAFETY: both queries write to their corresponding sized structures.
+    unsafe {
+        if host
+            .device
+            .CheckFeatureSupport(
+                D3D12_FEATURE_SHADER_MODEL,
+                (&raw mut sm).cast(),
+                size_of_val(&sm) as u32,
+            )
+            .is_err()
+            || sm.HighestShaderModel.0 < D3D_SHADER_MODEL_6_6.0
+            || host
+                .device
+                .CheckFeatureSupport(
+                    D3D12_FEATURE_D3D12_OPTIONS1,
+                    (&raw mut caps).cast(),
+                    size_of_val(&caps) as u32,
+                )
+                .is_err()
+        {
+            eprintln!("{name}: SM 6.6 wave operations unavailable, skipped");
+            return;
+        }
+    }
+    for threads in [32, 64] {
+        for divergent in [false, true] {
+            verify_marks(host, divergent, threads, false);
+            if caps.WaveOps.as_bool() {
+                verify_marks(host, divergent, threads, true);
+            }
+        }
+    }
+    eprintln!(
+        "{name}: marks verified, reported wave widths {}..={}",
+        caps.WaveLaneCountMin, caps.WaveLaneCountMax
+    );
+}
+
+fn verify_marks(host: &Host, divergent: bool, threads: u32, wave_marks: bool) {
+    let shader = dirty_mark_program(divergent, threads, wave_marks);
     let (root, pso) = host.compute_pipeline(&shader).unwrap();
     // Region zero uses block 1. Its first page points to the real copy,
     // the rest to the null pair. Writes and misses both owe a mark.
@@ -101,7 +172,12 @@ fn verify_marks(host: &Host, divergent: bool) {
                         ),
                         (2, Root::Uav(8192 / 32)),
                     ],
-                    views: &[View::NullPair, View::Pair, View::Memory(&[0; 32]), View::Pair],
+                    views: &[
+                        View::NullPair,
+                        View::Pair,
+                        View::Memory(&vec![0; threads as usize]),
+                        View::Pair,
+                    ],
                     samplers: &[],
                     groups: [1, 1, 1],
                 },
@@ -109,12 +185,15 @@ fn verify_marks(host: &Host, divergent: bool) {
             .unwrap();
         let mut expected = vec![0u32; 8192 / 32];
         expected[4096 / 32] = 1; // first, unguarded store
-        for lane in (0..32).filter(|lane| !divergent || lane & 1 != 0) {
+        for lane in (0..threads as usize).filter(|lane| !divergent || lane & 1 != 0) {
             let page = 4096 + ((lane << shift) >> 16);
             expected[page / 32] |= 1 << (page % 32);
         }
-        assert_eq!(out[0], (0..32).collect::<Vec<_>>(), "title data, shift {shift}");
+        assert_eq!(
+            out[0],
+            (0..threads).collect::<Vec<_>>(),
+            "title data, shift {shift}"
+        );
         assert_eq!(out[1], expected, "dirty pages, shift {shift}");
     }
 }
-
