@@ -1,0 +1,16 @@
+{
+  "name": "victory-memory-512-v1",
+  "test": "pipeline::hot::pressure::video_memory",
+  "timings": [
+    "texture_full_us",
+    "texture_partial_us",
+    "pressure_reopen_us"
+  ],
+  "workload": [
+    "target_headroom_mib",
+    "texture_title_patch_bytes"
+  ],
+  "env": {
+    "VICTORY_BENCH_HEADROOM_MIB": "512"
+  }
+}
