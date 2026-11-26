@@ -1,6 +1,7 @@
 //! Repository maintenance. Run with `cargo xtask <command>`.
 
 mod bench;
+mod join_pairs;
 mod policy;
 
 use std::path::{Path, PathBuf};
@@ -44,6 +45,12 @@ enum Cmd {
     },
     /// Compare two hotspot results.json files.
     BenchCompare { before: PathBuf, after: PathBuf },
+    /// Combine two formal A/B windows, matching arms by their executable hashes.
+    BenchJoinPairs {
+        first: PathBuf,
+        second: PathBuf,
+        output: PathBuf,
+    },
     /// Streaming numeric backend used by the Windows benchmark driver.
     #[command(hide = true)]
     BenchStats {
@@ -71,6 +78,11 @@ fn main() -> Result<()> {
             b,
         } => bench::hot(&root, mode, runs, out, a.zip(b), suite),
         Cmd::BenchCompare { before, after } => bench::compare(&root, &before, &after),
+        Cmd::BenchJoinPairs {
+            first,
+            second,
+            output,
+        } => join_pairs::run(&first, &second, &output),
         Cmd::BenchStats {
             compare,
             paired,
