@@ -174,7 +174,8 @@ fn build(
     used: Vec<UsedResource>,
     threads: u32,
 ) -> HostShader {
-    build_with(words, layout, used, threads, false)
+    let cs = ComputeIo { rsrc2: 3 << 1, threads: [threads, 1, 1] };
+    build_with(words, layout, used, cs, false, false)
 }
 
 /// [`build`], with read and write marks (`view_marks`).
@@ -182,8 +183,9 @@ fn build_with(
     words: &[u32],
     layout: Vec<RootParam>,
     used: Vec<UsedResource>,
-    threads: u32,
+    cs: ComputeIo,
     view_marks: bool,
+    wave_marks: bool,
 ) -> HostShader {
     let native = NativeProgram {
         stage: HwStage::Cs,
@@ -191,17 +193,14 @@ fn build_with(
         vgprs: 8,
         layout,
         used,
-        io: StageIo::Cs(ComputeIo {
-            rsrc2: 3 << 1,
-            threads: [threads, 1, 1],
-        }),
+        io: StageIo::Cs(cs),
         code: words.iter().flat_map(|w| w.to_le_bytes()).collect(),
     };
     let p = ir::build(&native.code, native.wave64, native.vgprs).expect("ir::build");
     let st = structure::structure(&p).expect("structure");
     let res = resource::track(&p, &native.layout, native.stage, Some(&st)).expect("track");
     let io = io::raise(&p, &native).expect("io::raise");
-    let lowered = lower::lower(&lower::Parts {
+    let lowered = lower::lower_with_marks(&lower::Parts {
         native: &native,
         p: &p,
         st: &st,
@@ -212,7 +211,7 @@ fn build_with(
         prims: Vec::new(),
         mesh_stride: 0,
         view_marks,
-    })
+    }, wave_marks)
     .expect("lower");
     let shader = HostShader {
         stage: HwStage::Cs,
@@ -611,20 +610,55 @@ fn a_heap_index_in_a_paged_view_heap_reads_where_its_page_is() {
 /// write marked).
 #[test]
 fn views_read_in_a_paged_view_heap_mark_their_pages() {
+    for wave_marks in [false, true] {
+        verify_paged_read_marks(wave_marks, false, 1);
+        verify_paged_read_marks(wave_marks, false, 2);
+        verify_paged_read_marks(wave_marks, true, 1);
+        verify_paged_read_marks(wave_marks, true, 2);
+    }
+}
+
+fn verify_paged_read_marks(wave_marks: bool, skip_first_group: bool, groups: u32) {
+    // The unconditional table access is in block zero. With two groups it
+    // marks the fixed page at the dispatch origin; each group writes its own
+    // 32 results. The conditional variant deliberately moves both accesses
+    // out of block zero: even if group zero exits, group one must mark them.
+    let mut code = HEAP_ELEMENT_WAVE32.to_vec();
+    let store = code.len() - 3;
+    code.splice(store..store, [
+        0x8f03_8703, // s_lshl_b32 s3, s3, 7 (128 output bytes per group)
+        0x4a02_0203, // v_add_u32 v1, s3, v1
+    ]);
+    if skip_first_group {
+        let end = code.len() as u32 - 1;
+        code.splice(..0, [
+            0xbf06_8003, // s_cmp_eq_u32 s3, 0 (thread group x)
+            0xbf85_0000 | end, // s_cbranch_scc1 to endpgm
+        ]);
+    }
+    let cs = ComputeIo {
+        rsrc2: 3 << 1 | 1 << 7,
+        threads: [32, 1, 1],
+    };
     let shader = {
         let _paged = super::shader::view_pages(true);
         build_with(
-            HEAP_ELEMENT_WAVE32,
+            &code,
             vec![
                 param(RootType::Constants, 0),
                 param(RootType::ResourceHeap, 1),
                 param(RootType::Table, 2),
             ],
             vec![entry(ResourceType::Uav, 4, 2)],
-            32,
+            cs,
             true,
+            wave_marks,
         )
     };
+    if groups == 2 && let Some(dir) = std::env::var_os("VICTORY_EMIT_DUMP") {
+        let name = format!("paged-read-branch-{skip_first_group}-wave-{wave_marks}.dxil");
+        std::fs::write(std::path::Path::new(&dir).join(name), &shader.dxil).unwrap();
+    }
     assert!(shader.view_marks, "the bitmap is bound");
     let page = super::VIEW_PAGE_SLOTS;
     let slot = 4296 * page + 1;
@@ -633,7 +667,7 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
     // Pages 0 and 4,296 at host page 0 (entries are 0).
     let data: Vec<u32> = (0..32).flat_map(|e| [100 + e, 200 + e, 300 + e]).collect();
     let views = [
-        View::RawUav(32),
+        View::RawUav(32 * groups),
         View::Buffer {
             data: &data,
             stride: Stride::Structured(12),
@@ -644,12 +678,16 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
     let _one = super::valu_tests::ONE_AT_A_TIME
         .lock()
         .unwrap_or_else(|e| e.into_inner());
-    let mut ran = 0;
+    let mut ran_required_device = false;
     for (label, warp) in [("hardware", false), ("warp", true)] {
         let Ok(host) = Host::new(warp) else {
             eprintln!("no SM 6.6 {label} device; skipped");
             continue;
         };
+        if wave_marks && !super::memory_tests::supports_wave_marks(&host) {
+            eprintln!("{label} does not support wave operations; skipped wave marks");
+            continue;
+        }
         let (root, pso) = host
             .compute_pipeline(&shader)
             .unwrap_or_else(|e| panic!("{label}: compute_pipeline failed: {e}"));
@@ -675,7 +713,7 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
                         ],
                         views: &views,
                         samplers: &[],
-                        groups: [1, 1, 1],
+                        groups: [groups, 1, 1],
                     },
                 )
                 .unwrap_or_else(|e| panic!("{label}: dispatch failed: {e}"));
@@ -684,13 +722,17 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
                 .filter(|&b| bits[(b / 32) as usize] >> (b % 32) & 1 != 0)
                 .collect();
             let pages = super::VIEW_PAGE_READS;
-            assert_eq!(set, [pages, pages + 4296], "{label}: the pages read");
-            let expected: [u32; 32] = std::array::from_fn(|i| if stride == 0 { 0 } else { 200 + i as u32 });
-            assert_eq!(out[0], expected, "{label}: data at stride {stride}");
+            let skipped = skip_first_group && groups == 1;
+            let want = if skipped { vec![] } else { vec![pages, pages + 4296] };
+            assert_eq!(set, want, "{label}: the pages read with {groups} groups");
+            let expected: Vec<u32> = (0..32 * groups)
+                .map(|i| if stride == 0 || (skip_first_group && i < 32) { 0 } else { 200 + i % 32 })
+                .collect();
+            assert_eq!(out[0], expected, "{label}: data at stride {stride}, {groups} groups");
         }
-        ran += 1;
+        ran_required_device |= !wave_marks || warp;
     }
-    assert!(ran > 0, "neither hardware nor WARP SM 6.6 device available");
+    assert!(ran_required_device, "wave variants require WARP; scalar variants require an SM 6.6 device");
 }
 
 /// A buffer read at a heap index from data whose slot holds no buffer view

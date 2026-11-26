@@ -904,5 +904,12 @@ mod tests {
 #[cfg(all(test, windows))]
 mod depth_bounds_test;
 
+#[cfg(all(test, windows))]
+#[cfg_attr(not(feature = "diagnostics"), allow(dead_code))]
+#[path = "pipeline/hot/gfx10.rs"]
+mod gfx10;
+#[cfg(all(test, windows))]
+mod view_marks_tests;
+
 #[cfg(all(test, windows, feature = "diagnostics"))]
 mod hot;

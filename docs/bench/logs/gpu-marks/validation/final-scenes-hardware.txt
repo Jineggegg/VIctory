@@ -1,0 +1,29 @@
+    Finished `diag` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe)
+
+running 1 test
+test pipeline::hot::waves::wave_scenarios ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH wave_page_marks_gpu_us=3013.440
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4241.024
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH wave_two_pages_gpu_us=1848.768
+BENCH wave_two_pages_lanes=262144
+BENCH wave_sixteen_pages_gpu_us=2120.416
+BENCH wave_sixteen_pages_lanes=262144
+BENCH wave_straddling_pairs_gpu_us=56668.864
+BENCH wave_straddling_pairs_lanes=262144
+BENCH loop_early_exit_gpu_us=1112.768
+BENCH loop_early_exit_lanes=262144
+BENCH title_odd_lanes_gpu_us=20135.520
+BENCH title_odd_lanes_lanes=262144
+BENCH title_scattered_odd_lanes_gpu_us=2761.728
+BENCH title_scattered_odd_lanes_lanes=262144
+BENCH pixel_helper_shared_view_page_gpu_us=14.112
+BENCH pixel_helper_scattered_view_pages_gpu_us=35.712
+BENCH pixel_helper_descriptor_page_gpu_us=13.568
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 278 filtered out; finished in 0.67s

@@ -17,6 +17,21 @@ use crate::native::{
 };
 use crate::{io, ir, resource, structure};
 
+/// Whether this test device accepts wave intrinsics in the mark shader.
+pub(super) fn supports_wave_marks(host: &Host) -> bool {
+    use windows::Win32::Graphics::Direct3D12::*;
+    let mut caps = D3D12_FEATURE_DATA_D3D12_OPTIONS1::default();
+    // SAFETY: the feature query matches its output structure and size.
+    unsafe {
+        host.device.CheckFeatureSupport(
+            D3D12_FEATURE_D3D12_OPTIONS1,
+            (&raw mut caps).cast(),
+            size_of_val(&caps) as u32,
+        )
+    }
+    .is_ok() && caps.WaveOps.as_bool()
+}
+
 const S_ENDPGM: u32 = 0xBF81_0000;
 const S_WAITCNT_ALL: u32 = 0xBF8C_0000;
 /// Inline constant 0, 64.
@@ -495,6 +510,12 @@ fn root_views_read_their_copy_and_zeros_past_it() {
 /// 100, 101 and 200 are set.
 #[test]
 fn writes_through_views_mark_their_pages() {
+    for wave_marks in [false, true] {
+        check_writes_through_views_mark_their_pages(wave_marks);
+    }
+}
+
+fn check_writes_through_views_mark_their_pages(wave_marks: bool) {
     /// MUBUF `op` of `vdata` at `byte_off` through `s[srsrc:srsrc+3]`.
     const fn mubuf(op: u32, vdata: u8, srsrc: u8, byte_off: u16) -> [u32; 2] {
         [
@@ -549,7 +570,7 @@ fn writes_through_views_mark_their_pages() {
     let st = structure::structure(&p).expect("structure");
     let res = resource::track(&p, &native.layout, native.stage, Some(&st)).expect("track");
     let io = io::raise(&p, &native).expect("io::raise");
-    let l = lower::lower(&lower::Parts {
+    let l = lower::lower_with_marks(&lower::Parts {
         native: &native,
         p: &p,
         st: &st,
@@ -560,7 +581,7 @@ fn writes_through_views_mark_their_pages() {
         prims: Vec::new(),
         mesh_stride: 0,
         view_marks: true,
-    })
+    }, wave_marks)
     .expect("lower");
     assert!(l.view_marks && !l.memory, "marks without the page table");
     let shader = HostShader {
@@ -587,12 +608,16 @@ fn writes_through_views_mark_their_pages() {
         .unwrap_or_else(|e| e.into_inner());
     let value = 0x1234_5678;
     let marks = vec![100, 0xFFF0, super::VIEW_MARK_NONE, 0, 200, 0];
-    let mut ran = 0;
+    let mut ran_required_device = false;
     for (label, warp) in [("hardware", false), ("warp", true)] {
         let Ok(host) = Host::new(warp) else {
             eprintln!("no SM 6.6 {label} device; skipped");
             continue;
         };
+        if wave_marks && !supports_wave_marks(&host) {
+            eprintln!("{label} does not support wave operations; skipped wave marks");
+            continue;
+        }
         let (root, pso) = host.compute_pipeline(&shader).expect("pipeline");
         let mut ud = vec![0u32; shader.user_data_dwords() as usize];
         for u in &shader.user_data {
@@ -621,9 +646,9 @@ fn writes_through_views_mark_their_pages() {
             .filter(|&b| out[3][b / 32] >> (b % 32) & 1 != 0)
             .collect();
         assert_eq!(marked, [100, 101, 200], "{label}: pages");
-        ran += 1;
+        ran_required_device |= !wave_marks || warp;
     }
-    assert!(ran > 0, "neither hardware nor WARP SM 6.6 device available");
+    assert!(ran_required_device, "wave variants require WARP; scalar variants require an SM 6.6 device");
 }
 
 /// Reads of texture views the program takes from the resource heap itself
@@ -759,6 +784,12 @@ fn heap_direct_texture_reads_mark_their_heap_index() {
 /// low dword alone (`Lower::memory`).
 #[test]
 fn straddling_writes_across_256mib_and_4gib_boundaries_mark_exact_pages() {
+    for wave_marks in [false, true] {
+        check_straddling_writes(wave_marks);
+    }
+}
+
+fn check_straddling_writes(wave_marks: bool) {
     let mut w = vec![v_mov_b32(0, ZERO)];
     for k in 0..4u8 {
         // Inline constants 129..=132 are 1..=4.
@@ -789,7 +820,7 @@ fn straddling_writes_across_256mib_and_4gib_boundaries_mark_exact_pages() {
     let st = structure::structure(&p).expect("structure");
     let res = resource::track(&p, &native.layout, native.stage, Some(&st)).expect("track");
     let io = io::raise(&p, &native).expect("io::raise");
-    let l = lower::lower(&lower::Parts {
+    let l = lower::lower_with_marks(&lower::Parts {
         native: &native,
         p: &p,
         st: &st,
@@ -800,7 +831,7 @@ fn straddling_writes_across_256mib_and_4gib_boundaries_mark_exact_pages() {
         prims: Vec::new(),
         mesh_stride: 0,
         view_marks: false,
-    })
+    }, wave_marks)
     .expect("lower");
     assert!(l.memory && l.memory_writes);
     let shader = HostShader {
@@ -851,12 +882,16 @@ fn straddling_writes_across_256mib_and_4gib_boundaries_mark_exact_pages() {
     let _one = super::valu_tests::ONE_AT_A_TIME
         .lock()
         .unwrap_or_else(|e| e.into_inner());
-    let mut ran = 0;
+    let mut ran_required_device = false;
     for (label, warp) in [("hardware", false), ("warp", true)] {
         let Ok(host) = Host::new(warp) else {
             eprintln!("no SM 6.6 {label} device; skipped");
             continue;
         };
+        if wave_marks && !supports_wave_marks(&host) {
+            eprintln!("{label} does not support wave operations; skipped wave marks");
+            continue;
+        }
         let (root, pso) = host.compute_pipeline(&shader).expect("pipeline");
         let cases: [(&str, u64, Vec<usize>); 3] = [
             (
@@ -920,7 +955,7 @@ fn straddling_writes_across_256mib_and_4gib_boundaries_mark_exact_pages() {
                 .collect();
             assert_eq!(marked, want_bits, "{label} ({case}): dirty bits");
         }
-        ran += 1;
+        ran_required_device |= !wave_marks || warp;
     }
-    assert!(ran > 0, "neither hardware nor WARP SM 6.6 device available");
+    assert!(ran_required_device, "wave variants require WARP; scalar variants require an SM 6.6 device");
 }

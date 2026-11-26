@@ -24,6 +24,7 @@ use crate::resource::{Address, CODE, MEMORY, Resources, Role, Site, Source, USER
 use crate::structure::{Atom, Bool, LaneExit, Structured};
 
 mod bvh;
+mod marks;
 mod view_stride;
 
 type Why = &'static str;
@@ -100,9 +101,13 @@ enum Stop {
 }
 
 pub(crate) fn lower(parts: &Parts) -> Result<Lowered, ShaderError> {
+    lower_with_marks(parts, false)
+}
+
+pub(crate) fn lower_with_marks(parts: &Parts, wave_marks: bool) -> Result<Lowered, ShaderError> {
     let mut bad = HashMap::new();
     loop {
-        match Lower::new(parts, &bad).run() {
+        match Lower::new(parts, &bad, wave_marks).run() {
             Ok(l) => return Ok(l),
             Err(Stop::Retry(v, why)) => {
                 if bad.insert(v, why).is_some() {
@@ -230,6 +235,13 @@ struct Lower<'a> {
     /// `VIEW_STRIDES` dword loaded by [`Lower::buffer_guard`], reused by
     /// [`Lower::view_raw_bias`] to avoid a second load or OOB read at null.
     guarded_stride: HashMap<V, V>,
+    /// Block zero's null SRV index, invariant for this draw or dispatch.
+    memory_null: Option<V>,
+    wave_marks: bool,
+    /// Page marks emitted with all lanes in the unique entry block.
+    entry_page_marks: HashSet<V>,
+    /// Virtual pages whose indices come only from immutable root parameters.
+    uniform_pages: HashSet<V>,
     /// Defining block and lazily decoded raw offset of each table buffer handle.
     table_bias: HashMap<V, (usize, Option<V>)>,
     /// Blocks splitting the edge from one IR block to another.
@@ -550,7 +562,7 @@ fn code_table_start(p: &crate::ir::Program, addresses: &[&crate::resource::Addre
 }
 
 impl<'a> Lower<'a> {
-    fn new(x: &'a Parts<'a>, bad: &'a HashMap<Value, Why>) -> Self {
+    fn new(x: &'a Parts<'a>, bad: &'a HashMap<Value, Why>, wave_marks: bool) -> Self {
         let p = x.p;
         let mut phi_at = HashMap::new();
         for (b, block) in p.blocks.iter().enumerate() {
@@ -693,6 +705,10 @@ impl<'a> Lower<'a> {
             entry_handles: HashMap::new(),
             join_handles: HashMap::new(),
             guarded_stride: HashMap::new(),
+            memory_null: None,
+            entry_page_marks: HashSet::new(),
+            uniform_pages: HashSet::new(),
+            wave_marks,
             table_bias: HashMap::new(),
             edges: HashMap::new(),
             exported: vec![false; p.blocks.len()],
@@ -3575,7 +3591,28 @@ impl<'a> Lower<'a> {
         // The view heap pages it read, each once per console block.
         for page in std::mem::take(&mut self.s.page_reads) {
             if r.is_ok() && self.s.pages_marked.insert((b, page)) {
-                self.mark_read_bit(super::VIEW_PAGE_READS, page, true);
+                let unconditional = b == 0 && self.x.p.blocks[0].preds.is_empty() && self.s.guards == 0;
+                if unconditional && self.x.native.stage == HwStage::Cs && self.uniform_pages.contains(&page) {
+                    // Every invocation reaches this mark with the same virtual
+                    // page. Only the dispatch origin needs to update the bitmap.
+                    let c = self.cur;
+                    let [x, y, z] = [0, 1, 2].map(|axis| {
+                        let arg = self.s.m.i32(axis);
+                        self.s.op(c, "threadId.i32", Attr::ReadNone, self.s.t.i32, 93, &[arg])
+                    });
+                    let xy = self.s.m.bin(c, Bin::Or, x, y);
+                    let xyz = self.s.m.bin(c, Bin::Or, xy, z);
+                    let zero = self.s.m.i32(0);
+                    let origin = self.s.m.cmp(c, pred::EQ, xyz, zero);
+                    let at = self.begin_guarded(Some(origin));
+                    self.mark_read_bit(super::VIEW_PAGE_READS, page, false);
+                    self.end_guarded(at, &[]);
+                } else {
+                    self.mark_read_bit(super::VIEW_PAGE_READS, page, true);
+                }
+                if unconditional {
+                    self.entry_page_marks.insert(page);
+                }
             }
         }
         match r {
@@ -4582,67 +4619,14 @@ impl<'a> Lower<'a> {
         self.as_int(x)
     }
 
-    /// Marks the pages a write of `bytes` bytes at byte `x` of the unordered
-    /// buffer view `h` touches, in the lanes `guard` lets through (module
-    /// notes, "Write marks"): the bits of its first and last byte, each set
-    /// only where still clear. Nothing for handles that are no heap view, or
-    /// without [`Parts::view_marks`].
-    fn mark_view_write(&mut self, h: V, x: V, bytes: u32, guard: Option<V>) {
-        if !self.x.view_marks {
-            return;
-        }
-        let Some(&index) = self.s.view_index.get(&h) else {
-            return;
-        };
-        let k = |l: &mut Self, v: u32| l.s.m.i32(v);
-        let table = self.s.view_marks_handle();
+    /// Fetch both dwords of an eight-byte-aligned host table entry.
+    fn raw_dword_pair(&mut self, handle: V, at: V) -> (V, V) {
         let c = self.cur;
-        let (eight, four) = (k(self, 8), k(self, 4));
-        let at = self.s.m.bin(c, Bin::Mul, index, eight);
-        let base = self.raw_dword(table, at);
-        let at = self.s.m.bin(c, Bin::Add, at, four);
-        let phase = self.raw_dword(table, at);
-        let none = k(self, super::VIEW_MARK_NONE);
-        let valid = self.s.m.cmp(c, pred::NE, base, none);
-        let active = match guard {
-            Some(g) => self.s.m.bin(c, Bin::And, g, valid),
-            None => valid,
-        };
-        let first = self.s.m.bin(c, Bin::Add, phase, x);
-        let span = k(self, bytes.max(1) - 1);
-        let last = self.s.m.bin(c, Bin::Add, first, span);
-        let (k16, cap) = (k(self, 16), k(self, super::VIEW_WRITE_BITS - 1));
-        let mut bits = Vec::new();
-        for byte in [first, last] {
-            let page = self.s.m.bin(c, Bin::LShr, byte, k16);
-            let n = self.s.m.bin(c, Bin::Add, base, page);
-            let over = self.s.m.cmp(c, pred::IUGT, n, cap);
-            bits.push(self.s.m.select(c, over, cap, n));
-        }
-        let bitmap = self.s.view_writes_handle();
-        let outer = self.begin_guarded(Some(active));
-        for (i, &n) in bits.iter().enumerate() {
-            let c = self.cur;
-            let (k5, k2, k31, one, zero) = (k(self, 5), k(self, 2), k(self, 31), k(self, 1), k(self, 0));
-            let word = self.s.m.bin(c, Bin::LShr, n, k5);
-            let word = self.s.m.bin(c, Bin::Shl, word, k2);
-            let bit = self.s.m.bin(c, Bin::And, n, k31);
-            let bit = self.s.m.bin(c, Bin::Shl, one, bit);
-            // Most writes find their page marked: a load, not an atomic.
-            let old = self.raw_dword(bitmap, word);
-            let set = self.s.m.bin(c, Bin::And, old, bit);
-            let mut clear = self.s.m.cmp(c, pred::EQ, set, zero);
-            if i == 1 {
-                let other = self.s.m.cmp(c, pred::NE, n, bits[0]);
-                clear = self.s.m.bin(c, Bin::And, clear, other);
-            }
-            let inner = self.begin_guarded(Some(clear));
-            let iu = self.s.m.undef(self.s.t.i32);
-            // Operation 2 is OR.
-            self.s.op(self.cur, "atomicBinOp.i32", Attr::NoUnwind, self.s.t.i32, 78, &[bitmap, k2, word, iu, iu, bit]);
-            self.end_guarded(inner, &[]);
-        }
-        self.end_guarded(outer, &[]);
+        let (unused, mask, align) = (self.s.m.undef(self.s.t.i32), self.s.m.i8(3), self.s.m.i32(8));
+        let pair = self.s.op(c, "rawBufferLoad.f32", Attr::ReadOnly, self.s.t.res_ret, 139, &[handle, at, unused, mask, align]);
+        let lo = self.s.m.extract(c, pair, 0);
+        let hi = self.s.m.extract(c, pair, 1);
+        (self.as_int(lo), self.as_int(hi))
     }
 
     /// Title memory at a raw GPU address (decision 0005: the unified-memory
@@ -4723,27 +4707,6 @@ impl<'a> Lower<'a> {
         self.s.m.select(c, empty, l1, entry)
     }
 
-    /// Sets bit `n` in the title-memory dirty bitmap `bitmap`.
-    fn mark_memory_bit(&mut self, bitmap: V, n: V) {
-        let c = self.cur;
-        let k = |l: &mut Self, x: u32| l.s.m.i32(x);
-        let (k5, k31, k2, one) = (k(self, 5), k(self, 31), k(self, 2), k(self, 1));
-        let iu = self.s.m.undef(self.s.t.i32);
-        // Byte offset of the bitmap dword; operation 2 is OR.
-        let word = self.s.m.bin(c, Bin::LShr, n, k5);
-        let word = self.s.m.bin(c, Bin::Shl, word, k2);
-        let bit = self.s.m.bin(c, Bin::And, n, k31);
-        let bit = self.s.m.bin(c, Bin::Shl, one, bit);
-        self.s.op(
-            c,
-            "atomicBinOp.i32",
-            Attr::NoUnwind,
-            self.s.t.i32,
-            78,
-            &[bitmap, k2, word, iu, iu, bit],
-        );
-    }
-
     /// The level-2 page-table index, block, and level-1 index of title
     /// address `(hi:lo)` (`block == 0` when the 256 MiB region has no block).
     fn memory_page(&mut self, lo: V, hi: V) -> (V, V, V) {
@@ -4777,14 +4740,20 @@ impl<'a> Lower<'a> {
         let c = self.cur;
         let map = self.s.memory_handle();
         let k = |l: &mut Self, x: u32| l.s.m.i32(x);
-        let (k3, first, four) = (k(self, 3), k(self, 4096 * 4), k(self, 4));
+        let (k3, first) = (k(self, 3), k(self, 4096 * 4));
         let at = self.s.m.bin(c, Bin::Shl, entry, k3);
         let at = self.s.m.bin(c, Bin::Add, at, first);
-        let view = self.raw_dword(map, at);
-        let at = self.s.m.bin(c, Bin::Add, at, four);
-        let start = self.raw_dword(map, at);
+        let (view, start) = self.raw_dword_pair(map, at);
         // Block 0's first entry names the null pair: no copy holds the page.
-        let null = self.raw_dword(map, first);
+        let null = if let Some(null) = self.memory_null {
+            null
+        } else {
+            let here = std::mem::replace(&mut self.cur, self.s.entry);
+            let null = self.raw_dword(map, first);
+            self.cur = here;
+            self.memory_null = Some(null);
+            null
+        };
         let miss = self.s.m.cmp(c, pred::EQ, view, null);
         // Views come in pairs: the raw SRV, then the raw UAV of one copy.
         let (view, props) = if write {
@@ -5349,6 +5318,9 @@ impl<'a> Lower<'a> {
         // inside guarded code do not reach (marked there instead).
         if let Some(&(page, made)) = self.s.page_index.get(&h)
             && self.x.view_marks
+            // An entry-defined SSA value cannot change on a loop back
+            // edge. Its mark at the unconditional entry dominates here.
+            && !(made == self.s.entry && self.entry_page_marks.contains(&page))
         {
             if self.s.guards == 0 || made == self.s.entry {
                 self.s.page_reads.push(page);
@@ -5393,6 +5365,9 @@ impl<'a> Lower<'a> {
                 let here = std::mem::replace(&mut self.cur, self.s.entry);
                 let index = self.entry_heap_index(address, *first, sampler);
                 let h = self.guarded_heap_handle(src, index, sampler, false, props);
+                if let Some(&(page, _)) = self.s.page_index.get(&h) {
+                    self.uniform_pages.insert(page);
+                }
                 self.cur = here;
                 self.entry_handles.insert(key, h);
                 Ok(h)
@@ -8381,44 +8356,6 @@ impl<'a> Lower<'a> {
             }
         }
         lowered
-    }
-
-    /// Sets the read mark of resource-heap index `index` (module notes,
-    /// "Read marks") where it is still clear. Nothing without
-    /// [`Parts::view_marks`].
-    fn mark_view_read(&mut self, index: V) {
-        if self.x.view_marks {
-            self.mark_read_bit(super::VIEW_READS, index, true);
-        }
-    }
-
-    /// Sets bit `base` + `n` of the view-writes bitmap: where still clear
-    /// (`tested`), else with an atomic alone (inside guarded code, which
-    /// cannot branch on).
-    fn mark_read_bit(&mut self, base: u32, n: V, tested: bool) {
-        let k = |l: &mut Self, v: u32| l.s.m.i32(v);
-        let bitmap = self.s.view_writes_handle();
-        let c = self.cur;
-        let (base, k5, k2, k31, one, zero) =
-            (k(self, base), k(self, 5), k(self, 2), k(self, 31), k(self, 1), k(self, 0));
-        let n = self.s.m.bin(c, Bin::Add, n, base);
-        let word = self.s.m.bin(c, Bin::LShr, n, k5);
-        let word = self.s.m.bin(c, Bin::Shl, word, k2);
-        let bit = self.s.m.bin(c, Bin::And, n, k31);
-        let bit = self.s.m.bin(c, Bin::Shl, one, bit);
-        // Most reads find their bit set: a load, not an atomic.
-        let at = if tested {
-            let old = self.raw_dword(bitmap, word);
-            let set = self.s.m.bin(c, Bin::And, old, bit);
-            let clear = self.s.m.cmp(c, pred::EQ, set, zero);
-            self.begin_guarded(Some(clear))
-        } else {
-            None
-        };
-        let iu = self.s.m.undef(self.s.t.i32);
-        // Operation 2 is OR.
-        self.s.op(self.cur, "atomicBinOp.i32", Attr::NoUnwind, self.s.t.i32, 78, &[bitmap, k2, word, iu, iu, bit]);
-        self.end_guarded(at, &[]);
     }
 
     fn image_op(&mut self, inst: &Inst, b: usize, i: usize) -> Result<(), Why> {

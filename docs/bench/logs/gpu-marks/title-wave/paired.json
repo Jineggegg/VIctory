@@ -1,0 +1,294 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "gpu-page-marks",
+  "test": "pipeline::hot::waves::wave_scenarios",
+  "parameters": { },
+  "family_size": 11,
+  "pairs": 12,
+  "a_commit": "9c7b3bb7159ff0c1dedce3bafd6a69475d4b35f9",
+  "b_commit": "186dea16d9b52edeb23194b206c55b7bba847ddf",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 15:44:00Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=3721\/32607 MiB | power=20.87 W | temp=38.00 C | graphics=247 MHz | memory=405 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=Weixin(pid=25668) 3D=1%",
+    "tolerated_background": "Weixin(pid=25668) 3D=1%"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [
+    "title_odd_lanes_gpu_us",
+    "title_scattered_odd_lanes_gpu_us"
+  ],
+  "family_excludes_zero": [
+    "title_odd_lanes_gpu_us",
+    "title_scattered_odd_lanes_gpu_us"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "loop_early_exit_gpu_us": {
+      "a_median": 2742.096,
+      "b_median": 2769.12,
+      "change_pct": 2.7194003072705861,
+      "ci95_pct": [
+        -16.180157200674728,
+        20.018553506221046
+      ],
+      "family95_pct": [
+        -20.74416398757706,
+        25.180134036440226
+      ]
+    },
+    "loop_early_exit_lanes": {
+      "a_median": 262144,
+      "b_median": 262144,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "loop_global_loads": {
+      "a_median": 2097152,
+      "b_median": 2097152,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "loop_page_lookup_gpu_us": {
+      "a_median": 5149.376,
+      "b_median": 5452.992,
+      "change_pct": 15.845036013151592,
+      "ci95_pct": [
+        -31.093205945304376,
+        36.105051367212937
+      ],
+      "family95_pct": [
+        -41.802815369647689,
+        73.634676397065476
+      ]
+    },
+    "loop_page_lookup_lanes": {
+      "a_median": 262144,
+      "b_median": 262144,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "pixel_helper_descriptor_page_gpu_us": {
+      "a_median": 12.304,
+      "b_median": 12.624,
+      "change_pct": -0.15723270440252257,
+      "ci95_pct": [
+        -63.908949091911595,
+        178.45836130948749
+      ],
+      "family95_pct": [
+        -66.844042429687477,
+        188.8364652245086
+      ]
+    },
+    "pixel_helper_scattered_view_pages_gpu_us": {
+      "a_median": 39.232,
+      "b_median": 38.368,
+      "change_pct": -0.90183803579697019,
+      "ci95_pct": [
+        -6.3352636957666295,
+        6.2832645420869753
+      ],
+      "family95_pct": [
+        -7.1484380159830945,
+        7.4034505712757941
+      ]
+    },
+    "pixel_helper_shared_view_page_gpu_us": {
+      "a_median": 25.248,
+      "b_median": 26.351999999999997,
+      "change_pct": 0.12871975892684295,
+      "ci95_pct": [
+        -54.936179691260065,
+        127.36544445378857
+      ],
+      "family95_pct": [
+        -59.318121737760983,
+        142.32213438735178
+      ]
+    },
+    "title_odd_lanes_gpu_us": {
+      "a_median": 22373.504,
+      "b_median": 20074.272,
+      "change_pct": -9.95124792137332,
+      "ci95_pct": [
+        -10.900930488810317,
+        -9.3177193793463946
+      ],
+      "family95_pct": [
+        -11.136270006965832,
+        -9.2034965273948544
+      ]
+    },
+    "title_odd_lanes_lanes": {
+      "a_median": 262144,
+      "b_median": 262144,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "title_scattered_odd_lanes_gpu_us": {
+      "a_median": 6949.776,
+      "b_median": 2743.168,
+      "change_pct": -60.76408863176546,
+      "ci95_pct": [
+        -65.556157391301838,
+        -59.486594829812617
+      ],
+      "family95_pct": [
+        -68.822729962539427,
+        -59.005982619806915
+      ]
+    },
+    "title_scattered_odd_lanes_lanes": {
+      "a_median": 262144,
+      "b_median": 262144,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "wave_page_marks_gpu_us": {
+      "a_median": 6459.232,
+      "b_median": 5992.48,
+      "change_pct": -6.03739142063533,
+      "ci95_pct": [
+        -14.507980276345394,
+        39.855062523707318
+      ],
+      "family95_pct": [
+        -26.4199395013821,
+        67.906445236028816
+      ]
+    },
+    "wave_page_marks_lanes": {
+      "a_median": 262144,
+      "b_median": 262144,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "wave_sixteen_pages_gpu_us": {
+      "a_median": 4251.84,
+      "b_median": 4390.304,
+      "change_pct": 7.1229092099979514,
+      "ci95_pct": [
+        -29.189434817716744,
+        49.164279674940786
+      ],
+      "family95_pct": [
+        -33.461146844768805,
+        53.046896552806523
+      ]
+    },
+    "wave_sixteen_pages_lanes": {
+      "a_median": 262144,
+      "b_median": 262144,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "wave_straddling_pairs_gpu_us": {
+      "a_median": 74298.496,
+      "b_median": 74727.504,
+      "change_pct": 0.91237459776648544,
+      "ci95_pct": [
+        -1.2770425309753752,
+        8.2507163577363976
+      ],
+      "family95_pct": [
+        -23.055496384166602,
+        45.769485038387806
+      ]
+    },
+    "wave_straddling_pairs_lanes": {
+      "a_median": 262144,
+      "b_median": 262144,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "wave_two_pages_gpu_us": {
+      "a_median": 5928.8799999999992,
+      "b_median": 6247.296,
+      "change_pct": 9.1995636892058474,
+      "ci95_pct": [
+        -18.078097047401162,
+        66.211033561371892
+      ],
+      "family95_pct": [
+        -45.757091527114525,
+        95.756078392646828
+      ]
+    },
+    "wave_two_pages_lanes": {
+      "a_median": 262144,
+      "b_median": 262144,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}
