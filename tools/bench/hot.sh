@@ -33,14 +33,65 @@ winpath() {
     fi
 }
 
+quiet_dir="$HOME/.local/state/gpu-quiet"
+pending="$quiet_dir/pending"
+owner=
+reservation_busy() {
+    [[ -e $quiet_dir/state.json ]] || {
+        [[ -e $pending ]] && { [[ -z $owner ]] || [[ $(cat "$pending" 2>/dev/null) != "$owner" ]]; }
+    }
+}
+wait_for_window() {
+    while reservation_busy; do
+        # An outer build-queue cannot wait here while holding a slot that the
+        # pending GPU reservation needs. Let that caller retry outside its slot.
+        [[ -z ${BUILD_QUEUE_HELD:-} ]] || return 76
+        sleep 1
+    done
+}
+if [[ $mode == _queued ]]; then
+    # Check after acquiring the slot too: build-queue can time out and run a
+    # job that was queued before the pending file appeared.
+    owner=$1
+    shift
+    if reservation_busy; then exit 76; fi
+    exec build-queue "$@"
+fi
+release_pending() {
+    if [[ -f $pending && $(cat "$pending" 2>/dev/null) == "$owner" ]]; then rm -- "$pending"; fi
+}
+claim_pending() {
+    mkdir -p "$quiet_dir"
+    local token="${VICTORY_BENCH_SESSION:-$(basename "$root")} pid=$$ $(date -u +%FT%TZ)"
+    while :; do
+        wait_for_window || return $?
+        if (set -C; umask 077; printf '%s\n' "$token" > "$pending") 2>/dev/null; then
+            owner=$token
+            trap release_pending EXIT
+            trap 'exit 130' INT
+            trap 'exit 143' TERM HUP
+            return
+        fi
+        [[ -e $pending ]] || { echo "cannot create $pending" >&2; return 1; }
+    done
+}
 ps=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
-driver=(build-queue "$ps" -NoProfile -ExecutionPolicy Bypass -File "$(winpath "$root/tools/bench/hot.ps1")")
+driver=("$ps" -NoProfile -ExecutionPolicy Bypass -File "$(winpath "$root/tools/bench/hot.ps1")")
 envfile=$(winpath "${VICTORY_BENCH_ENV:-$root/../toolchain/env.ps1}")
 redact() {
     sed -u -E "s@[A-Z]:[/\\\\]Users[/\\\\][^/\\\\[:space:]\"']+@%USERPROFILE%@Ig; s/GPU-[a-f0-9-]{32,}/GPU-REDACTED/Ig"
 }
 invoke() {
-    "${driver[@]}" "$@" 2> >(redact >&2) | redact
+    local rc
+    while :; do
+        wait_for_window || return $?
+        if build-queue bash "$root/tools/bench/hot.sh" _queued "$owner" "${driver[@]}" "$@" 2> >(redact >&2) | redact; then
+            return 0
+        else
+            rc=$?
+        fi
+        if [[ $rc != 76 || -n ${BUILD_QUEUE_HELD:-} ]]; then return "$rc"; fi
+    done
 }
 if [[ $mode == compare && $# == 2 ]]; then
     invoke compare "$(winpath "$1")" "$(winpath "$2")" -EnvFile "$envfile"
@@ -93,11 +144,22 @@ if [[ $mode == ab ]]; then
 else
     ((10#$runs >= 30)) || { echo "formal sampling requires at least 30 runs" >&2; exit 2; }
 fi
-invoke build "${common[@]}"
+claim_pending
 mkdir -p "$out"
-state=${BUILD_QUEUE_STATE:-$HOME/.local/state/build-queue}
-slots=$(build-queue --status | sed -n 's/^槽位 \([0-9][0-9]*\)：.*/\1/p')
+# Some build-queue versions return 1 when there is no history yet even
+# though they listed all slots. Validate the listing itself.
+if ! status=$(build-queue --status); then
+    [[ $status == *'槽位 '* ]] || { echo "cannot read build slots" >&2; exit 1; }
+fi
+slots=$(sed -n 's/^槽位 \([0-9][0-9]*\)：.*/\1/p' <<< "$status")
 [[ -n $slots ]] || { echo "cannot identify build slots" >&2; exit 1; }
+# Keep only current holders, excluding their potentially private arguments.
+(set -C; {
+    date -u '+%FT%TZ'
+    sed -n '/^槽位 /{s/，命令 .*//;p;}' <<< "$status" | redact
+} > "$out/queue-before.txt")
+invoke build "${common[@]}"
+state=${BUILD_QUEUE_STATE:-$HOME/.local/state/build-queue}
 
 # Skip a slot already held by a caller. Release partial reservations before
 # waiting for a busy slot, so independent reservations cannot deadlock.
@@ -111,8 +173,8 @@ while :; do
     held=()
     busy=
     for slot in $slots; do
-        owner=$(sed -n 's/^pid \([0-9][0-9]*\).*/\1/p' "$state/slot$slot.info" 2>/dev/null || :)
-        [[ -z $owner || $ancestors != *" $owner "* ]] || continue
+        slot_owner=$(sed -n 's/^pid \([0-9][0-9]*\).*/\1/p' "$state/slot$slot.info" 2>/dev/null || :)
+        [[ -z $slot_owner || $ancestors != *" $slot_owner "* ]] || continue
         busy="$state/slot$slot.lock"
         exec {fd}>>"$busy"
         held+=("$fd")
@@ -132,7 +194,7 @@ export BUILD_QUEUE_HELD=1
     # A desktop service restored by gpu-quiet must not inherit the slot locks.
     for fd in "${held[@]}"; do exec {fd}>&-; done
     exec 3>&-
-    exec gpu-quiet run -- "${driver[@]}" "$sample_mode" "${args[@]}"
+    exec gpu-quiet run -- build-queue "${driver[@]}" "$sample_mode" "${args[@]}"
 ) 2>&1 |
     redact |
     tee -a /dev/fd/3
