@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "victory-descriptor-recording-phases-8-v1",
+  "test": "pipeline::hot::contention::recording",
+  "parameters": {
+    "VICTORY_BENCH_THREADS": "8"
+  },
+  "family_size": 11,
+  "pairs": 15,
+  "a_commit": "1186d69749733473adfb10ad4a3451950fe1409a",
+  "b_commit": "3707a303dd4e4c52a2076d67fef95c8e95c70269",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 16:19:53Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=3550\/32607 MiB | power=22.89 W | temp=40.71 C | graphics=262 MHz | memory=405 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=none",
+    "tolerated_background": "none"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [
+    "guard_lock_us"
+  ],
+  "pointwise_excludes_zero": [ ],
+  "family_excludes_zero": [ ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "guard_lock_us": {
+      "a_median": 0,
+      "b_median": 0,
+      "change_pct": null,
+      "ci95_pct": null,
+      "family95_pct": null
+    },
+    "execute_busy_us": {
+      "a_median": 41812.8,
+      "b_median": 42136.9,
+      "change_pct": 0.16247650462308805,
+      "ci95_pct": [
+        -5.5850163078022259,
+        4.2877191104971235
+      ],
+      "family95_pct": [
+        -18.072919299582747,
+        19.709048754762868
+      ]
+    },
+    "held_busy_us": {
+      "a_median": 103242.1,
+      "b_median": 103647.7,
+      "change_pct": 1.578676095952436,
+      "ci95_pct": [
+        -4.9536527488859949,
+        2.8502191002792721
+      ],
+      "family95_pct": [
+        -6.2390202687422125,
+        6.2810514359581182
+      ]
+    },
+    "held_wait_sum_us": {
+      "a_median": 690754.7,
+      "b_median": 695111.7,
+      "change_pct": 1.6723773855532142,
+      "ci95_pct": [
+        -5.503309788064648,
+        2.5861217351250465
+      ],
+      "family95_pct": [
+        -6.2863275927316442,
+        5.7242816669947683
+      ]
+    },
+    "host_mutex_wait_us": {
+      "a_median": 14.3,
+      "b_median": 14.4,
+      "change_pct": -1.4388489208633115,
+      "ci95_pct": [
+        -9.7902097902097918,
+        7.1942446043165464
+      ],
+      "family95_pct": [
+        -9.80392156862745,
+        8.5714285714285623
+      ]
+    },
+    "host_prepare_us": {
+      "a_median": 1955,
+      "b_median": 1957,
+      "change_pct": -1.5544041450777257,
+      "ci95_pct": [
+        -4.5894951555328962,
+        1.5776081424936361
+      ],
+      "family95_pct": [
+        -4.9433573635427441,
+        2.196118488253318
+      ]
+    },
+    "list_recycle_us": {
+      "a_median": 60866.8,
+      "b_median": 60465,
+      "change_pct": -0.81125661725890419,
+      "ci95_pct": [
+        -2.6159724376663473,
+        4.0272697153825865
+      ],
+      "family95_pct": [
+        -3.7700549731063182,
+        4.641235721565562
+      ]
+    },
+    "list_reset_us": {
+      "a_median": 3973.5,
+      "b_median": 4004,
+      "change_pct": -0.12708063390810542,
+      "ci95_pct": [
+        -6.0573068738555946,
+        2.0020299416391829
+      ],
+      "family95_pct": [
+        -6.5469008356794927,
+        2.3473114217352986
+      ]
+    },
+    "lists_per_second": {
+      "a_median": 1514.46,
+      "b_median": 1555.471,
+      "change_pct": 0.50315115066097427,
+      "ci95_pct": [
+        -2.6524283692747619,
+        5.9724473312908311
+      ],
+      "family95_pct": [
+        -3.15094319578616,
+        7.8694213125748425
+      ]
+    },
+    "mirror_lock_us": {
+      "a_median": 35,
+      "b_median": 47,
+      "change_pct": 39.622641509433954,
+      "ci95_pct": [
+        -22.549019607843135,
+        144.44444444444446
+      ],
+      "family95_pct": [
+        -52.631578947368432,
+        169.23076923076925
+      ]
+    },
+    "native_fence_wait_us": {
+      "a_median": 12760.6,
+      "b_median": 12870,
+      "change_pct": -0.68961123763715548,
+      "ci95_pct": [
+        -10.169891278711473,
+        7.3880774889248713
+      ],
+      "family95_pct": [
+        -16.375672975323642,
+        75.5067277188267
+      ]
+    },
+    "native_submit_and_fence_us": {
+      "a_median": 22713,
+      "b_median": 22573,
+      "change_pct": -1.3563333485048457,
+      "ci95_pct": [
+        -5.652866242038213,
+        5.49879671252782
+      ],
+      "family95_pct": [
+        -27.977839335180054,
+        41.1306300356624
+      ]
+    },
+    "record_submit_us": {
+      "a_median": 169037.2,
+      "b_median": 164580.4,
+      "change_pct": -0.50063590316626883,
+      "ci95_pct": [
+        -5.6358071622122141,
+        2.7247353971106669
+      ],
+      "family95_pct": [
+        -7.2953682384781393,
+        3.2534478846369064
+      ]
+    },
+    "submit_span_us": {
+      "a_median": 105329.8,
+      "b_median": 105983.3,
+      "change_pct": 1.82149166797696,
+      "ci95_pct": [
+        -5.2144165821000339,
+        2.7444050119504571
+      ],
+      "family95_pct": [
+        -6.89580350162079,
+        5.986843453109314
+      ]
+    },
+    "threads": {
+      "a_median": 8,
+      "b_median": 8,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}

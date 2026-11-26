@@ -1,0 +1,20 @@
+{
+  "name": "descriptor-shader-link-placebo-v1",
+  "test": "pipeline::hot::hot_paths",
+  "timings": [
+    "shader_batch_translate_us",
+    "descriptors_1300_us",
+    "descriptors_14400_us"
+  ],
+  "workload": [
+    "shader_count",
+    "prebuild_count",
+    "submit_count",
+    "shadow_refresh_bytes",
+    "descriptors_1300_changed",
+    "descriptors_14400_changed",
+    "wave_page_marks_lanes",
+    "loop_global_loads",
+    "texture_title_patch_bytes"
+  ]
+}

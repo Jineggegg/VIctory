@@ -1,0 +1,110 @@
+{
+  "baseline": {
+    "binary_sha256": "b773735eaa048c4197aeab9029a9b883885664bc167bb9adae406290048c1d2e",
+    "exe_text_bytes": 4569758,
+    "offsets_in_text": {
+      "victory_descriptor_layout_placebo": null,
+      "_RNvNtCs8JonbBff8Yz_11victory_gpu12shader_cache11host_shader": 2537568,
+      "_RNvNtCskz4cnVAdown_14victory_shader6native15native_programs": 3079536
+    },
+    "shader_object_text_sections": 1955,
+    "shader_object_text_bytes": 1346897,
+    "shader_object_text_sha256": "d44ffa42cceb7c167ea8b11694b03a6ac678f6c6ff8569256fa83982ca61c842",
+    "shader_sections_equal_to_baseline": true,
+    "placebo_function_instances": 0,
+    "linked_functions": {
+      "host_shader": {
+        "bytes": 3501,
+        "instructions": 669,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      },
+      "native_programs": {
+        "bytes": 3328,
+        "instructions": 658,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      },
+      "translate_with": {
+        "bytes": 2680,
+        "instructions": 504,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      },
+      "pipeline_translate": {
+        "bytes": 1864,
+        "instructions": 364,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      }
+    }
+  },
+  "candidate": {
+    "binary_sha256": "559ba85eab2911ef6b1f9b4b8ea421f81a2136a456b85f64baadcd4c43fa1807",
+    "exe_text_bytes": 4600014,
+    "offsets_in_text": {
+      "victory_descriptor_layout_placebo": null,
+      "_RNvNtCs8JonbBff8Yz_11victory_gpu12shader_cache11host_shader": 1072560,
+      "_RNvNtCskz4cnVAdown_14victory_shader6native15native_programs": 2991152
+    },
+    "shader_object_text_sections": 1955,
+    "shader_object_text_bytes": 1346897,
+    "shader_object_text_sha256": "d44ffa42cceb7c167ea8b11694b03a6ac678f6c6ff8569256fa83982ca61c842",
+    "shader_sections_equal_to_baseline": true,
+    "placebo_function_instances": 0,
+    "linked_functions": {
+      "host_shader": {
+        "bytes": 3599,
+        "instructions": 697,
+        "instructions_equal_to_baseline_after_address_normalization": false
+      },
+      "native_programs": {
+        "bytes": 3328,
+        "instructions": 658,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      },
+      "translate_with": {
+        "bytes": 2680,
+        "instructions": 504,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      },
+      "pipeline_translate": {
+        "bytes": 1864,
+        "instructions": 364,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      }
+    }
+  },
+  "placebo": {
+    "binary_sha256": "5789e7951b3ca36e5297b9d7574dec527f81cf51039977ce897cfe0ee20ea95c",
+    "exe_text_bytes": 4600014,
+    "offsets_in_text": {
+      "victory_descriptor_layout_placebo": 1478768,
+      "_RNvNtCs8JonbBff8Yz_11victory_gpu12shader_cache11host_shader": 2567824,
+      "_RNvNtCskz4cnVAdown_14victory_shader6native15native_programs": 3109792
+    },
+    "shader_object_text_sections": 1955,
+    "shader_object_text_bytes": 1346897,
+    "shader_object_text_sha256": "d44ffa42cceb7c167ea8b11694b03a6ac678f6c6ff8569256fa83982ca61c842",
+    "shader_sections_equal_to_baseline": true,
+    "placebo_function_instances": 1,
+    "linked_functions": {
+      "host_shader": {
+        "bytes": 3501,
+        "instructions": 669,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      },
+      "native_programs": {
+        "bytes": 3328,
+        "instructions": 658,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      },
+      "translate_with": {
+        "bytes": 2680,
+        "instructions": 504,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      },
+      "pipeline_translate": {
+        "bytes": 1864,
+        "instructions": 364,
+        "instructions_equal_to_baseline_after_address_normalization": true
+      }
+    }
+  }
+}
