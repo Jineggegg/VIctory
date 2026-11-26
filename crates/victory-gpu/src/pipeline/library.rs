@@ -1046,8 +1046,12 @@ mod tests {
                 assert_eq!(pixels, [[1.0, 0.5, -0.25, 2.0], [0.0; 4]]);
                 let shared = library().unwrap();
                 assert!(shared.state.lock().unwrap().prebuilt.is_none());
-                let container = super::super::hot::gfx10::compute_container(128);
-                super::super::Prebuild::compute(&container).make().unwrap();
+                let (_root, pso) = crate::draw::tests::compile_cs(
+                    r#"[RootSignature("UAV(u0)")] [numthreads(1,1,1)]
+                        void main() {}"#,
+                );
+                pipeline("gameplay-save-test", |_, _| Err(windows::core::Error::empty()), || Ok(pso)).unwrap();
+                assert!(shared.state.lock().unwrap().prebuilt.is_none());
                 save(true);
                 assert!(shared.state.lock().unwrap().prebuilt_keys().contains("old-marker"));
                 return;
