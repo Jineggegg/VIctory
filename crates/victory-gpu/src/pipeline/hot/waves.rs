@@ -1,5 +1,3 @@
-mod pixel;
-
 use super::*;
 
 pub(super) fn run(host: &Host) {
@@ -19,7 +17,10 @@ fn wave_scenarios() {
     };
     println!("BENCH adapter={}", String::from_utf16_lossy(&desc.Description).trim_end_matches('\0'));
     scenarios(host, true);
-    pixel::pixel_helper_marks();
+    super::super::view_marks_tests::pixel_helper_marks(host, |name, list, draw| {
+        let elapsed = time_commands(host, list, draw);
+        println!("BENCH pixel_helper_{name}_gpu_us={elapsed:.3}");
+    });
     println!("BENCH verified=1");
 }
 
@@ -195,38 +196,8 @@ fn scenarios(host: &Host, extended: bool) {
         state.set_pipeline(pso.0);
         state.set_heaps(&[h.0]);
         state.set_table(true, 0, table);
-        let mut query: Option<ID3D12QueryHeap> = None;
-        let (readback, data) = list.readback(host, 16).unwrap();
-        unsafe {
-            host.device
-                .CreateQueryHeap(
-                    &D3D12_QUERY_HEAP_DESC {
-                        Type: D3D12_QUERY_HEAP_TYPE_TIMESTAMP,
-                        Count: 2,
-                        NodeMask: 0,
-                    },
-                    &mut query,
-                )
-                .unwrap();
-        }
-        let query = query.unwrap();
-        unsafe { list.list.EndQuery(&query, D3D12_QUERY_TYPE_TIMESTAMP, 0) };
-        state.dispatch(&list, GROUPS as u32, 1, 1);
-        unsafe {
-            list.list.EndQuery(&query, D3D12_QUERY_TYPE_TIMESTAMP, 1);
-            list.list
-                .ResolveQueryData(&query, D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, &readback, 0);
-        }
-        list.close();
-        // One dispatch between timestamps; the sampler warms the device separately.
-        host.execute(&[&list]);
-        let times = unsafe { data.cast::<[u64; 2]>().read_unaligned() };
-        assert!(times[1] > times[0]);
-        let freq = crate::host::bench_timestamp_frequency();
-        println!(
-            "BENCH {name}_gpu_us={:.3}",
-            (times[1] - times[0]) as f64 * 1e6 / freq as f64
-        );
+        let elapsed = time_commands(host, &list, || state.dispatch(&list, GROUPS as u32, 1, 1));
+        println!("BENCH {name}_gpu_us={elapsed:.3}");
         println!("BENCH {name}_lanes={WORDS}");
         if matches!(case, Lookup) {
             println!("BENCH loop_global_loads={}", 8 * WORDS);
@@ -269,4 +240,36 @@ fn scenarios(host: &Host, extended: bool) {
     crate::shadow::unregister(src, src as u64);
     drop(src_copy);
     crate::watch::tests::free(src);
+}
+
+fn time_commands(host: &Host, list: &crate::host::HostList, commands: impl FnOnce()) -> f64 {
+    let mut query: Option<ID3D12QueryHeap> = None;
+    let (readback, data) = list.readback(host, 16).unwrap();
+    unsafe {
+        host.device
+            .CreateQueryHeap(
+                &D3D12_QUERY_HEAP_DESC {
+                    Type: D3D12_QUERY_HEAP_TYPE_TIMESTAMP,
+                    Count: 2,
+                    NodeMask: 0,
+                },
+                &mut query,
+            )
+            .unwrap();
+    }
+    let query = query.unwrap();
+    unsafe { list.list.EndQuery(&query, D3D12_QUERY_TYPE_TIMESTAMP, 0) };
+    commands();
+    unsafe {
+        list.list.EndQuery(&query, D3D12_QUERY_TYPE_TIMESTAMP, 1);
+        list.list
+            .ResolveQueryData(&query, D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, &readback, 0);
+    }
+    list.close();
+    // One dispatch between timestamps; the sampler warms the device separately.
+    host.execute(&[list]);
+    let times = unsafe { data.cast::<[u64; 2]>().read_unaligned() };
+    assert!(times[1] > times[0]);
+    let freq = crate::host::bench_timestamp_frequency();
+    (times[1] - times[0]) as f64 * 1e6 / freq as f64
 }

@@ -1,5 +1,5 @@
 //! Each sample is a fresh Windows process, with isolated application caches.
-mod gfx10;
+use super::gfx10;
 mod textures;
 mod waves;
 
