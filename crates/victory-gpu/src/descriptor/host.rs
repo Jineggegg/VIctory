@@ -19,12 +19,30 @@ use windows::Win32::Graphics::Direct3D12::*;
 use windows::Win32::Graphics::Dxgi::Common::*;
 
 use super::pages::{NULL_PAGE, PAGE, Pages, SCRATCH_PAGE};
-use super::{VIEW_TAG, View, view_at, views_current};
+use super::{VIEW_TAG, View, view_at, with_views};
 use crate::host::host;
 
 #[cfg(test)]
 #[path = "overlap_test.rs"]
 mod overlap_test;
+
+#[derive(Clone, Copy)]
+struct ConstantSlot {
+    index: u32,
+    record: [u32; 3],
+    address: u64,
+    size: u32,
+}
+
+impl ConstantSlot {
+    fn view(&self) -> View {
+        View::Constant(self.address, self.size)
+    }
+
+    fn key(&self) -> u64 {
+        u64::from(self.record[2]) << 32 | u64::from(self.record[1])
+    }
+}
 
 pub(crate) struct HostHeap {
     pub(crate) heap: ID3D12DescriptorHeap,
@@ -1046,31 +1064,109 @@ impl HostHeap {
             .collect()
     }
 
-    /// A heap sync of slots `first..last`, whose records are at `start` +
-    /// index × `step`: [`HostHeap::mirror`] of each slot whose record
-    /// differs from what the slot holds, the rest passed by as `mirror`
-    /// would, with one lock of each kind for them all instead of two per slot
-    /// (a world frame looks at ~700,000 slots, run perf3: ~75 ms).
+    /// Single-range wrapper around [`HostHeap::sync_ranges`].
     pub(crate) fn sync_slots(&self, first: u32, last: u32, start: u64, step: u64) {
+        self.sync_ranges(&[(first, last)], start, step);
+    }
+
+    /// Mirrors changed records from readable slot ranges. Compare their full
+    /// keys against the live view table and host slots one virtual page at a
+    /// time, retaining only the records that need work.
+    pub(crate) fn sync_ranges(&self, ranges: &[(u32, u32)], start: u64, step: u64) {
         let at = |i: u32| start + u64::from(i) * step;
-        // SAFETY: records in title heap memory the caller found mapped.
-        let records: Vec<[u32; 3]> =
-            (first..last).map(|i| unsafe { (at(i) as *const [u32; 3]).read_unaligned() }).collect();
-        let current = views_current(&records);
-        let stale: Vec<u32> = {
-            let made = self.made.lock().unwrap_or_else(|e| e.into_inner());
-            (first..last)
-                .zip(records.iter().zip(current))
-                .filter(|&(i, (&[_, view, generation], current))| match made.get(i as usize) {
-                    Some(&m) if current => m != u64::from(generation) << 32 | u64::from(view),
-                    Some(&m) => m != 0,
-                    None => true,
-                })
-                .map(|(i, _)| i)
-                .collect()
-        };
-        for i in stale {
-            self.mirror(i, at(i), false);
+        // The caller coalesces readable pages in increasing address order.
+        // Bound the scratch space and the time a recorder waits on a batch.
+        let mut changed = Vec::new();
+        let mut constants = Vec::new();
+        for &(first, last) in ranges {
+            if last > self.count {
+                self.mirror(last - 1, at(last - 1), false);
+            }
+            let last = last.min(self.count);
+            // Finish a virtual page before starting the next one. If only one
+            // physical page remains, the first changed page still gets it.
+            for page in (first / PAGE)..last.div_ceil(PAGE) {
+                let begin = (page * PAGE).max(first);
+                let end = (page * PAGE).saturating_add(PAGE).min(last);
+                {
+                    let made = self.made.lock().unwrap_or_else(|e| e.into_inner());
+                    with_views(|views| {
+                        for index in begin..end {
+                            // SAFETY: the caller probed the pages containing the records.
+                            let raw @ [tag, id, generation] =
+                                unsafe { (at(index) as *const [u32; 3]).read_unaligned() };
+                            let entry = views.get(id as usize)
+                                .filter(|(_, g)| tag == VIEW_TAG && *g == generation);
+                            let key = entry.map_or(0, |_| u64::from(generation) << 32 | u64::from(id));
+                            if made[index as usize] == key {
+                                continue;
+                            }
+                            if !self.sampler && let Some((View::Constant(address, size), _)) = entry {
+                                constants.push(ConstantSlot {
+                                    index, record: raw, address: *address, size: *size,
+                                });
+                            } else {
+                                changed.push(index);
+                            }
+                        }
+                    });
+                }
+                self.sync_constants(&mut constants, start, step, &mut changed);
+                for index in changed.drain(..) {
+                    self.mirror(index, at(index), false);
+                }
+            }
+        }
+    }
+
+    /// Batch writes to the mapped GPU metadata before touching the resource
+    /// registry or creating host descriptors. Atomics and lock operations
+    /// between mapped writes prevent the CPU from combining adjacent stores.
+    fn sync_constants(
+        &self,
+        slots: &mut Vec<ConstantSlot>,
+        start: u64,
+        step: u64,
+        retry: &mut Vec<u32>,
+    ) {
+        if slots.is_empty() {
+            return;
+        }
+        for slot in slots.iter() {
+            prepare(&slot.view());
+        }
+
+        let mut made = self.made.lock().unwrap_or_else(|e| e.into_inner());
+        slots.retain(|slot| {
+            // Constant views have permanent VIEWS entries. A recorder or a
+            // byte copy can still replace the slot while preparation runs.
+            let at = start + u64::from(slot.index) * step;
+            // SAFETY: the caller probed the page and keeps the heap alive.
+            if unsafe { (at as *const [u32; 3]).read_unaligned() } != slot.record {
+                retry.push(slot.index);
+                return false;
+            }
+            if made[slot.index as usize] == slot.key() {
+                return false;
+            }
+            // Constants become read-only raw SRVs with zero address bias.
+            let view = slot.view();
+            self.set_stride(slot.index, Some(&view), 0);
+            self.set_mark(slot.index, None);
+            self.note_address(slot.index, Some(&view));
+            true
+        });
+        for slot in slots.drain(..) {
+            let view = slot.view();
+            let (at, placed) = self.cpu_placed(slot.index);
+            let (kept, _, _) = make_marked(&view, at);
+            if kept.is_none() {
+                null_for(&view, at);
+            }
+            let kept = kept.filter(|_| placed);
+            self.viewed.set(slot.index, Some(&view), kept.is_some());
+            self.keep(slot.index, kept.flatten());
+            made[slot.index as usize] = slot.key();
         }
     }
 
@@ -1099,11 +1195,11 @@ impl HostHeap {
             p.stamp(index);
             p.place(index / PAGE);
         }
+        let mut made = self.made.lock().unwrap_or_else(|e| e.into_inner());
         // SAFETY: the handle is a descriptor slot in title memory.
         let [tag, i, generation] = unsafe { (handle as *const [u32; 3]).read_unaligned() };
         // Generations start at 1, so a made slot's key is never 0.
         let key = u64::from(generation) << 32 | u64::from(i);
-        let mut made = self.made.lock().unwrap_or_else(|e| e.into_inner());
         let view = (tag == VIEW_TAG).then(|| view_at(i, generation)).flatten();
         let Some(view) = view else {
             // Not a view of ours (never written, or of a resource the
@@ -1164,7 +1260,9 @@ impl HostHeap {
             // The title may have written another record there meanwhile (and
             // another thread made it): that one is the slot's.
             // SAFETY: as above.
-            if unsafe { (handle as *const [u32; 3]).read_unaligned() } != [tag, i, generation] {
+            if unsafe { (handle as *const [u32; 3]).read_unaligned() } != [tag, i, generation]
+                || (view.resources() != [0, 0] && view_at(i, generation).is_none())
+            {
                 drop(made);
                 return self.mirror(index, handle, for_draw);
             }
@@ -3189,6 +3287,222 @@ mod tests {
         // SAFETY: plain device query.
         assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
         assert_eq!(host.log_messages(), None);
+    }
+
+    /// A recorded table keeps the old buffer while a byte rewrite changes the
+    /// heap-indexed slot. An invalid tag or generation with the same id clears
+    /// the actual GPU descriptor, including on repeated list execution.
+    #[test]
+    fn recorded_table_and_live_heap_observe_their_own_records() {
+        let Some(device) = host() else { return };
+        let heap = HostHeap::new(false, 4).unwrap();
+        let mut records = [[0u32; 8]; 3];
+        let start = records.as_mut_ptr() as u64;
+        let pools = [crate::watch::tests::pool(1), crate::watch::tests::pool(1)];
+        for (i, &pool) in pools.iter().enumerate() {
+            let address = pool as u64;
+            crate::shadow::register(pool, address, 65536);
+            crate::shadow::find(address, 256).unwrap().write_host(address, &(11 + i as u32).to_ne_bytes());
+            crate::descriptor::create_cbv(std::ptr::null(), &[address as u32, (address >> 32) as u32, 256, 0],
+                records[i + 1].as_mut_ptr() as u64);
+        }
+        records[0] = records[1];
+        let old = heap.mirror(0, start, true).unwrap();
+        let table = heap.dynamic(1).unwrap();
+        heap.make_at(table, &old);
+        let (root, shader) = crate::draw::tests::compile_cs(r#"
+            ByteAddressBuffer recorded : register(t0);
+            ByteAddressBuffer live[4] : register(t1);
+            RWByteAddressBuffer dst : register(u0);
+            [RootSignature("DescriptorTable(SRV(t0)), DescriptorTable(SRV(t1,numDescriptors=4)), UAV(u0)")]
+            [numthreads(1,1,1)] void main(uint3 id : SV_GroupID) {
+                dst.Store2(0, uint2(recorded.Load(0), live[id.x].Load(0)));
+            }"#);
+        let (out, data) = device.shared_buffer(8).unwrap();
+        let list = device.new_list().unwrap();
+        // SAFETY: both table ranges lie in the bound heap and out has two dwords.
+        unsafe {
+            list.list.SetDescriptorHeaps(&[Some(heap.heap.clone())]);
+            list.list.SetComputeRootSignature(&root);
+            list.list.SetPipelineState(&shader);
+            list.list.SetComputeRootDescriptorTable(0, heap.gpu(table));
+            list.list.SetComputeRootDescriptorTable(1, heap.gpu(0));
+            list.list.SetComputeRootUnorderedAccessView(2, out.GetGPUVirtualAddress());
+            list.list.Dispatch(1, 1, 1);
+        }
+        list.close();
+        let run = |expected| {
+            device.execute(&[&list]);
+            // SAFETY: execution has completed and the buffer contains two dwords.
+            assert_eq!(unsafe { data.cast::<[u32; 2]>().read_unaligned() }, [11, expected]);
+        };
+        // Same id and generation, a bad tag: comparing a key alone would miss it.
+        records[0][0] ^= 1;
+        heap.sync_slots(0, 1, start, 32);
+        run(0);
+        // A newer byte copy arrives after the diff has picked the old constant.
+        records[0] = records[1];
+        let replacement = records[2];
+        *WHILE_PREPARING.lock().unwrap() = Some(Box::new(move || {
+            // SAFETY: the test owns this slot until sync_slots returns.
+            unsafe { (start as *mut [u32; 8]).write_unaligned(replacement) };
+        }));
+        heap.sync_slots(0, 1, start, 32);
+        crate::shadow::unregister(pools[0], pools[0] as u64);
+        run(12);
+        records[0][2] = records[0][2].wrapping_add(1);
+        heap.sync_slots(0, 1, records.as_ptr() as u64, 32);
+        run(0);
+        drop(list);
+        drop(heap);
+        crate::shadow::unregister(pools[1], pools[1] as u64);
+        for pool in pools { crate::watch::tests::free(pool); }
+    }
+
+    #[test]
+    fn a_recorder_can_replace_a_slot_while_the_heap_sync_prepares_it() {
+        if host().is_none() { return; }
+        let memory = crate::watch::tests::pool(1);
+        let buffer = crate::watch::tests::pool(1);
+        let address = buffer as u64;
+        crate::shadow::register(buffer, address, 65536);
+        let start = memory as u64;
+        let layout = [0, 4, 1, 0, start as u32, (start >> 32) as u32, 128, 0];
+        let mut handle = std::ptr::null();
+        let null = std::ptr::null();
+        assert_eq!(crate::descriptor::create_heap(null, layout.as_ptr().cast(),
+            &crate::descriptor::HEAP_IIDS[0], &mut handle), 0);
+        let heap = crate::descriptor::heap(handle).host().unwrap();
+        crate::descriptor::sync_heaps();
+        let mut record = [0u32; 8];
+        crate::descriptor::create_cbv(null, &[address as u32, (address >> 32) as u32, 256, 0],
+            record.as_mut_ptr() as u64);
+        // SAFETY: this is a full slot in the test's guarded allocation.
+        unsafe { (start as *mut [u32; 8]).write(record) };
+        let next = address + 256;
+        let (done, wait) = std::sync::mpsc::channel();
+        *WHILE_PREPARING.lock().unwrap() = Some(Box::new(move || {
+            std::thread::spawn(move || {
+                crate::descriptor::create_cbv(std::ptr::null(),
+                    &[next as u32, (next >> 32) as u32, 256, 0], start);
+                done.send(()).unwrap();
+            });
+            wait.recv_timeout(std::time::Duration::from_secs(5)).expect("recorder blocked by sync");
+        }));
+        crate::descriptor::sync_heaps();
+        assert!(WHILE_PREPARING.lock().unwrap().is_none());
+        assert!(heap.made_from(0, start) && heap.kept(0));
+        assert_eq!(crate::descriptor::view(start), Some(View::Constant(next, 256)));
+        crate::descriptor::release(handle);
+        crate::shadow::unregister(buffer, address);
+        crate::watch::tests::free(buffer);
+        crate::watch::tests::free(memory);
+    }
+
+    #[test]
+    fn a_generation_invalidated_during_prepare_cannot_publish_the_old_resource() {
+        let Some(heap) = HostHeap::new(false, 1) else { return };
+        let (memory, buffer) = crate::host::tests::title_buffer();
+        let mut record = [0u32; 8];
+        let at = record.as_mut_ptr() as u64;
+        let desc = [39, 1, 0x1688, 0, 0, 0, 64, 0, 1, 0];
+        crate::descriptor::create_srv(std::ptr::null(), buffer, &desc, at);
+        let object = buffer as usize;
+        *WHILE_PREPARING.lock().unwrap() = Some(Box::new(move || {
+            // Invalidate the generation as resource destruction does, while
+            // the test's own reference keeps the object safe to inspect.
+            crate::descriptor::forget(object);
+        }));
+        heap.sync_slots(0, 1, at, 32);
+        assert!(WHILE_PREPARING.lock().unwrap().is_none());
+        assert!(!heap.made(0) && !heap.kept(0));
+        drop(heap);
+        crate::object::slot::<extern "system" fn(crate::object::This) -> u32>(buffer, 0x10)(buffer);
+        crate::watch::tests::free(memory);
+    }
+
+    #[test]
+    fn batched_constants_in_the_scratch_page_are_remade_when_resident() {
+        let Some(heap) = HostHeap::new(false, PAGE * 2) else { return };
+        if heap.pages.is_none() { return; }
+        let pool = crate::watch::tests::pool(1);
+        let address = pool as u64;
+        crate::shadow::register(pool, address, 65536);
+        let mut records = vec![[0u32; 8]; PAGE as usize];
+        let start = records.as_mut_ptr() as u64;
+        crate::descriptor::create_cbv(std::ptr::null(),
+            &[address as u32, (address >> 32) as u32, 256, 0], start);
+        heap.hold_page_room(true);
+        heap.sync_slots(0, 1, start, 32);
+        assert!(heap.made_from(0, start));
+        assert!(!heap.kept(0));
+        assert_eq!(heap.host_page_of(0), Some(NULL_PAGE));
+        heap.hold_page_room(false);
+        heap.place_page(0);
+        let remakes = heap.remakes();
+        assert_eq!(remakes, [(0, PAGE)]);
+        heap.sync_ranges(&remakes, start, 32);
+        assert!(heap.kept(0));
+        assert_ne!(heap.host_page_of(0), Some(NULL_PAGE));
+        drop(heap);
+        crate::shadow::unregister(pool, address);
+        crate::watch::tests::free(pool);
+    }
+
+    /// Disjoint dirty ranges mirror rewrites and clears up to the host cap.
+    #[test]
+    fn sync_ranges_handles_rewrites_clears_and_the_heap_cap() {
+        let Some(heap) = HostHeap::new(false, 64) else {
+            return;
+        };
+        assert!(heap.view_addresses().is_some());
+        let pool = crate::watch::tests::pool(1);
+        let base = pool as u64;
+        crate::shadow::register(pool, base, 64 << 10);
+
+        let mut records = vec![[0u32; 8]; 64];
+        let step = size_of::<[u32; 8]>() as u64;
+        let start = records.as_ptr() as u64;
+
+        let write_srv = |records: &mut [[u32; 8]], slot: usize, offset: u64| {
+            let mut resource = [0u32; 14];
+            (resource[0], resource[4]) = (1, 64);
+            let mut view = [0u32; 16];
+            (view[1], view[2], view[6], view[7]) =
+                (1, D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING, 16, 4);
+            let addr = base + offset;
+            (view[10], view[11]) = (addr as u32, (addr >> 32) as u32);
+            crate::descriptor::create_placed_srv(
+                std::ptr::null(),
+                &resource,
+                &view,
+                records[slot].as_mut_ptr() as u64,
+            );
+        };
+        write_srv(&mut records, 2, 0);
+        write_srv(&mut records, 15, 256);
+        write_srv(&mut records, 40, 512);
+        write_srv(&mut records, 63, 768);
+
+        // Pass 1: disjoint readable ranges, including one past the host cap.
+        heap.sync_ranges(&[(0, 20), (32, 68)], start, step);
+        assert_eq!(heap.address_at(2), Some(base));
+        assert_eq!(heap.address_at(15), Some(base + 256));
+        assert_eq!(heap.address_at(40), Some(base + 512));
+        assert_eq!(heap.address_at(63), Some(base + 768));
+        assert_eq!(heap.address_at(3), Some(0));
+
+        // Pass 2: rewrite slot 15 and clear slot 40.
+        write_srv(&mut records, 15, 1024);
+        records[40] = [0u32; 8];
+        heap.sync_ranges(&[(0, 45)], start, step);
+        assert_eq!(heap.address_at(2), Some(base));
+        assert_eq!(heap.address_at(15), Some(base + 1024));
+        assert_eq!(heap.address_at(40), Some(0));
+        assert_eq!(heap.address_at(63), Some(base + 768));
+
+        crate::shadow::unregister(pool, base);
+        crate::watch::tests::free(pool);
     }
 }
 
