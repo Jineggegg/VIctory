@@ -104,6 +104,7 @@ fn parallel_items(n: usize, f: impl Fn(usize) + Sync) {
     struct Work(PTP_WORK);
     impl Drop for Work {
         fn drop(&mut self) {
+            // SAFETY: the work handle is uniquely owned and its context is still live.
             unsafe {
                 // The caller drained the index, so pending callbacks can be cancelled.
                 WaitForThreadpoolWorkCallbacks(self.0, 1);
@@ -903,11 +904,10 @@ impl Shadow {
         // A title write before rearming is included here, and a later one
         // marks the copy dirty. Also reconciles writes through another view.
         // A skipped dirty page retains its GPU bytes and outstanding tracker.
-        // SAFETY: the destination is inside the mapping, and kernel reads
-        // keep holes safe. Dirty/partial pages can be refreshed again.
         for run in synced.chunk_by(|left, right| left.1 == right.0) {
             let a = run[0].0;
             let b = run[run.len() - 1].1;
+            // SAFETY: the synced subrange lies inside the mapped shadow.
             refresh_run(unsafe { self.data.add(a - start) }, a, b - a);
         }
         written
@@ -1133,6 +1133,33 @@ impl Marks {
         None
     }
 
+    /// Capture strong owners once, under the bitmap lock. Retain the live
+    /// prefix even if a sparse set of marks also names a hole after it.
+    fn owners_of<'a>(&self, mut bits: &'a [u32]) -> Vec<(Arc<Shadow>, &'a [u32])> {
+        use std::ops::Bound::{Excluded, Unbounded};
+        let mut owners = Vec::new();
+        while let Some(&first) = bits.first() {
+            let next = self
+                .owners
+                .range((Excluded(first), Unbounded))
+                .next()
+                .map_or(u32::MAX, |(&base, _)| base);
+            let n = bits.partition_point(|&bit| bit < next);
+            let (group, rest) = bits.split_at(n);
+            if let Some((&base, copy)) = self.owners.range(..=first).next_back()
+                && let Some(copy) = copy.upgrade()
+            {
+                let end = base + pages(copy.start, copy.len);
+                let live = group.partition_point(|&bit| bit < end);
+                // Keep even an empty group's Arc until the lock is released:
+                // dropping the last strong owner returns its bits to this map.
+                owners.push((copy, &group[..live]));
+            }
+            bits = rest;
+        }
+        owners
+    }
+
     /// The run of `n` bits at `at` is free again (joined to its neighbours).
     fn give_back(&mut self, mut at: u32, mut n: u32) {
         if let Some((&before, &len)) = self.free.range(..at).next_back()
@@ -1352,6 +1379,9 @@ fn drain_marks(bits: &mut [u32], end: usize, into: &mut Vec<u32>) {
         *last &= !(1 << 31);
     }
     for (w, word) in bits.iter_mut().take(end.div_ceil(32)).enumerate() {
+        if *word == 0 {
+            continue;
+        }
         let mut x = std::mem::take(word);
         while x != 0 {
             into.push((w * 32) as u32 + x.trailing_zeros());
@@ -1388,45 +1418,40 @@ pub(crate) fn copy_back_marks(withheld: &[(Arc<Shadow>, usize, usize)], memory_w
     }
     #[cfg(feature = "diagnostics")]
     let _timed = crate::watch::Timed(std::time::Instant::now(), crate::copystat::C::MarkedUs);
-    marked.sort_unstable();
-    marked.dedup();
-    let page_of = |m: &Marks, n: u32| {
-        let (&base, copy) = m.owners.range(..=n).next_back()?;
-        let copy = copy.upgrade()?;
-        let k = n - base;
-        (k < pages(copy.start, copy.len)).then(|| {
-            let page = (((copy.start >> 16) + u64::from(k)) << 16) as usize;
-            (copy, page)
-        })
-    };
-    // Held back: dropped from the copies (`crate::memory::drop_withheld`).
-    if !held.is_empty() {
-        let m = marks();
-        for (_, page) in held.into_iter().filter_map(|n| page_of(&m, n)) {
-            crate::memory::drop_withheld(page, PAGE);
-        }
-    }
-    if marked.is_empty() {
+    if marked.is_empty() && held.is_empty() {
         return;
     }
-    let pages: Vec<(Arc<Shadow>, usize)> = {
+    marked.sort_unstable();
+    marked.dedup();
+    let (owners, held_owners) = {
         let m = marks();
-        marked.iter().filter_map(|&n| page_of(&m, n)).collect()
+        (m.owners_of(&marked), m.owners_of(&held))
     };
-    let eligible: Vec<_> = pages
-        .into_iter()
-        .filter(|(copy, page)| {
-            !withheld
+    let page_at = |copy: &Shadow, bit: u32| {
+        ((copy.start as usize) & !(PAGE - 1)) + (bit - copy.marks.unwrap()) as usize * PAGE
+    };
+    for (copy, bits) in owners {
+        let mut chunks: Vec<(usize, usize)> = Vec::new();
+        let mut count = 0;
+        for &bit in bits {
+            let page = page_at(&copy, bit);
+            if withheld
                 .iter()
-                .any(|(c, a, n)| Arc::ptr_eq(c, copy) && *a < page + PAGE && *page < a + n)
-        })
-        .collect();
-    for owner in eligible.chunk_by(|a, b| Arc::ptr_eq(&a.0, &b.0)) {
-        let copy = &owner[0].0;
-        let mut chunks = Vec::new();
-        for adjacent in owner.chunk_by(|a, b| b.1 == a.1 + PAGE) {
-            chunks.extend(adjacent.chunks(8).map(|s| (s[0].1, s.len())));
+                .any(|(c, a, n)| Arc::ptr_eq(c, &copy) && *a < page + PAGE && page < a + n)
+            {
+                continue;
+            }
+            count += 1;
+            match chunks.last_mut() {
+                Some((first, pages)) if *pages < 8 && page == *first + *pages * PAGE => *pages += 1,
+                _ => chunks.push((page, 1)),
+            }
         }
+        let Some(&(first, _)) = chunks.first() else {
+            continue;
+        };
+        let &(last, n) = chunks.last().unwrap();
+        let end = last + n * PAGE;
         let copy_chunk = |i: usize| {
             let (page, count) = chunks[i];
             let written = copy.copy_back_marked(page, count);
@@ -1438,12 +1463,18 @@ pub(crate) fn copy_back_marks(withheld: &[(Arc<Shadow>, usize, usize)], memory_w
             #[cfg(not(feature = "diagnostics"))]
             let _ = written;
         };
-        let first = owner[0].1;
-        let end = owner.last().unwrap().1 + PAGE;
-        if owner.len() >= 128 && private_write_watch(first, end - first) {
+        if count >= 128 && private_write_watch(first, end - first) {
             parallel_items(chunks.len(), copy_chunk);
         } else {
             (0..chunks.len()).for_each(copy_chunk);
+        }
+    }
+    // Invalidating a held page marks all copies of its physical memory dirty.
+    // First finish any ordinary marks of other copies that still need its old
+    // bytes, including when both views point at one physical page.
+    for (copy, bits) in held_owners {
+        for &bit in bits {
+            crate::memory::drop_withheld(page_at(&copy, bit), PAGE);
         }
     }
 }
@@ -1996,6 +2027,7 @@ pub(crate) mod tests {
         two.write_host((b + PAGE + 1) as u64, &[5, 6]);
         // A title thread writes through the second virtual mapping while the
         // submitted shadows contain different writes to the same physical pages.
+        // SAFETY: both addresses are bytes of the second live mapped view.
         std::thread::spawn(move || unsafe {
             ((b + PAGE - 3) as *mut u8).write_volatile(7);
             ((b + PAGE + 3) as *mut u8).write_volatile(8);
@@ -2007,6 +2039,7 @@ pub(crate) mod tests {
         one.write_host((a + PAGE + 5) as u64, &[11]);
         AFTER_MARK_READ.with(|slot| {
             slot.set(Some(Box::new(move || {
+                // SAFETY: the second view stays mapped until this thread joins.
                 std::thread::spawn(move || unsafe {
                     ((b + PAGE + 4) as *mut u8).write_volatile(9)
                 })
@@ -2022,6 +2055,31 @@ pub(crate) mod tests {
             &mut bytes
         ));
         assert_eq!(bytes, [7, 1, 2, 3, 5, 6, 8, 9, 11]);
+        // A missed program also writes through the second mapping. Its
+        // invalidation must happen after the ordinary copy's mark goes back.
+        one.copy_back(a, len);
+        two.copy_back(b, len);
+        let list = h.new_list().unwrap();
+        for (shadow, at, memory, offset) in [(&one, a, false, 32), (&two, b, true, 33)] {
+            let _writer = list.writer_uses_memory(memory);
+            shadow.refresh(&list, at as u64, PAGE as u64);
+            shadow.gpu_writes(&list, at as u64, PAGE as u64, true);
+            let shadow = shadow.clone();
+            list.defer_host(move || {
+                shadow.write_host((at + offset) as u64, &[0xbb]);
+                let bit = shadow.marks.unwrap() as usize;
+                let bits = bitmap(memory).unwrap().data as *mut u32;
+                // SAFETY: the submission lock excludes another bitmap writer.
+                unsafe { *bits.add(bit / 32) |= 1 << (bit % 32) };
+            });
+        }
+        list.defer_missed(|| true);
+        list.close();
+        h.execute(&[&list]);
+        let mut results = [0; 2];
+        assert!(crate::host::read_into((a + 32) as *const u8, &mut results));
+        assert_eq!(results, [0xbb, 0]);
+        drop(list);
         drop((one, two));
         for at in [a, b] {
             crate::watch::title_memory_remapped(at, len);
@@ -2053,6 +2111,7 @@ pub(crate) mod tests {
         } as usize;
         assert_ne!(at, 0);
         assert_ne!(
+            // SAFETY: this is the middle block of our three-block reservation.
             unsafe { VirtualFree((at + BLOCK) as *mut _, BLOCK, MEM_DECOMMIT) },
             0
         );
@@ -2069,28 +2128,39 @@ pub(crate) mod tests {
 
     #[test]
     fn withheld_byte_on_each_side_of_a_boundary_blocks_both_marked_pages() {
+        let Some(h) = host() else { return };
         let p = crate::watch::tests::pool(4);
         let len = 4 * PAGE;
         register(p, p as u64, len as u64);
-        let (Some(copy), Some(map)) = (find(p as u64, len as u64), bitmap(false)) else {
-            unregister(p, p as u64);
-            crate::watch::tests::free(p);
-            return;
-        };
+        let copy = find(p as u64, len as u64).unwrap();
         copy.update(p, len);
-        copy.writing(p, len, true);
-        for i in 0..4 {
-            copy.write_host((p + i * PAGE) as u64, &[0x78]);
-            let bit = copy.marks.unwrap() as usize + i;
-            unsafe { *(map.data as *mut u32).add(bit / 32) |= 1 << (bit % 32) };
+        let list = h.new_list().unwrap();
+        {
+            let _writer = list.writer_uses_memory(true);
+            copy.gpu_writes(&list, (p + 2 * PAGE - 1) as u64, 2, true);
         }
-        copy_back_marks(&[(copy.clone(), p + 2 * PAGE - 1, 2)], false);
+        let shader = copy.clone();
+        list.defer_host(move || {
+            let map = bitmap(false).unwrap();
+            for i in 0..4 {
+                shader.write_host((p + i * PAGE) as u64, &[0x78]);
+                let bit = shader.marks.unwrap() as usize + i;
+                // SAFETY: a valid bitmap word under the host submission lock.
+                unsafe { *(map.data as *mut u32).add(bit / 32) |= 1 << (bit % 32) };
+            }
+        });
+        list.defer_missed(|| true);
+        list.close();
+        h.execute(&[&list]);
         for (i, expected) in [0x78, 0, 0, 0x78].into_iter().enumerate() {
-            assert_eq!(
-                unsafe { ((p + i * PAGE) as *const u8).read_volatile() },
-                expected
-            );
+            let mut value = [0];
+            assert!(crate::host::read_into(
+                (p + i * PAGE) as *const u8,
+                &mut value
+            ));
+            assert_eq!(value[0], expected);
         }
+        drop(list);
         unregister(p, p as u64);
         drop(copy);
         crate::watch::tests::free(p);
@@ -2098,7 +2168,7 @@ pub(crate) mod tests {
 
     #[test]
     fn late_cpu_bytes_in_short_gaps_survive_exact_stores() {
-        for len in [1, 15, 16, 17, 65, PAGE] {
+        for len in [0, 1, 15, 16, 17, 65, PAGE] {
             let old = vec![0x11; len];
             let host: Vec<_> = (0..len)
                 .map(|i| if i % 17 == 1 { 0x11 } else { 0xaa })
