@@ -96,14 +96,30 @@ pub fn host_shader(container: &[u8]) -> (Result<HostShader, String>, bool) {
 /// reproducible. A partial transaction is never returned as a translation.
 struct Cache {
     dir: PathBuf,
-    db: Mutex<Connection>,
+    db: Mutex<Option<Connection>>,
 }
 
 impl Cache {
     fn open(dir: &Path) -> anyhow::Result<Self> {
         victory_core::ensure_outside_repo(dir)?;
         std::fs::create_dir_all(dir)?;
-        let db = Connection::open(dir.join("shaders.sqlite3"))?;
+        Ok(Self {
+            dir: dir.to_owned(),
+            db: Mutex::new(None),
+        })
+    }
+
+    // A run that translates nothing should not create a database. Keep the
+    // one-time schema setup in the first lookup, and retry failed opens.
+    fn with_db<T>(
+        &self,
+        f: impl FnOnce(&Connection) -> rusqlite::Result<T>,
+    ) -> rusqlite::Result<T> {
+        let mut slot = self.db.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(db) = slot.as_ref() {
+            return f(db);
+        }
+        let db = Connection::open(self.dir.join("shaders.sqlite3"))?;
         db.execute_batch(
             "PRAGMA journal_mode=WAL;
              PRAGMA synchronous=NORMAL;
@@ -116,38 +132,37 @@ impl Cache {
         // Another process may have the writer lock. Return the fresh shader
         // immediately in that case, even when it cannot be persisted.
         db.busy_timeout(std::time::Duration::ZERO)?;
-        Ok(Self {
-            dir: dir.to_owned(),
-            db: Mutex::new(db),
-        })
+        f(slot.insert(db))
     }
 
     fn read(&self, key: &[u8; 32]) -> rusqlite::Result<Option<Result<HostShader, String>>> {
-        let db = self.db.lock().unwrap_or_else(|e| e.into_inner());
-        let mut query =
-            db.prepare_cached("SELECT digest, translation FROM shaders WHERE key=?1")?;
-        let entry = query
-            .query_row([key], |row| {
-                let digest = row.get_ref(0)?.as_blob()?;
-                let bytes = row.get_ref(1)?.as_blob()?;
-                if blake3::keyed_hash(key, bytes).as_bytes() == digest {
-                    Ok(decode(bytes))
-                } else {
-                    Ok(None)
-                }
-            })
-            .optional()?;
-        Ok(entry.flatten())
+        self.with_db(|db| {
+            let mut query =
+                db.prepare_cached("SELECT digest, translation FROM shaders WHERE key=?1")?;
+            let entry = query
+                .query_row([key], |row| {
+                    let digest = row.get_ref(0)?.as_blob()?;
+                    let bytes = row.get_ref(1)?.as_blob()?;
+                    if blake3::keyed_hash(key, bytes).as_bytes() == digest {
+                        Ok(decode(bytes))
+                    } else {
+                        Ok(None)
+                    }
+                })
+                .optional()?;
+            Ok(entry.flatten())
+        })
     }
 
     fn write(&self, key: &[u8; 32], bytes: &[u8]) -> rusqlite::Result<()> {
         let digest = blake3::keyed_hash(key, bytes);
-        let db = self.db.lock().unwrap_or_else(|e| e.into_inner());
-        let mut insert = db.prepare_cached(
-            "INSERT OR REPLACE INTO shaders (key, digest, translation) VALUES (?1, ?2, ?3)",
-        )?;
-        insert.execute(rusqlite::params![key, digest.as_bytes(), bytes])?;
-        Ok(())
+        self.with_db(|db| {
+            let mut insert = db.prepare_cached(
+                "INSERT OR REPLACE INTO shaders (key, digest, translation) VALUES (?1, ?2, ?3)",
+            )?;
+            insert.execute(rusqlite::params![key, digest.as_bytes(), bytes])?;
+            Ok(())
+        })
     }
 }
 
@@ -425,13 +440,12 @@ mod tests {
 
         // A damaged entry is a miss, translated and stored again.
         cache
-            .db
-            .lock()
-            .unwrap()
-            .execute(
-                "UPDATE shaders SET translation = ?1",
-                [encode(&Err("readable but wrong entry".into()))],
-            )
+            .with_db(|db| {
+                db.execute(
+                    "UPDATE shaders SET translation = ?1",
+                    [encode(&Err("readable but wrong entry".into()))],
+                )
+            })
             .unwrap();
         assert_eq!(
             cached(&cache, &build, container, translate),
@@ -486,10 +500,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let cache = Cache::open(dir.path()).unwrap();
         cache
-            .db
-            .lock()
-            .unwrap()
-            .execute_batch("PRAGMA query_only=ON")
+            .with_db(|db| db.execute_batch("PRAGMA query_only=ON"))
             .unwrap();
         let runs = AtomicU64::new(0);
         let translate = |_: &[u8]| {
