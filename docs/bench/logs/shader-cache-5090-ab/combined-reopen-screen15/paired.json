@@ -1,0 +1,185 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "shader-pso-disk",
+  "test": "pipeline::hot::shader_bench::disk",
+  "parameters": { },
+  "family_size": 9,
+  "pairs": 15,
+  "a_commit": "42151090eb15115604b18fe284e3113477fdcedb",
+  "b_commit": "4cd4e85010e2f8a5146d21c8249fc3a4329b571e",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 17:20:58Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=4928\/32607 MiB | power=47.48 W | temp=35.64 C | graphics=277 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=none",
+    "tolerated_background": "none"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [
+    "cache_cold_ready_us",
+    "cache_cold_saved_us",
+    "cache_warm_ready_us",
+    "pso_fresh_us",
+    "pso_disk_hit_us",
+    "early_only_save_us"
+  ],
+  "family_excludes_zero": [
+    "cache_cold_ready_us",
+    "cache_cold_saved_us",
+    "cache_warm_ready_us",
+    "pso_fresh_us",
+    "pso_disk_hit_us",
+    "early_only_save_us"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "cache_cold_open_us": {
+      "a_median": 753.5,
+      "b_median": 751.4,
+      "change_pct": 0.51834674669213321,
+      "ci95_pct": [
+        -5.2202072538860005,
+        2.0703384207033881
+      ],
+      "family95_pct": [
+        -8.8378312667153018,
+        2.8340080971659853
+      ]
+    },
+    "cache_cold_ready_us": {
+      "a_median": 15023.1,
+      "b_median": 12649.9,
+      "change_pct": -18.339492897361474,
+      "ci95_pct": [
+        -21.721735308565371,
+        -13.819626117287987
+      ],
+      "family95_pct": [
+        -22.224056198914578,
+        -11.17416592616528
+      ]
+    },
+    "cache_cold_saved_us": {
+      "a_median": 15201.9,
+      "b_median": 13169.2,
+      "change_pct": -13.204238669261393,
+      "ci95_pct": [
+        -17.04790870637548,
+        -11.395488094517214
+      ],
+      "family95_pct": [
+        -19.696416154997465,
+        -8.8082004859054148
+      ]
+    },
+    "cache_warm_open_us": {
+      "a_median": 593.8,
+      "b_median": 577.3,
+      "change_pct": -6.5599497802887763,
+      "ci95_pct": [
+        -9.9174816625916868,
+        6.4976794002141958
+      ],
+      "family95_pct": [
+        -22.703259889189543,
+        8.4192439862542869
+      ]
+    },
+    "cache_warm_ready_us": {
+      "a_median": 1878.5,
+      "b_median": 1395.3,
+      "change_pct": -22.093287827076225,
+      "ci95_pct": [
+        -31.179445267405637,
+        -16.202964024020716
+      ],
+      "family95_pct": [
+        -35.372857804539137,
+        -13.84007486742227
+      ]
+    },
+    "cache_warm_saved_us": {
+      "a_median": 2033.2,
+      "b_median": 1902.2,
+      "change_pct": -2.4091444974114529,
+      "ci95_pct": [
+        -13.409058773624915,
+        2.3034456501046963
+      ],
+      "family95_pct": [
+        -17.321916887075805,
+        4.3993715183545
+      ]
+    },
+    "early_only_save_us": {
+      "a_median": 1575,
+      "b_median": 673.7,
+      "change_pct": -57.3358693513478,
+      "ci95_pct": [
+        -59.447521097046405,
+        -55.017656500802573
+      ],
+      "family95_pct": [
+        -61.516193233218743,
+        -54.522080092562831
+      ]
+    },
+    "prebuild_count": {
+      "a_median": 64,
+      "b_median": 64,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "pso_disk_hit_us": {
+      "a_median": 1230,
+      "b_median": 1731.5,
+      "change_pct": 41.844843122798395,
+      "ci95_pct": [
+        32.269446672012833,
+        47.29776247848536
+      ],
+      "family95_pct": [
+        27.266778157492922,
+        51.173981581349047
+      ]
+    },
+    "pso_fresh_us": {
+      "a_median": 1042.6,
+      "b_median": 906.6,
+      "change_pct": -10.99175139075388,
+      "ci95_pct": [
+        -17.881112176414192,
+        -7.9609080728901489
+      ],
+      "family95_pct": [
+        -18.390912504693958,
+        -5.9567484070283783
+      ]
+    },
+    "shader_count": {
+      "a_median": 20,
+      "b_median": 20,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}

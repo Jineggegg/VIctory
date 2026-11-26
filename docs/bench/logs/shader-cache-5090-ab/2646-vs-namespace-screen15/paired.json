@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "disk-pipelines",
+  "test": "pipeline::hot::shader_bench::disk",
+  "parameters": {
+    "VICTORY_BENCH_DISK": "pipelines"
+  },
+  "family_size": 3,
+  "pairs": 15,
+  "a_commit": "8a1e733d05db98ae46d90dcc3dc13fb176963713",
+  "b_commit": "1ceaf9a7cf6b0c421b60d5df7bff41f88a7ad01f",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 17:16:55Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=2% | VRAM=4259\/32607 MiB | power=66.51 W | temp=36.34 C | graphics=1320 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%",
+    "tolerated_background": "chrome(pid=60252) 3D=1%"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [
+    "pso_disk_hit_us"
+  ],
+  "family_excludes_zero": [
+    "pso_disk_hit_us"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "early_only_save_us": {
+      "a_median": 1538.3,
+      "b_median": 1671.1,
+      "change_pct": 6.1217533574204008,
+      "ci95_pct": [
+        -0.74790457769180474,
+        20.885608856088567
+      ],
+      "family95_pct": [
+        -1.793582821324391,
+        26.478521149924351
+      ]
+    },
+    "prebuild_count": {
+      "a_median": 64,
+      "b_median": 64,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "pso_disk_hit_us": {
+      "a_median": 1215.3,
+      "b_median": 1746.7,
+      "change_pct": 49.3284810674985,
+      "ci95_pct": [
+        38.187162376866858,
+        56.70867309117866
+      ],
+      "family95_pct": [
+        38.0572241542839,
+        56.70867309117866
+      ]
+    },
+    "pso_fresh_us": {
+      "a_median": 1023.2,
+      "b_median": 913.2,
+      "change_pct": -9.1288724871321776,
+      "ci95_pct": [
+        -14.615459218310534,
+        2.6956804157193925
+      ],
+      "family95_pct": [
+        -14.810449813396199,
+        2.6956804157193925
+      ]
+    }
+  }
+}
