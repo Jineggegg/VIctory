@@ -1,6 +1,8 @@
 """WSL entry point for the native Windows hotspot benchmark. No Python dependencies."""
 import argparse
+from contextlib import ExitStack, contextmanager
 import csv
+import fcntl
 import hashlib
 import json
 import math
@@ -81,7 +83,9 @@ def build():
     commit, delta = identity(), source_delta()
     command = ("cargo test --locked --profile diag -p victory-gpu --lib --features diagnostics "
                "--no-run --message-format=json; exit $LASTEXITCODE")
-    p = subprocess.run(windows(command), cwd=ROOT, capture_output=True, text=True)
+    queue = shutil.which("build-queue")
+    build_command = ([queue] if queue else []) + windows(command)
+    p = subprocess.run(build_command, cwd=ROOT, capture_output=True, text=True)
     print(clean(p.stderr), end="", flush=True)
     if p.returncode:
         raise RuntimeError(clean(p.stdout[-6000:]))
@@ -169,6 +173,44 @@ def sample(out, runs, informal):
     save(report_path, report)
 
 
+@contextmanager
+def quiet_build_slots():
+    """Take the configured local build-queue locks together, before pausing desktop services."""
+    queue = shutil.which("build-queue")
+    if not queue:
+        yield
+        return
+    state = Path(os.getenv("BUILD_QUEUE_STATE", Path.home() / ".local/state/build-queue"))
+    # --status materializes the configured slots; it also lists the slot count.
+    slot_ids = re.findall(r"^槽位 (\d+)：", output(queue, "--status"), re.MULTILINE)
+    if not slot_ids:
+        raise RuntimeError("Cannot identify local build-queue slots")
+    ancestors = set()
+    pid = os.getpid()
+    while pid > 1:
+        ancestors.add(pid)
+        pid = int(Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[1])
+    print(f"Waiting for {len(slot_ids)} local build slots before reserving the GPU", flush=True)
+    while True:
+        with ExitStack() as locks:
+            for i in slot_ids:
+                info = state / f"slot{i}.info"
+                owner = re.match(r"pid (\d+)", info.read_text() if info.exists() else "")
+                if owner and int(owner[1]) in ancestors:
+                    # Already protected by the caller's build-queue wrapper.
+                    continue
+                lock = locks.enter_context((state / f"slot{i}.lock").open("a"))
+                try:
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    break
+            else:
+                print(f"Reserved {len(slot_ids)} build slots for GPU sampling", flush=True)
+                yield len(slot_ids)
+                return
+        time.sleep(1)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=["build", "run", "smoke", "_sample"])
@@ -189,7 +231,8 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     child = ["gpu-quiet", "run", "--", sys.executable, __file__, "_sample",
              "--runs", str(runs), "--out", str(out)]
-    with (out / "window.txt").open("x", buffering=1) as log:
+    with quiet_build_slots() as slots, (out / "window.txt").open("x", buffering=1) as log:
+        print(f"Local build-queue slots reserved: {slots or 0}", file=log)
         with subprocess.Popen(child, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as proc:
             for line in proc.stdout:
                 print(clean(line), end="", file=log)
