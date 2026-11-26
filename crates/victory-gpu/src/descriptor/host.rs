@@ -989,6 +989,7 @@ impl HostHeap {
         for &(page, host_page) in &taken {
             for index in page * PAGE..((page + 1) * PAGE).min(self.count) {
                 self.keep(index, None);
+                self.write_stride(index, 0);
                 self.set_mark(index, None);
                 self.viewed.set(index, None, false);
                 // A shader's next read of it is taken (`make_read`).
@@ -1185,7 +1186,13 @@ impl HostHeap {
                 let (kept, mark, bias) = make_marked(&view, at);
                 (kept, mark, bias, placed)
             };
-            self.set_stride(index, Some(&view), bias);
+            // A descriptor written to the scratch page is invisible to shaders.
+            // The guest slot still resolves to the null Texture2D page.
+            if placed {
+                self.set_stride(index, Some(&view), bias);
+            } else {
+                self.write_stride(index, 0);
+            }
             self.set_mark(index, mark);
             if kept.is_none() && !self.sampler {
                 null_for(&view, self.cpu(index));

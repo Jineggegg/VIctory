@@ -99,7 +99,7 @@ fn shader(write: bool, field: usize) -> HostShader {
     emitted
 }
 
-fn mirror(heap: &HostHeap, slot: u32, address: u64, first: usize, write: bool) {
+fn mirror(heap: &HostHeap, slot: u32, address: u64, first: usize, write: bool) -> [u32; 8] {
     assert!(first + LANES <= ELEMENTS);
     let mut resource = [0; 14];
     resource[0] = 1; // D3D12_RESOURCE_DIMENSION_BUFFER
@@ -131,6 +131,7 @@ fn mirror(heap: &HostHeap, slot: u32, address: u64, first: usize, write: bool) {
             (LANES * FIELDS * 4) as u64
         ))
     );
+    record
 }
 
 struct Kernel {
@@ -258,4 +259,67 @@ fn gpu_writes_visible_through_overlapping_views() {
     assert_eq!(host.log_messages(), None, "D3D12 validation errors");
     assert_eq!(total_wrong, 0, "mismatches out of 2400");
     eprintln!("Verified 2400 words across five view origins and guest slots through {}.", TITLE_VIEWS - 1);
+}
+
+/// After eviction the slot's default Texture2D cannot be used as a buffer.
+/// Changing only the dedicated null SRV distinguishes the guard's two routes.
+#[test]
+fn an_evicted_buffer_reads_through_the_dedicated_null_srv() {
+    let Some(host) = host() else { return };
+    if !view_pages() { return; }
+    let heap = HostHeap::new(false, 2 * PAGE).unwrap();
+    let slot = PAGE + 13;
+    let bytes = (4 * LANES) as u64;
+    let (canary, src) = host.shared_buffer(bytes).unwrap();
+    let pool = crate::watch::tests::pool(1);
+    let (output, dst) = host.shared_buffer(bytes).unwrap();
+    // SAFETY: both mapped allocations hold LANES dwords; no pending submission.
+    unsafe { std::ptr::write_bytes(src, 0x37, bytes as usize) };
+    let words: [u32; ELEMENTS * FIELDS] = std::array::from_fn(|i| 100 + i as u32);
+    // SAFETY: our live pool has a full page for the title's structured buffer.
+    unsafe { std::ptr::copy_nonoverlapping(words.as_ptr(), pool as *mut u32, words.len()) };
+    let field = |first: usize| std::array::from_fn(|i| words[(first + i) * FIELDS]);
+    crate::shadow::register(pool, pool as u64, BYTES as u64);
+    mirror(&heap, slot, pool as u64, 1, false);
+    let data = heap.strides.as_ref().unwrap().1 as *const u32;
+    // SAFETY: slot is within the mapped stride table of our private idle heap.
+    let stride_word = || unsafe { data.add(slot as usize).read_volatile() };
+    let biased = 12 | (3 << victory_shader::emit::VIEW_RAW_OFFSET_SHIFT);
+    assert_eq!(stride_word(), biased);
+    let device = victory_shader::emit::host::Host::from_device(host.device.clone());
+    let reader = Kernel::new(&device, false, 0);
+    let read = |expected: [u32; LANES]| {
+        heap.raw_view_at(0, Some(&output), 0, bytes, true);
+        // SAFETY: poison every output dword before dispatch; run waits for its fence.
+        unsafe { std::ptr::write_bytes(dst, 0xEE, bytes as usize) };
+        reader.run(host, &heap, slot);
+        // SAFETY: the mapped result contains LANES initialized dwords.
+        assert_eq!(unsafe { std::slice::from_raw_parts(dst.cast::<u32>(), LANES) }, expected);
+    };
+    read(field(1));
+    crate::host::tests::without_submissions(|| {
+        crate::host::tests::take_back_all(&heap, &mut std::time::Instant::now());
+    });
+    assert_eq!(heap.host_page_of(slot), Some(NULL_PAGE));
+    assert_eq!(stride_word(), 0);
+    read([0; LANES]);
+    heap.raw_view_at(victory_shader::emit::NULL_BUFFER_VIEW, Some(&canary), 0, bytes, false);
+    read([0x3737_3737; LANES]);
+    assert_eq!(heap.host_page_of(slot), Some(NULL_PAGE));
+
+    // A guest rewrite with no room goes into scratch. Rebuilding the page
+    // from that record must restore its stride and nonzero prefix.
+    heap.hold_page_room(true);
+    let record = mirror(&heap, slot, pool as u64, 2, false);
+    assert_eq!(heap.host_page_of(slot), Some(NULL_PAGE));
+    assert_eq!(stride_word(), 0);
+    heap.hold_page_room(false);
+    heap.place_page(slot / PAGE);
+    assert!(heap.remakes().contains(&(PAGE, 2 * PAGE)));
+    heap.mirror(slot, record.as_ptr() as u64, true).unwrap();
+    assert_eq!(stride_word(), 12 | (2 << victory_shader::emit::VIEW_RAW_OFFSET_SHIFT));
+    read(field(2));
+    drop(heap);
+    crate::shadow::unregister(pool, pool as u64);
+    crate::watch::tests::free(pool);
 }

@@ -5556,8 +5556,14 @@ impl<'a> Lower<'a> {
     ) -> V {
         let (index, word) = self.buffer_guard(src, index, sampler, props);
         let h = self.s.heap_handle(self.cur, index, sampler, nonuniform, props);
-        if let Some(word) = word {
+        if let Some((word, guest_index)) = word {
             self.guarded_stride.insert(h, word);
+            // The fallback descriptor is resident. Mark the guest page so a
+            // bindless read of an evicted buffer brings that page back.
+            if self.x.view_marks && let Some((page, _)) = self.s.page_index.get_mut(&h) {
+                let shift = self.s.m.i32(super::VIEW_PAGE_SLOTS.trailing_zeros());
+                *page = self.s.m.bin(self.cur, Bin::LShr, guest_index, shift);
+            }
         } else if self.s.view_index.contains_key(&h) && self.used_kind(src).is_some_and(|u| u.stride >= 4) {
             self.table_bias.insert(h, (self.cur, None));
         }
@@ -5577,7 +5583,7 @@ impl<'a> Lower<'a> {
         index: V,
         sampler: bool,
         props: (u32, u32),
-    ) -> (V, Option<V>) {
+    ) -> (V, Option<(V, V)>) {
         // Typed, raw and structured buffers (DXIL resource kinds 10-12).
         if sampler || !(10..=12).contains(&(props.0 & 0xFF)) || !self.is_heap_direct(src) {
             return (index, None);
@@ -5598,7 +5604,7 @@ impl<'a> Lower<'a> {
         // The null unordered access view sits just below the null SRV.
         let null = super::NULL_BUFFER_VIEW - u32::from(props.0 & 0x1000 != 0);
         let null = self.s.m.i32(null);
-        (self.s.m.select(c, none, null, index), Some(stride))
+        (self.s.m.select(c, none, null, index), Some((stride, index)))
     }
 
     /// Whether a descriptor comes from the resource heap itself (root type

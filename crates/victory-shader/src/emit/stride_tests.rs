@@ -630,7 +630,6 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
     let slot = 4296 * page + 1;
     let mut tables = vec![0u32; (super::HEAP_VIEWS + super::HEAP_VIEWS / page) as usize];
     tables[..2].copy_from_slice(&[4, 12]);
-    tables[slot as usize] = 12;
     // Pages 0 and 4,296 at host page 0 (entries are 0).
     let data: Vec<u32> = (0..32).flat_map(|e| [100 + e, 200 + e, 300 + e]).collect();
     let views = [
@@ -639,6 +638,7 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
             data: &data,
             stride: Stride::Structured(12),
         },
+        View::NullBuffers,
     ];
     let words = (super::VIEW_PAGE_READS + super::HEAP_VIEWS / page) / 32;
     let _one = super::valu_tests::ONE_AT_A_TIME
@@ -657,29 +657,37 @@ fn views_read_in_a_paged_view_heap_mark_their_pages() {
         for u in &shader.user_data {
             ud[u.index as usize] = if u.root == RootType::Constants { slot } else { 0 };
         }
-        let out = host
-            .dispatch(
-                &root,
-                &pso,
-                &Dispatch {
-                    roots: vec![
-                        (0, Root::Constants(ud)),
-                        (1, Root::View { srv: true, data: tables.clone() }),
-                        (2, Root::View { srv: true, data: vec![super::VIEW_MARK_NONE, 0] }),
-                        (3, Root::Uav(words)),
-                    ],
-                    views: &views,
-                    samplers: &[],
-                    groups: [1, 1, 1],
-                },
-            )
-            .unwrap_or_else(|e| panic!("{label}: dispatch failed: {e}"));
-        let bits = &out[1];
-        let set: Vec<u32> = (0..bits.len() as u32 * 32)
-            .filter(|&b| bits[(b / 32) as usize] >> (b % 32) & 1 != 0)
-            .collect();
-        let pages = super::VIEW_PAGE_READS;
-        assert_eq!(set, [pages, pages + 4296], "{label}: the pages read");
+        let null_page = super::NULL_BUFFER_VIEW / page;
+        tables[(super::VIEW_PAGE_TABLE / 4 + null_page) as usize] =
+            host.null_buffer_page(views.len()).unwrap_or(null_page);
+        for stride in [12, 0] {
+            tables[slot as usize] = stride;
+            let out = host
+                .dispatch(
+                    &root,
+                    &pso,
+                    &Dispatch {
+                        roots: vec![
+                            (0, Root::Constants(ud.clone())),
+                            (1, Root::View { srv: true, data: tables.clone() }),
+                            (2, Root::View { srv: true, data: vec![super::VIEW_MARK_NONE, 0] }),
+                            (3, Root::Uav(words)),
+                        ],
+                        views: &views,
+                        samplers: &[],
+                        groups: [1, 1, 1],
+                    },
+                )
+                .unwrap_or_else(|e| panic!("{label}: dispatch failed: {e}"));
+            let bits = &out[1];
+            let set: Vec<u32> = (0..bits.len() as u32 * 32)
+                .filter(|&b| bits[(b / 32) as usize] >> (b % 32) & 1 != 0)
+                .collect();
+            let pages = super::VIEW_PAGE_READS;
+            assert_eq!(set, [pages, pages + 4296], "{label}: the pages read");
+            let expected: [u32; 32] = std::array::from_fn(|i| if stride == 0 { 0 } else { 200 + i as u32 });
+            assert_eq!(out[0], expected, "{label}: data at stride {stride}");
+        }
         ran += 1;
     }
     assert!(ran > 0, "neither hardware nor WARP SM 6.6 device available");
