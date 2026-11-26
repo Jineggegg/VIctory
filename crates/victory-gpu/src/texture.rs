@@ -168,6 +168,22 @@ fn staging_buffer(size: u64) -> Option<(ID3D12Resource, *mut u8)> {
     Some(made)
 }
 
+#[cfg(all(test, feature = "diagnostics"))]
+static STAGING_REQUESTED: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn staging_requested() -> u64 {
+    STAGING_REQUESTED.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Physical staging buffers used by the most recent submission (including chunk slack).
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn staging_backing() -> u64 {
+    let chunks = CHUNKS.lock().unwrap_or_else(|e| e.into_inner());
+    let count = chunks.current + usize::from(chunks.used > 0);
+    count as u64 * CHUNK + BUFFERS.lock().unwrap_or_else(|e| e.into_inner()).used.iter().map(|e| e.0).sum::<u64>()
+}
+
 /// Staging space carved from large upload buffers, front to back: most
 /// textures take a part of one instead of a buffer of their own (making
 /// upload buffers was 10 % of the submitting thread in a new shot, run
@@ -193,6 +209,8 @@ const CHUNKS_KEPT: usize = 16;
 /// (a multiple of 512, as texture copies need) and its mapping there.
 /// Space larger than a chunk is a buffer of its own ([`staging_buffer`]).
 fn staging_space(size: u64) -> Option<(ID3D12Resource, u64, *mut u8)> {
+    #[cfg(all(test, feature = "diagnostics"))]
+    STAGING_REQUESTED.fetch_add(size, std::sync::atomic::Ordering::Relaxed);
     if size > CHUNK {
         return staging_buffer(size).map(|(b, data)| (b, 0, data));
     }
