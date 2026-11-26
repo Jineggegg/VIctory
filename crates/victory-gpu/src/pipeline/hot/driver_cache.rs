@@ -27,8 +27,16 @@ fn compile_one_process() {
     let budget = number("VICTORY_BENCH_DRIVER_BUDGET_KIB", 0) * 1024;
     assert!((1..=4096).contains(&rounds));
     assert!((1..=4096).contains(&count) && (1..=64).contains(&workers));
-    let dir = tempfile::tempdir().unwrap();
-    crate::pipeline::library::use_pipeline_cache(dir.path().to_owned());
+    // The normal prebuild path can serialize a growing application library
+    // every 20 seconds. Keep that I/O out of the driver-only comparison.
+    // An optional fresh directory reproduces the original large scenario.
+    let disk = number("VICTORY_BENCH_DRIVER_APP_DISK", 0);
+    assert!(disk <= 1);
+    let _dir = (disk == 1).then(|| {
+        let dir = tempfile::tempdir().unwrap();
+        crate::pipeline::library::use_pipeline_cache(dir.path().to_owned());
+        dir
+    });
     let host = crate::host::host().expect("hardware D3D12");
     // SAFETY: enumerate the live device's exact adapter before the timer.
     let adapter = unsafe {
