@@ -165,6 +165,25 @@ function Get-Target($dir) {
     @{dir=$dir; exe=$exe; binary=$binary}
 }
 
+function Read-QuietWindow {
+    # gpu-quiet emits its accepted idle snapshot before starting this driver.
+    # The WSL tee may still be flushing that line across the Windows mount.
+    $path = Join-Path $OutDir window.txt
+    $snapshot = [ordered]@{status_line=$null; tolerated_background=$null}
+    for ($i=0; $i -lt 10; $i++) {
+        $line = [IO.File]::ReadAllLines($path) | Where-Object { $_ -match '\| 3D/Compute=' } | Select-Object -Last 1
+        if ($line) {
+            $snapshot.status_line = Protect-Log $line.Trim()
+            if ($snapshot.status_line -match '\| tolerated background=([^|]*)') {
+                $snapshot.tolerated_background = $Matches[1].Trim()
+            }
+            break
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    $snapshot
+}
+
 function New-Report($target, $system, $gpu) {
     [ordered]@{system=$system; schema=1; suite='victory-hot-v1'; formal=($Mode -ne 'smoke'); complete=$false;
         debug_layer='pending: Windows Graphics Tools unavailable'; binary=$target.binary; requested=$Runs; utc=Utc-Now;
@@ -305,7 +324,7 @@ function Paired-Report($a, $b) {
     $nominal = @($timings | Where-Object { $_ -cin $undefined -or $table[$_].ci95_pct[0] -gt 0 -or $table[$_].ci95_pct[1] -lt 0 })
     $aa = ($a.binary.sha256 -ceq $b.binary.sha256)
     [ordered]@{schema=1; complete=$true; pairs=$Runs; a_commit=$a.binary.commit; b_commit=$b.binary.commit; a_correct=$a.complete;
-        b_correct=$b.complete; same_binary=$aa; order='alternating AB / BA by pair'; bootstrap_draws=5000; seed=5090;
+        b_correct=$b.complete; quiet_window=$a.quiet_window; same_binary=$aa; order='alternating AB / BA by pair'; bootstrap_draws=5000; seed=5090;
         undefined_percentages=$undefined; pointwise_excludes_zero=$nominal; family_excludes_zero=$outside; family_pass=(!$aa -or $outside.Count -eq 0); pass=(!$aa -or $nominal.Count -eq 0); metrics=$table}
 }
 
@@ -322,12 +341,15 @@ function Sample {
     $file = [IO.File]::Open((Join-Path $OutDir run.txt), 'CreateNew', 'Write', 'Read')
     $log = [IO.StreamWriter]::new($file, $utf8)
     $log.AutoFlush = $true
+    $quietWindow = $null
+    if ($Mode -ne 'smoke') { $quietWindow = Read-QuietWindow }
     $reports = @{}
     $paths = @{}
     try {
         foreach ($label in $targets.Keys) {
             $reports[$label] = New-Report $targets[$label] $system $gpu
             if ($Mode -ne 'smoke') {
+                $reports[$label].quiet_window = $quietWindow
                 $reports[$label].warmup = [ordered]@{binary=$warmer.binary; stable_ms=3000; timeout_ms=12000;
                     pstate=@('P0','P1'); min_graphics_mhz=2500; min_memory_mhz=13000; pcie_gen=5; pcie_width=16;
                     trace_fields=@('elapsed_ms','pstate','graphics_mhz','memory_mhz','pcie_gen','pcie_width')}
