@@ -1,0 +1,92 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+    Finished `diag` profile [optimized + debuginfo] target(s) in 0.07s
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+2026-11-26 15:47:54Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=3721/32607 MiB | power=22.77 W | temp=41.15 C | graphics=255 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.7s, 10 samples, max GPU=0%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Sample A 1/30 P0 2850/14001 MHz
+Sample B 1/30 P0 2902/14001 MHz
+Sample B 2/30 P0 2887/14001 MHz
+Sample A 2/30 P0 2880/14001 MHz
+Sample A 3/30 P0 2887/14001 MHz
+Sample B 3/30 P0 2887/14001 MHz
+Sample B 4/30 P0 2880/14001 MHz
+Sample A 4/30 P0 2887/14001 MHz
+Sample A 5/30 P0 2835/14001 MHz
+Sample B 5/30 P0 2932/14001 MHz
+Sample B 6/30 P0 2925/14001 MHz
+Sample A 6/30 P0 2685/14001 MHz
+Sample A 7/30 P0 2670/14001 MHz
+Sample B 7/30 P0 2842/14001 MHz
+Sample B 8/30 P0 2917/14001 MHz
+Sample A 8/30 P0 2910/14001 MHz
+Sample A 9/30 P0 2775/14001 MHz
+Sample B 9/30 P0 2932/14001 MHz
+Sample B 10/30 P0 2932/14001 MHz
+Sample A 10/30 P0 2932/14001 MHz
+Sample A 11/30 P0 2700/14001 MHz
+Sample B 11/30 P0 2932/14001 MHz
+Sample B 12/30 P0 2932/14001 MHz
+Sample A 12/30 P0 2580/14001 MHz
+Sample A 13/30 P0 2722/14001 MHz
+Sample B 13/30 P0 2932/14001 MHz
+Sample B 14/30 P0 2932/14001 MHz
+Sample A 14/30 P0 2932/14001 MHz
+Sample A 15/30 P0 2602/14001 MHz
+Sample B 15/30 P0 2857/14001 MHz
+Sample B 16/30 P0 2932/14001 MHz
+Sample A 16/30 P0 2932/14001 MHz
+Sample A 17/30 P0 2692/14001 MHz
+Sample B 17/30 P0 2730/14001 MHz
+Sample B 18/30 P0 2932/14001 MHz
+Sample A 18/30 P0 2932/14001 MHz
+Sample A 19/30 P0 2775/14001 MHz
+Sample B 19/30 P0 2932/14001 MHz
+Sample B 20/30 P0 2932/14001 MHz
+Sample A 20/30 P0 2632/14001 MHz
+Sample A 21/30 P0 2595/14001 MHz
+Sample B 21/30 P0 2692/14001 MHz
+Sample B 22/30 P0 2580/14001 MHz
+Sample A 22/30 P0 2580/14001 MHz
+Sample A 23/30 P0 2707/14001 MHz
+Sample B 23/30 P0 2932/14001 MHz
+Sample B 24/30 P0 2932/14001 MHz
+Sample A 24/30 P0 2932/14001 MHz
+Sample A 25/30 P0 2580/14001 MHz
+Sample B 25/30 P0 2895/14001 MHz
+Sample B 26/30 P0 2865/14001 MHz
+Sample A 26/30 P0 2557/14001 MHz
+Sample A 27/30 P0 2662/14001 MHz
+Sample B 27/30 P0 2932/14001 MHz
+Sample B 28/30 P0 2932/14001 MHz
+Sample A 28/30 P0 2932/14001 MHz
+Sample A 29/30 P0 2730/14001 MHz
+Sample B 29/30 P0 2797/14001 MHz
+Sample B 30/30 P0 2932/14001 MHz
+Sample A 30/30 P0 2932/14001 MHz
+Correctness: A True, B True. Median paired change [pointwise 95%]:
+loop_early_exit_gpu_us: -60.60% [-64.24%, -56.04%]
+loop_early_exit_lanes: 0.00% [0.00%, 0.00%]
+loop_global_loads: 0.00% [0.00%, 0.00%]
+loop_page_lookup_gpu_us: -22.58% [-26.92%, -8.96%]
+loop_page_lookup_lanes: 0.00% [0.00%, 0.00%]
+pixel_helper_descriptor_page_gpu_us: +4.31% [-54.36%, 27.66%]
+pixel_helper_scattered_view_pages_gpu_us: +0.18% [-3.34%, 4.38%]
+pixel_helper_shared_view_page_gpu_us: -20.68% [-34.28%, 0.04%]
+title_odd_lanes_gpu_us: -10.25% [-10.88%, -9.72%]
+title_odd_lanes_lanes: 0.00% [0.00%, 0.00%]
+title_scattered_odd_lanes_gpu_us: -62.90% [-64.92%, -60.23%]
+title_scattered_odd_lanes_lanes: 0.00% [0.00%, 0.00%]
+wave_page_marks_gpu_us: -54.16% [-58.21%, -46.63%]
+wave_page_marks_lanes: 0.00% [0.00%, 0.00%]
+wave_sixteen_pages_gpu_us: -54.27% [-57.71%, -51.04%]
+wave_sixteen_pages_lanes: 0.00% [0.00%, 0.00%]
+wave_straddling_pairs_gpu_us: -44.09% [-50.03%, -39.89%]
+wave_straddling_pairs_lanes: 0.00% [0.00%, 0.00%]
+wave_two_pages_gpu_us: -72.96% [-75.86%, -55.99%]
+wave_two_pages_lanes: 0.00% [0.00%, 0.00%]
+Paired bootstrap: 30 pairs; see paired.json
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

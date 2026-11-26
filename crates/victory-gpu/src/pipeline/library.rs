@@ -45,6 +45,7 @@ use windows::Win32::Graphics::Dxgi::{
 use windows::core::{HSTRING, Interface, PCWSTR};
 
 static DIR: OnceLock<PathBuf> = OnceLock::new();
+static LIBRARY_DIR: OnceLock<Option<PathBuf>> = OnceLock::new();
 
 /// Keeps the pipeline library and the early list in `dir` from now on.
 pub fn use_pipeline_cache(dir: PathBuf) {
@@ -60,6 +61,9 @@ fn translator_dir(root: PathBuf, translator: &[u8; 32]) -> PathBuf {
 /// There are no blobs or early hints to read for a new translator. Avoid
 /// constructing a DXGI factory on the first pipeline request in that case.
 fn existing_library_dir() -> Option<&'static PathBuf> {
+    if let Some(resolved) = LIBRARY_DIR.get() {
+        return resolved.as_ref();
+    }
     DIR.get()?.is_dir().then(library_dir).flatten()
 }
 
@@ -67,18 +71,81 @@ fn existing_library_dir() -> Option<&'static PathBuf> {
 /// packages side by side. The device also validates the bytes on load.
 fn library_dir() -> Option<&'static PathBuf> {
     let root = DIR.get()?;
-    static PATH: OnceLock<Option<PathBuf>> = OnceLock::new();
-    PATH.get_or_init(|| {
+    LIBRARY_DIR.get_or_init(|| {
         let device = &crate::host::host()?.device;
-        // SAFETY: query the adapter that owns the existing D3D12 device.
-        let (desc, driver) = unsafe {
-            let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).ok()?;
-            let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(device.GetAdapterLuid()).ok()?;
-            (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
-        };
-        let adapter = namespace(&desc, driver)?;
-        Some(translator_dir(root.join(adapter), crate::shader_cache::build()))
+        let adapter = adapter_namespace(device)?;
+        Some(translator_dir(root.join(adapter), crate::shader_cache::build(crate::shader_cache::options())))
     }).as_ref()
+}
+
+fn adapter_namespace(device: &ID3D12Device) -> Option<String> {
+    // SAFETY: reads the identifier of this live device.
+    let luid = unsafe { device.GetAdapterLuid() };
+    // The kernel query describes physical node zero. For linked devices use
+    // the logical adapter and driver identity supplied by DXGI.
+    if unsafe { device.GetNodeCount() } == 1 && let Some(name) = hardware_namespace(luid) {
+        return Some(name);
+    }
+    dxgi_namespace(luid)
+}
+
+fn dxgi_namespace(luid: windows::Win32::Foundation::LUID) -> Option<String> {
+    // SAFETY: query the adapter that owns the existing D3D12 device.
+    let (desc, driver) = unsafe {
+        let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).ok()?;
+        let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(luid).ok()?;
+        (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
+    };
+    namespace(&desc, driver)
+}
+
+fn hardware_namespace(luid: windows::Win32::Foundation::LUID) -> Option<String> {
+    use windows::Wdk::Graphics::Direct3D::*;
+
+    let mut open = D3DKMT_OPENADAPTERFROMLUID { AdapterLuid: luid, ..Default::default() };
+    // SAFETY: an initialized adapter LUID and a writable result handle.
+    unsafe { D3DKMTOpenAdapterFromLuid(&mut open) }.ok().ok()?;
+    let read = |kind, data, size| {
+        let mut query = D3DKMT_QUERYADAPTERINFO {
+            hAdapter: open.hAdapter,
+            Type: kind,
+            pPrivateDriverData: data,
+            PrivateDriverDataSize: size,
+        };
+        // SAFETY: each call below supplies the live output object and size
+        // prescribed by its query type.
+        unsafe { D3DKMTQueryAdapterInfo(&mut query) }.ok().ok()
+    };
+    let result = (|| {
+        let mut kind = D3DKMT_ADAPTERTYPE::default();
+        read(KMTQAITYPE_ADAPTERTYPE, (&raw mut kind).cast(), size_of_val(&kind) as u32)?;
+        // SAFETY: Value is the WDK's unsigned representation of the flags.
+        const SOFTWARE_DEVICE: u32 = 1 << 2;
+        if unsafe { kind.Anonymous.Value } & SOFTWARE_DEVICE != 0 {
+            return None;
+        }
+        let mut ids = D3DKMT_QUERY_DEVICE_IDS::default();
+        read(KMTQAITYPE_PHYSICALADAPTERDEVICEIDS, (&raw mut ids).cast(), size_of_val(&ids) as u32)?;
+        let ids = ids.DeviceIds;
+        let mut version = D3DKMT_UMD_DRIVER_VERSION::default();
+        read(KMTQAITYPE_UMD_DRIVER_VERSION, (&raw mut version).cast(), size_of_val(&version) as u32)?;
+        if ids.VendorID == 0 || ids.DeviceID == 0 || version.DriverVersion == 0 {
+            return None;
+        }
+        // The PCI subsystem DWORD contains subsystem ID then subvendor ID.
+        let desc = DXGI_ADAPTER_DESC1 {
+            VendorId: ids.VendorID,
+            DeviceId: ids.DeviceID,
+            SubSysId: (u32::from(u16::try_from(ids.SubSystemID).ok()?) << 16)
+                | u32::from(u16::try_from(ids.SubVendorID).ok()?),
+            Revision: ids.RevisionID,
+            ..Default::default()
+        };
+        namespace(&desc, Some(version.DriverVersion))
+    })();
+    // SAFETY: this call releases the handle opened above, on all result paths.
+    unsafe { D3DKMTCloseAdapter(&D3DKMT_CLOSEADAPTER { hAdapter: open.hAdapter }) }.ok().ok()?;
+    result
 }
 
 fn namespace(desc: &DXGI_ADAPTER_DESC1, driver: Option<i64>) -> Option<String> {
@@ -104,8 +171,24 @@ struct Library {
     added: u64,
     /// Title pipelines the pre-build put in the library or found there, by
     /// key, and whether that list changed since the last save.
-    prebuilt: HashSet<String>,
+    prebuilt: Option<HashSet<String>>,
     prebuilt_changed: bool,
+}
+
+impl Library {
+    /// Gameplay loads PSOs by their driver names. The prebuild index is
+    /// needed by the CLI, or when publishing a new tagged snapshot.
+    fn prebuilt_keys(&mut self) -> &mut HashSet<String> {
+        self.prebuilt.get_or_insert_with(|| {
+            if self._blob.is_empty() {
+                return HashSet::new();
+            }
+            library_dir()
+                .and_then(|dir| std::fs::read(dir.join(PREBUILT_FILE)).ok())
+                .map(|index| listed(&index, &tag(&self._blob)))
+                .unwrap_or_default()
+        })
+    }
 }
 
 // SAFETY: D3D12 objects are free-threaded (a pipeline library with the
@@ -188,13 +271,7 @@ fn library() -> Option<&'static Shared> {
             let dir = disk_configured.then(existing_library_dir).flatten();
             let read = |file| dir.and_then(|d| std::fs::read(d.join(file)).ok());
             let blob = read(LIBRARY_FILE).unwrap_or_default();
-            let mut library = open(&device, blob);
-            // The pre-build's list, if it was saved with these bytes.
-            if let (Some(l), Some(list)) = (library.as_mut(), read(PREBUILT_FILE))
-                && !l._blob.is_empty()
-            {
-                l.prebuilt = listed(&list, &tag(&l._blob));
-            }
+            let library = open(&device, blob);
             if library.is_none() {
                 tracing::warn!("no host pipeline library: pipelines are not kept");
             }
@@ -222,7 +299,7 @@ fn open(device: &ID3D12Device1, blob: Vec<u8>) -> Option<Library> {
                     library,
                     _blob: blob,
                     added: 0,
-                    prebuilt: HashSet::new(),
+                    prebuilt: None,
                     prebuilt_changed: false,
                 });
             }
@@ -236,7 +313,7 @@ fn open(device: &ID3D12Device1, blob: Vec<u8>) -> Option<Library> {
         library,
         _blob: Vec::new(),
         added: 0,
-        prebuilt: HashSet::new(),
+        prebuilt: None,
         prebuilt_changed: false,
     })
 }
@@ -280,14 +357,16 @@ fn listed(list: &[u8], tag: &str) -> HashSet<String> {
 
 /// Whether the pre-build has the title pipeline `key` in the library.
 pub(crate) fn prebuilt(key: &str) -> bool {
-    library().is_some_and(|l| l.state.lock().unwrap_or_else(|e| e.into_inner()).prebuilt.contains(key))
+    library().is_some_and(|l| l.state.lock().unwrap_or_else(|e| e.into_inner()).prebuilt_keys().contains(key))
 }
 
 /// The pre-build has the title pipeline `key` in the library now.
 pub(crate) fn note_prebuilt(key: String) {
     if let Some(l) = library() {
         let mut l = l.state.lock().unwrap_or_else(|e| e.into_inner());
-        l.prebuilt_changed |= l.prebuilt.insert(key);
+        if l.prebuilt_keys().insert(key) {
+            l.prebuilt_changed = true;
+        }
     }
 }
 
@@ -411,7 +490,8 @@ fn save_library(dir: &std::path::Path, library: &Shared) {
                 let prebuilt_changed = std::mem::take(&mut l.prebuilt_changed);
                 // Kept beside the bytes it holds for (also when a run adds
                 // pipelines).
-                let prebuilt = (!l.prebuilt.is_empty()).then(|| list(&tag(&bytes), &l.prebuilt));
+                let keys = l.prebuilt_keys();
+                let prebuilt = (!keys.is_empty()).then(|| list(&tag(&bytes), keys));
                 (bytes, prebuilt, added, prebuilt_changed)
             }
             Err(e) => {
@@ -571,6 +651,27 @@ mod tests {
     use super::*;
 
     /// A size the host cannot give is refused, not fatal; others are zeros.
+    #[test]
+    #[ignore]
+    fn hardware_metadata_matches_the_dxgi_driver_namespace() {
+        let host = crate::host::host().expect("test device");
+        // SAFETY: plain identifier query on the current live device.
+        let luid = unsafe { host.device.GetAdapterLuid() };
+        let start = std::time::Instant::now();
+        let fast = hardware_namespace(luid);
+        let t1 = start.elapsed();
+        let start = std::time::Instant::now();
+        let reference = dxgi_namespace(luid).expect("DXGI driver identity");
+        let t2 = start.elapsed();
+        if reference.starts_with("hw-") {
+            assert_eq!(fast.as_deref(), Some(reference.as_str()));
+        } else {
+            assert_eq!(adapter_namespace(&host.device).as_deref(), Some(reference.as_str()));
+        }
+        println!("IDENTITY kind={} kmt_us={:.3} dxgi_us={:.3}", &reference[..2],
+                 t1.as_secs_f64()*1e6, t2.as_secs_f64()*1e6);
+    }
+
     #[test]
     fn a_save_buffer_the_host_cannot_give_is_refused() {
         assert!(zeroed(usize::MAX / 2).is_none());
@@ -940,6 +1041,24 @@ mod tests {
             use_pipeline_cache(root);
             let dir = library_dir().expect("cacheable driver version");
             let blob = dir.join(LIBRARY_FILE);
+            if phase == "gameplay-save" {
+                let pixels = super::super::placed_uav_tests::run_store(host, |_| {}).unwrap();
+                assert_eq!(pixels, [[1.0, 0.5, -0.25, 2.0], [0.0; 4]]);
+                let shared = library().unwrap();
+                assert!(shared.state.lock().unwrap().prebuilt.is_none());
+                let (_root, pso) = crate::draw::tests::compile_cs(
+                    r#"[RootSignature("UAV(u0)")] [numthreads(1,1,1)]
+                        void main() {}"#,
+                );
+                pipeline("gameplay-save-test", |_, _| Err(windows::core::Error::empty()), || Ok(pso)).unwrap();
+                assert!(shared.state.lock().unwrap().prebuilt.is_none());
+                save(true);
+                assert!(shared.state.lock().unwrap().prebuilt_keys().contains("old-marker"));
+                return;
+            }
+            if phase == "hit" {
+                assert!(prebuilt("old-marker"));
+            }
             if phase == "damaged" {
                 assert!(blob.is_file());
                 std::fs::write(&blob, b"invalid host pipeline library").unwrap();
@@ -959,7 +1078,7 @@ mod tests {
         }
 
         let root = tempfile::tempdir().unwrap();
-        for phase in ["empty", "late", "hit", "damaged", "repaired"] {
+        for phase in ["empty", "late", "gameplay-save", "hit", "damaged", "repaired"] {
             let child = std::process::Command::new(std::env::current_exe().unwrap())
                 .args(["--exact", "pipeline::library::tests::reopened_library_loads_then_recovers_a_rejected_blob", "--ignored", "--nocapture"])
                 .env(PHASE, phase)

@@ -1,0 +1,28 @@
+{
+  "name": "gpu-page-marks",
+  "test": "pipeline::hot::waves::wave_scenarios",
+  "timings": [
+    "wave_page_marks_gpu_us",
+    "loop_page_lookup_gpu_us",
+    "wave_two_pages_gpu_us",
+    "wave_sixteen_pages_gpu_us",
+    "wave_straddling_pairs_gpu_us",
+    "loop_early_exit_gpu_us",
+    "title_odd_lanes_gpu_us",
+    "title_scattered_odd_lanes_gpu_us",
+    "pixel_helper_shared_view_page_gpu_us",
+    "pixel_helper_scattered_view_pages_gpu_us",
+    "pixel_helper_descriptor_page_gpu_us"
+  ],
+  "workload": [
+    "wave_page_marks_lanes",
+    "loop_page_lookup_lanes",
+    "wave_two_pages_lanes",
+    "wave_sixteen_pages_lanes",
+    "wave_straddling_pairs_lanes",
+    "loop_early_exit_lanes",
+    "title_odd_lanes_lanes",
+    "title_scattered_odd_lanes_lanes",
+    "loop_global_loads"
+  ]
+}
