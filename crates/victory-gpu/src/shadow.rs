@@ -24,6 +24,7 @@ use windows::Win32::Graphics::Direct3D12::ID3D12Resource;
 use crate::host::{HostList, host};
 use crate::watch::PAGE;
 
+#[cfg(test)]
 fn merge_writeback(title: &mut [u8], host: &mut [u8], old: &[u8]) -> bool {
     let mut changed = 0;
     for ((title_byte, host_byte), old_byte) in title.iter_mut().zip(host).zip(old) {
@@ -63,61 +64,264 @@ fn writeback_merge_matches_bytewise_oracle() {
     }
 }
 
-/// Copies one disjoint part per callback on the Windows process thread pool.
-/// Wait before publishing the copy or inspecting it for a pending snapshot.
-fn refresh_run(dst: *mut u8, src: usize, len: usize) {
+/// A bounded number of callbacks on the persistent Windows process pool.
+/// The caller also works and joins every callback before returning.
+fn parallel_items(n: usize, f: impl Fn(usize) + Sync) {
+    use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
     use windows_sys::Win32::System::Threading::{
         CloseThreadpoolWork, CreateThreadpoolWork, PTP_CALLBACK_INSTANCE, PTP_WORK,
         SubmitThreadpoolWork, WaitForThreadpoolWorkCallbacks,
     };
+    struct Job<'a> {
+        n: usize,
+        next: AtomicUsize,
+        f: &'a (dyn Fn(usize) + Sync),
+    }
+    impl Job<'_> {
+        fn run(&self) {
+            loop {
+                let i = self.next.fetch_add(1, Relaxed);
+                if i >= self.n {
+                    break;
+                }
+                (self.f)(i);
+            }
+        }
+    }
+    unsafe extern "system" fn worker(
+        _: PTP_CALLBACK_INSTANCE,
+        context: *mut std::ffi::c_void,
+        _: PTP_WORK,
+    ) {
+        // SAFETY: the caller joins all callbacks before dropping the job.
+        unsafe { &*context.cast::<Job<'_>>() }.run();
+    }
+    // Also join on unwind: a work item must never outlive the borrowed job.
+    struct Work(PTP_WORK);
+    impl Drop for Work {
+        fn drop(&mut self) {
+            unsafe {
+                WaitForThreadpoolWorkCallbacks(self.0, 0);
+                CloseThreadpoolWork(self.0);
+            }
+        }
+    }
+    let job = Job {
+        n,
+        next: 0.into(),
+        f: &f,
+    };
+    // SAFETY: the context outlives all callbacks. Each index is claimed once.
+    unsafe {
+        let work = CreateThreadpoolWork(
+            Some(worker),
+            std::ptr::from_ref(&job).cast_mut().cast(),
+            std::ptr::null(),
+        );
+        if work == 0 {
+            job.run();
+            return;
+        }
+        let work = Work(work);
+        static WORKERS: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+        let workers = WORKERS.get_or_init(|| {
+            std::thread::available_parallelism()
+                .map_or(1, usize::from)
+                .min(8)
+                - 1
+        });
+        for _ in 0..(*workers).min(n.saturating_sub(1)) {
+            SubmitThreadpoolWork(work.0);
+        }
+        job.run();
+        drop(work);
+    }
+}
+
+/// Complete the kernel copies before updating any snapshot of this run.
+fn refresh_run(dst: *mut u8, src: usize, len: usize) {
     const PIECE: usize = 2 << 20;
     if len < 4 * PIECE {
         crate::host::copy_mapped(dst, src as *const u8, len, false);
         return;
     }
-    struct Run {
-        dst: usize,
-        src: usize,
-        len: usize,
-        next: std::sync::atomic::AtomicUsize,
-    }
-    impl Run {
-        fn copy_pieces(&self) {
-            loop {
-                let offset = self.next.fetch_add(PIECE, std::sync::atomic::Ordering::Relaxed);
-                if offset >= self.len {
-                    break;
-                }
-                crate::host::copy_mapped(
-                    (self.dst + offset) as *mut u8,
-                    (self.src + offset) as *const u8,
-                    PIECE.min(self.len - offset),
-                    false,
-                );
-            }
-        }
-    }
-    unsafe extern "system" fn worker(_: PTP_CALLBACK_INSTANCE, context: *mut std::ffi::c_void, _: PTP_WORK) {
-        // SAFETY: the caller joins all callbacks before dropping this run.
-        unsafe { &*context.cast::<Run>() }.copy_pieces();
-    }
-    let run = Run { dst: dst as usize, src, len, next: 0.into() };
-    // SAFETY: the context outlives all callbacks. Each piece is claimed once.
+    let dst = dst as usize;
+    parallel_items(len.div_ceil(PIECE), |i| {
+        let offset = i * PIECE;
+        crate::host::copy_mapped(
+            (dst + offset) as *mut u8,
+            (src + offset) as *const u8,
+            PIECE.min(len - offset),
+            false,
+        );
+    });
+}
+
+/// GetWriteWatch succeeds only on a MEM_WRITE_WATCH VirtualAlloc pool. Such
+/// private pages cannot also be mapped as section views. Pagefile sections,
+/// placeholders, and mixed allocations always keep their original order.
+fn private_write_watch(start: usize, len: usize) -> bool {
+    use windows_sys::Win32::System::Memory::GetWriteWatch;
+    let (mut address, mut count, mut granularity) = (std::ptr::null_mut(), 1, 0);
+    // SAFETY: one output slot, no reset of the application's write-watch state.
     unsafe {
-        let work = CreateThreadpoolWork(Some(worker), std::ptr::from_ref(&run).cast_mut().cast(), std::ptr::null());
-        if work != 0 {
-            static WORKERS: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
-            let workers = WORKERS.get_or_init(|| std::thread::available_parallelism().map_or(1, usize::from).min(8) - 1);
-            for _ in 0..(*workers).min(len.div_ceil(PIECE) - 1) {
-                SubmitThreadpoolWork(work);
-            }
-            run.copy_pieces();
-            WaitForThreadpoolWorkCallbacks(work, 0);
-            CloseThreadpoolWork(work);
+        GetWriteWatch(
+            0,
+            start as *const _,
+            len,
+            &mut address,
+            &mut count,
+            &mut granularity,
+        ) == 0
+    }
+}
+
+/// Writes only bytes changed by the shader. Title mappings may disappear on
+/// another thread. The guest stores in the x64 leaf have known fault PCs:
+/// if either fails, resume at the failure return and retry the exact runs in
+/// the kernel. Host reads and unrelated faults use normal exception handling.
+#[cfg(target_arch = "x86_64")]
+mod delta_store {
+    use windows_sys::Win32::Foundation::{EXCEPTION_ACCESS_VIOLATION, EXCEPTION_IN_PAGE_ERROR};
+    use windows_sys::Win32::System::Diagnostics::Debug::{
+        AddVectoredExceptionHandler, EXCEPTION_CONTINUE_EXECUTION, EXCEPTION_CONTINUE_SEARCH,
+        EXCEPTION_POINTERS,
+    };
+
+    // Windows x64 ABI: rcx = destination, rdx = shader output, r8 = old
+    // bytes, r9 = length. Only volatile registers are used. A vector whose
+    // bytes all changed takes one store. Mixed vectors and tails store bytes
+    // individually, so another thread can write even the neighboring byte.
+    core::arch::global_asm!(
+        r#"
+        .text
+        .p2align 4
+        .globl victory_store_delta, victory_store_vector, victory_store_byte, victory_store_failed
+    victory_store_delta:
+        cmp r9, 16
+        jb 4f
+    1:
+        movdqu xmm0, [rdx]
+        movdqu xmm1, [r8]
+        pcmpeqb xmm1, xmm0
+        pmovmskb eax, xmm1
+        cmp eax, 65535
+        je 3f
+        test eax, eax
+        jnz 2f
+    victory_store_vector:
+        movdqu [rcx], xmm0
+        jmp 3f
+    2:
+        xor eax, 65535
+    6:
+        bsf r10d, eax
+        mov r11b, [rdx + r10]
+    victory_store_byte:
+        mov [rcx + r10], r11b
+        btr eax, r10d
+        test eax, eax
+        jnz 6b
+    3:
+        add rcx, 16
+        add rdx, 16
+        add r8, 16
+        sub r9, 16
+        cmp r9, 16
+        jae 1b
+    4:
+        test r9, r9
+        jz 5f
+        dec r9
+        mov r11b, [rdx + r9]
+        cmp r11b, [r8 + r9]
+        je 4b
+        .globl victory_store_tail
+    victory_store_tail:
+        mov [rcx + r9], r11b
+        jmp 4b
+    5:
+        mov eax, 1
+        ret
+    victory_store_failed:
+        xor eax, eax
+        ret
+    "#
+    );
+
+    unsafe extern "system" {
+        fn victory_store_delta(dst: usize, gpu: *const u8, old: *const u8, len: usize) -> u32;
+        fn victory_store_vector();
+        fn victory_store_byte();
+        fn victory_store_tail();
+        fn victory_store_failed();
+    }
+
+    unsafe extern "system" fn on_store_fault(info: *mut EXCEPTION_POINTERS) -> i32 {
+        // SAFETY: the OS supplies the record and context for this thread.
+        let record = unsafe { &*(*info).ExceptionRecord };
+        if !matches!(
+            record.ExceptionCode,
+            EXCEPTION_ACCESS_VIOLATION | EXCEPTION_IN_PAGE_ERROR
+        ) || record.NumberParameters < 2
+            || record.ExceptionInformation[0] != 1
+        {
+            return EXCEPTION_CONTINUE_SEARCH;
+        }
+        let pc = record.ExceptionAddress as usize;
+        if [
+            victory_store_vector as *const () as usize,
+            victory_store_byte as *const () as usize,
+            victory_store_tail as *const () as usize,
+        ]
+        .contains(&pc)
+        {
+            // SAFETY: all three stores are in a leaf with the original stack
+            // and nonvolatile registers, so its failure return is valid here.
+            unsafe { (*(*info).ContextRecord).Rip = victory_store_failed as *const () as u64 };
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+        EXCEPTION_CONTINUE_SEARCH
+    }
+
+    pub(super) fn try_write(at: usize, host: &[u8], old: &[u8]) -> bool {
+        static INSTALLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        // SAFETY: the handler lives as long as the process.
+        let installed = INSTALLED.get_or_init(|| unsafe {
+            !AddVectoredExceptionHandler(1, Some(on_store_fault)).is_null()
+        });
+        // SAFETY: both host slices cover the entire run, and all three
+        // destination store PCs are handled if the title removed its mapping.
+        *installed
+            && unsafe { victory_store_delta(at, host.as_ptr(), old.as_ptr(), host.len()) != 0 }
+    }
+}
+
+/// The caller has opened title memory with a write guard and the host GPU is
+/// finished. Equal bytes are never written, even between two changed bytes.
+fn write_changed(at: usize, host: &[u8], old: &[u8]) {
+    assert_eq!(host.len(), old.len());
+    #[cfg(target_arch = "x86_64")]
+    if delta_store::try_write(at, host, old) {
+        return;
+    }
+    let mut i = 0;
+    while i < old.len() {
+        let from = i;
+        while i < old.len() && old[i] != host[i] {
+            i += 1;
+        }
+        if i > from {
+            crate::host::write_mapped((at + from) as *mut u8, host[from..].as_ptr(), i - from);
         } else {
-            run.copy_pieces();
+            i += 1;
         }
     }
+}
+
+#[cfg(test)]
+thread_local! {
+    static AFTER_MARK_READ: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
 }
 
 /// Write contiguous shader changes without replaying adjacent CPU bytes.
@@ -212,7 +416,7 @@ fn give_back(v: Vec<u8>) {
 const POOL_BYTES: usize = 512 << 20;
 
 // SAFETY: D3D12 resources are free-threaded; `data` is a persistent mapping
-// written only on the submitting thread.
+// updated between submissions. Joined workers access disjoint host ranges.
 unsafe impl Send for Shadow {}
 // SAFETY: as above.
 unsafe impl Sync for Shadow {}
@@ -585,47 +789,95 @@ impl Shadow {
     // the heap's views no list declared) keeps the title's bytes, losing
     // the shaders' there (counted).
     pub(crate) fn copy_back_marked(&self, page: usize) -> usize {
-        let Some(t) = &self.tracked else {
-            return 0;
-        };
-        let (start, end) = (self.start as usize, (self.start + self.len) as usize);
-        let (from, to) = (page.max(start), (page + PAGE).min(end));
+        self.copy_back_marked_run(page, 1)
+    }
+
+    /// Consecutive marked pages of this shadow, in bitmap order. Open the
+    /// pages once, write their deltas in order (including physical aliases),
+    /// then rearm the current pages together before reading the final bytes.
+    fn copy_back_marked_run(&self, page: usize, count: usize) -> usize {
+        let Some(t) = &self.tracked else { return 0 };
+        let start = self.start as usize;
+        let from = start.max(page);
+        let to = (start + self.len as usize).min(page + count * PAGE);
         if from >= to {
             return 0;
         }
-        // Our own write below must not save the page for this copy again.
-        t.unarm(page / PAGE);
-        let saved = t.saved(page / PAGE);
-        if saved.is_none() && t.changed(page / PAGE) {
-            #[cfg(feature = "diagnostics")]
-            crate::copystat::add(crate::copystat::C::MarkedKept, 1);
-            return 0;
-        }
-        let n = to - from;
-        // SAFETY: inside the mapping; only the submitting thread writes it.
-        let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(from - start), n) };
-        let mut title = vec![0u8; n];
+        t.arm(from, to);
+        let dirty: Vec<_> = (page / PAGE..to.div_ceil(PAGE))
+            .map(|p| t.changed(p))
+            .collect();
+        let mut title = vec![0; to - from];
         if !crate::host::read_into(from as *const u8, &mut title) {
+            if count > 1 {
+                return (0..count)
+                    .map(|i| self.copy_back_marked(page + i * PAGE))
+                    .sum();
+            }
+            t.unarm(page / PAGE);
             return 0;
         }
-        let written = match &saved {
-            // The title's bytes are the copy's from before: what differs is
-            // the shaders'.
-            None => (*host != title[..]).then_some(host.as_ptr()),
-            Some(before) => {
-                let before = &before[from - page..to - page];
-                merge_writeback(&mut title, host, before).then_some(title.as_ptr())
+        let mut changed = Vec::new();
+        let mut taken = Vec::new();
+        let mut synced = Vec::new();
+        for (i, was_dirty) in dirty.into_iter().enumerate() {
+            let p = page / PAGE + i;
+            let a = from.max(p * PAGE);
+            let b = to.min((p + 1) * PAGE);
+            // Stay armed until *after* the read: a write during the read
+            // supplies the true pre-submission bytes for this page.
+            t.unarm(p);
+            let saved = t.saved(p);
+            if was_dirty && saved.is_none() {
+                #[cfg(feature = "diagnostics")]
+                crate::copystat::add(crate::copystat::C::MarkedKept, 1);
+                continue;
             }
-        };
-        if let Some(bytes) = written {
-            let _writing = crate::watch::writing(from, n);
-            crate::host::write_mapped(from as *mut u8, bytes, n);
+            synced.push((a, b));
+            if let Some(before) = &saved {
+                title[a - from..b - from].copy_from_slice(&before[a - p * PAGE..b - p * PAGE]);
+            }
+            // SAFETY: the submitted GPU has finished. The range is cut to this mapping.
+            let host = unsafe { std::slice::from_raw_parts(self.data.add(a - start), b - a) };
+            if host != &title[a - from..b - from] {
+                changed.push((a, b));
+            }
+            if a == p * PAGE && b == (p + 1) * PAGE {
+                taken.push(p);
+            }
         }
-        // Equal to title memory now: taken, unless it holds the page in part.
-        if from == page && to == page + PAGE {
-            t.taken(&[page / PAGE]);
+        if changed.is_empty() && synced.iter().all(|&(a, _)| !t.changed(a / PAGE)) {
+            return 0;
         }
-        written.map_or(0, |_| n)
+        #[cfg(test)]
+        AFTER_MARK_READ.with(|slot| {
+            if let Some(f) = slot.take() {
+                f();
+            }
+        });
+        let mut written = 0;
+        // Touch only pages actually written. Adjacent ones can share a guard.
+        for run in changed.chunk_by(|left, right| left.1 == right.0) {
+            let a = run[0].0;
+            let b = run[run.len() - 1].1;
+            let _writing = crate::watch::writing(a, b - a);
+            // SAFETY: this is a contiguous subrange of the shadow.
+            let host = unsafe { std::slice::from_raw_parts(self.data.add(a - start), b - a) };
+            write_changed(a, host, &title[a - from..b - from]);
+            written += b - a;
+        }
+        t.taken(&taken);
+        // A title write before rearming is included here, and a later one
+        // marks the copy dirty. Also reconciles writes through another view.
+        // A skipped dirty page retains its GPU bytes and outstanding tracker.
+        // SAFETY: the destination is inside the mapping, and kernel reads
+        // keep holes safe. Dirty/partial pages can be refreshed again.
+        for run in synced.chunk_by(|left, right| left.1 == right.0) {
+            let a = run[0].0;
+            let b = run[run.len() - 1].1;
+            refresh_run(unsafe { self.data.add(a - start) }, a, b - a);
+        }
+        written
     }
 
     /// Whether the title wrote none of the copy's memory since the copy took
@@ -1060,6 +1312,21 @@ pub(crate) fn take_page_reads() -> Vec<u32> {
     pages
 }
 
+/// The final bit is the shader's overflow sink. Its 31 neighbors can belong
+/// to live shadows, including when the allocator is down to its last word.
+fn drain_marks(bits: &mut [u32], end: usize, into: &mut Vec<u32>) {
+    if let Some(last) = bits.last_mut() {
+        *last &= !(1 << 31);
+    }
+    for (w, word) in bits.iter_mut().take(end.div_ceil(32)).enumerate() {
+        let mut x = std::mem::take(word);
+        while x != 0 {
+            into.push((w * 32) as u32 + x.trailing_zeros());
+            x &= x - 1;
+        }
+    }
+}
+
 /// After a submission: every page its shaders marked as written through
 /// views goes back ([`Shadow::copy_back_marked`]), but for pages in
 /// `withheld` (ranges of copies that lists whose writes stay out of title
@@ -1079,17 +1346,12 @@ pub(crate) fn copy_back_marks(withheld: &[(Arc<Shadow>, usize, usize)], memory_w
         // SAFETY: the mapped bitmap; the GPU is done with it (one submission
         // runs at a time).
         let bits = unsafe { std::slice::from_raw_parts_mut(b.data as *mut u32, words) };
-        // Marks of offsets past the bitmap land in its last bit, no copy's.
-        bits[words - 1] = 0;
-        let used = (marks().end as usize).div_ceil(32).min(words);
-        for (w, word) in bits[..used].iter_mut().enumerate() {
-            let mut x = std::mem::take(word);
-            let into = if memory && memory_withheld { &mut held } else { &mut marked };
-            while x != 0 {
-                into.push((w * 32) as u32 + x.trailing_zeros());
-                x &= x - 1;
-            }
-        }
+        let into = if memory && memory_withheld {
+            &mut held
+        } else {
+            &mut marked
+        };
+        drain_marks(bits, marks().end as usize, into);
     }
     #[cfg(feature = "diagnostics")]
     let _timed = crate::watch::Timed(std::time::Instant::now(), crate::copystat::C::MarkedUs);
@@ -1118,21 +1380,38 @@ pub(crate) fn copy_back_marks(withheld: &[(Arc<Shadow>, usize, usize)], memory_w
         let m = marks();
         marked.iter().filter_map(|&n| page_of(&m, n)).collect()
     };
-    for (copy, page) in pages {
-        if withheld
-            .iter()
-            .any(|(c, a, n)| Arc::ptr_eq(c, &copy) && *a < page + PAGE && page < a + n)
-        {
-            continue;
+    let eligible: Vec<_> = pages
+        .into_iter()
+        .filter(|(copy, page)| {
+            !withheld
+                .iter()
+                .any(|(c, a, n)| Arc::ptr_eq(c, copy) && *a < page + PAGE && *page < a + n)
+        })
+        .collect();
+    for owner in eligible.chunk_by(|a, b| Arc::ptr_eq(&a.0, &b.0)) {
+        let copy = &owner[0].0;
+        let mut chunks = Vec::new();
+        for adjacent in owner.chunk_by(|a, b| b.1 == a.1 + PAGE) {
+            chunks.extend(adjacent.chunks(8).map(|s| (s[0].1, s.len())));
         }
-        let written = copy.copy_back_marked(page);
-        #[cfg(feature = "diagnostics")]
-        {
-            crate::copystat::add(crate::copystat::C::MarkedPages, 1);
-            crate::copystat::add(crate::copystat::C::MarkedBytes, written as u64);
+        let copy_chunk = |i: usize| {
+            let (page, count) = chunks[i];
+            let written = copy.copy_back_marked_run(page, count);
+            #[cfg(feature = "diagnostics")]
+            {
+                crate::copystat::add(crate::copystat::C::MarkedPages, count as u64);
+                crate::copystat::add(crate::copystat::C::MarkedBytes, written as u64);
+            }
+            #[cfg(not(feature = "diagnostics"))]
+            let _ = written;
+        };
+        let first = owner[0].1;
+        let end = owner.last().unwrap().1 + PAGE;
+        if owner.len() >= 128 && private_write_watch(first, end - first) {
+            parallel_items(chunks.len(), copy_chunk);
+        } else {
+            (0..chunks.len()).for_each(copy_chunk);
         }
-        #[cfg(not(feature = "diagnostics"))]
-        let _ = written;
     }
 }
 
@@ -1654,6 +1933,152 @@ pub(crate) mod tests {
         assert_eq!([title(p + 20), title(p + 21), title(p + 22), title(p + PAGE + 5)], [1, 2, 3, 9]);
         assert_eq!(bytes(&copy), 0, "the snapshot goes with the last range");
         unregister(p, p as u64);
+    }
+
+    #[test]
+    fn last_word_keeps_all_allocatable_marks() {
+        let mut words = [1 << 31, 0xc0000001];
+        let mut pages = Vec::new();
+        drain_marks(&mut words, 63, &mut pages);
+        assert_eq!(pages, [31, 32, 62]);
+        assert_eq!(words, [0, 0]);
+    }
+
+    #[test]
+    fn physical_aliases_merge_cross_page_gpu_and_cpu_stores() {
+        let Some(h) = host() else { return };
+        let (a, b) = crate::watch::tests::twin_views(2);
+        let len = 2 * PAGE;
+        let make = |at| {
+            let (resource, data) = h.shared_buffer(len as u64).unwrap();
+            Shadow::new(resource, data, 0, at as u64, len as u64)
+        };
+        let (one, two) = (make(a), make(b));
+        for (shadow, at) in [(&one, a), (&two, b)] {
+            shadow.update(at, len);
+            shadow.writing(at, len, true);
+        }
+        one.write_host((a + PAGE - 2) as u64, &[1, 2, 3, 4]);
+        two.write_host((b + PAGE + 1) as u64, &[5, 6]);
+        // A title thread writes through the second virtual mapping while the
+        // submitted shadows contain different writes to the same physical pages.
+        std::thread::spawn(move || unsafe {
+            ((b + PAGE - 3) as *mut u8).write_volatile(7);
+            ((b + PAGE + 3) as *mut u8).write_volatile(8);
+        })
+        .join()
+        .unwrap();
+        // Deterministically land another CPU write between the page read and
+        // the GPU stores, inside the gap between two shader writes.
+        one.write_host((a + PAGE + 5) as u64, &[11]);
+        AFTER_MARK_READ.with(|slot| {
+            slot.set(Some(Box::new(move || {
+                std::thread::spawn(move || unsafe {
+                    ((b + PAGE + 4) as *mut u8).write_volatile(9)
+                })
+                .join()
+                .unwrap();
+            })))
+        });
+        one.copy_back_marked_run(a, 2);
+        two.copy_back_marked_run(b, 2);
+        let mut bytes = [0; 9];
+        assert!(crate::host::read_into(
+            (a + PAGE - 3) as *const u8,
+            &mut bytes
+        ));
+        assert_eq!(bytes, [7, 1, 2, 3, 5, 6, 8, 9, 11]);
+        drop((one, two));
+        for at in [a, b] {
+            crate::watch::title_memory_remapped(at, len);
+            // SAFETY: the shadows have released these mapped section views.
+            unsafe {
+                windows_sys::Win32::System::Memory::UnmapViewOfFile(
+                    windows_sys::Win32::System::Memory::MEMORY_MAPPED_VIEW_ADDRESS {
+                        Value: at as *mut _,
+                    },
+                )
+            };
+        }
+    }
+
+    #[test]
+    fn inaccessible_store_retries_mapped_bytes_beyond_the_hole() {
+        use windows_sys::Win32::System::Memory::{
+            MEM_COMMIT, MEM_DECOMMIT, MEM_RESERVE, PAGE_READWRITE, VirtualAlloc, VirtualFree,
+        };
+        const BLOCK: usize = 4096;
+        // SAFETY: a fresh reservation with one deliberately decommitted block.
+        let at = unsafe {
+            VirtualAlloc(
+                std::ptr::null(),
+                3 * BLOCK,
+                MEM_COMMIT | MEM_RESERVE,
+                PAGE_READWRITE,
+            )
+        } as usize;
+        assert_ne!(at, 0);
+        assert_ne!(
+            unsafe { VirtualFree((at + BLOCK) as *mut _, BLOCK, MEM_DECOMMIT) },
+            0
+        );
+        let old = vec![0u8; 3 * BLOCK];
+        let gpu = vec![0x39; 3 * BLOCK];
+        write_changed(at, &gpu, &old);
+        for start in [at, at + 2 * BLOCK] {
+            let mut check = vec![0; BLOCK];
+            assert!(crate::host::read_into(start as *const u8, &mut check));
+            assert!(check.iter().all(|&b| b == 0x39));
+        }
+        crate::watch::tests::free(at);
+    }
+
+    #[test]
+    fn withheld_byte_on_each_side_of_a_boundary_blocks_both_marked_pages() {
+        let p = crate::watch::tests::pool(4);
+        let len = 4 * PAGE;
+        register(p, p as u64, len as u64);
+        let (Some(copy), Some(map)) = (find(p as u64, len as u64), bitmap(false)) else {
+            unregister(p, p as u64);
+            crate::watch::tests::free(p);
+            return;
+        };
+        copy.update(p, len);
+        copy.writing(p, len, true);
+        for i in 0..4 {
+            copy.write_host((p + i * PAGE) as u64, &[0x78]);
+            let bit = copy.marks.unwrap() as usize + i;
+            unsafe { *(map.data as *mut u32).add(bit / 32) |= 1 << (bit % 32) };
+        }
+        copy_back_marks(&[(copy.clone(), p + 2 * PAGE - 1, 2)], false);
+        for (i, expected) in [0x78, 0, 0, 0x78].into_iter().enumerate() {
+            assert_eq!(
+                unsafe { ((p + i * PAGE) as *const u8).read_volatile() },
+                expected
+            );
+        }
+        unregister(p, p as u64);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
+
+    #[test]
+    fn late_cpu_bytes_in_short_gaps_survive_exact_stores() {
+        for len in [1, 15, 16, 17, 65, PAGE] {
+            let old = vec![0x11; len];
+            let host: Vec<_> = (0..len)
+                .map(|i| if i % 17 == 1 { 0x11 } else { 0xaa })
+                .collect();
+            // These writes landed after the copy-back sampled title memory.
+            let mut title = vec![0x77u8; len];
+            write_changed(title.as_mut_ptr() as usize, &host, &old);
+            assert!(
+                title
+                    .iter()
+                    .enumerate()
+                    .all(|(i, &b)| b == if i % 17 == 1 { 0x77 } else { 0xaa })
+            );
+        }
     }
 
     /// Pages shaders marked (`copy_back_marks`, `victory_shader::emit`
