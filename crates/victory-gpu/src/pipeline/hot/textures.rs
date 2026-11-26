@@ -122,7 +122,17 @@ fn submit(host: &Host, textures: &[Texture], layout: &victory_formats::texture::
     let bytes = bytes - before_bytes;
     let count = textures.len() as u64;
     assert_eq!(copies, count * if patches.is_empty() { u64::from(mips) } else { 1 });
-    if patches.is_empty() {
+    if let Some(first) = patches.first() {
+        // All patches in these tracked RGBA8 scenarios target one mip. A
+        // full-width band may include the other pixels of its block rows.
+        let mip = layout.mips[first.mip as usize];
+        let block_height = layout.block[1];
+        let first_row = patches.iter().map(|p| p.y.start / block_height).min().unwrap();
+        let last_row = patches.iter().map(|p| p.y.end.div_ceil(block_height)).max().unwrap();
+        let height = (last_row * block_height).min(mip.height) - first_row * block_height;
+        let limit = count * u64::from(mip.width) * u64::from(height) * 4;
+        assert!(bytes <= limit, "{name}: copied {bytes} bytes, expected at most {limit}");
+    } else {
         assert_eq!(bytes, count * (0..mips).map(|m| 4 * u64::from(side >> m).pow(2)).sum::<u64>());
     }
     assert!(bytes > 0 && requested >= bytes);

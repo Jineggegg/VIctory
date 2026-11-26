@@ -17,7 +17,9 @@
 
 ## 内容一致性与实现边界
 
-按每个被写入的跟踪页计算它在 mip 和数组切片中的位置。满足原生行大小、二维单采样且非压缩的普通平铺 mip，通过向外取整得到整宽条带；同一 mip 有分离的写入时，条带覆盖首末写入之间的所有行。首传使用同一布局的完整条带。CPU 按平铺块行分段读取，通常每段最多 512 KiB，至少容下一行平铺块，直接解平铺至映射的 upload 内存。每项复制保留目标子资源号、起始行和设备给出的行距，staging 起点按 512 字节对齐。行布局不匹配、压缩格式、共享尾页等走完整脏子资源的紧凑放置路径。上传失败会使下次刷新重读。并行上限沿用四个工作线程。[上传实现](../../../../crates/victory-gpu/src/texture.rs) · [平铺块寻址](../../../../crates/victory-formats/src/texture.rs)
+按整行平铺块上传脏行带的思路参考 #2358（nicolasveilleux），紧凑 footprint 放置参考 #3136（656a143）。[社区脏行带实现](https://github.com/Marvisak/VIctory/pull/2358) · [社区紧凑放置实现](https://github.com/Marvisak/VIctory/pull/3136)
+
+按每个被写入的跟踪页计算它在 mip 和数组切片中的位置。满足原生行大小、二维单采样且非压缩的普通平铺 mip，通过向外取整得到整宽条带；同一 mip 有分离的写入时，条带覆盖首末写入之间的所有行。首传使用同一布局的完整条带。CPU 按平铺块行分段读取，通常每段最多 512 KiB，至少容下一行平铺块，直接解平铺至映射的 upload 内存。每项复制保留目标子资源号、起始行和设备给出的行距，staging 起点按 512 字节对齐。行布局不匹配、压缩格式、共享尾页等走完整脏子资源的紧凑放置路径。已消费脏页后，如果拿不到 staging 空间，下次刷新会重读。若 detile 报布局错误，则清掉受影响的哈希，等待下一次真实写入。并行上限沿用四个工作线程。[上传实现](../../../../crates/victory-gpu/src/texture.rs) · [平铺块寻址](../../../../crates/victory-formats/src/texture.rs)
 
 RGBA8、BC1、BC3 各使用两个数组切片、三个 mip 和非 2 的幂尺寸。测试同批两张命令列表引用同一纹理、末行写入、内部写入；每次提交后都读回全部切片和 mip，逐行与完整 detile 对照。四臂均通过。#2358 自带的 RGBA8/BC3 条带读回也通过。试验过的 4 KiB RGBA8 专用拷贝在早期六轮中没有稳定收益，已放弃。工作线程池和 GPU upload heap 均未进入本次正式比较。[读回测试](../../../../crates/victory-gpu/src/texture/readback_tests.rs) · [四臂记录](checks/)
 
@@ -41,3 +43,13 @@ RGBA8、BC1、BC3 各使用两个数组切片、三个 mip 和非 2 的幂尺寸
 | D3D12 Debug Layer / GBV | 本机缺少 Windows 图形工具，此项待补 |
 
 [默认测试日志](checks/integrated-tests.txt) · [诊断测试日志](checks/integrated-diagnostics.txt) · [默认 smoke](checks/integrated-default.json) · [专项 smoke](checks/integrated-sparse.json) · [像素检查](checks/integrated-pixels.json)
+
+## 审核后的补充验证
+
+上传状态创建时检查跟踪器是否覆盖全部源内存。跨运行时内存与普通私有页的纹理通过容错复制生成完整快照，比较哈希后上传全部子资源。回归用例分配两段相邻的 64 KiB 内存，分别只改私有页、只改写跟踪页，完整读回均与参考图一致，随后原样提交不会再次上传。
+
+另用两张必然失败的纹理验证重试条件：一张 RGBA8 客体的单行数据放不进 R8 原生 footprint，另一张是非 XOR 的双采样纹理。各连续提交四次，每张只记录一次 detile 错误；第一张在后续三次刷新中还逐次断言读取量为零。尾页 mip、2×2、1×1、线性布局的六个立方体面和 D32_FLOAT 深度纹理均检查了完整 footprint 和所有子资源的每一行。RGBA8 内部更新对复制字节设了低于整个 mip 的上限，热点基准也在计时结束后检查条带的字节上限。
+
+改动针对失败处理、混合内存回退和计时后的断言。用于正式测试的全跟踪 RGBA8 条带继续执行原有复制路径，本轮没有补采 A/B。报告中的性能数字来自此前 105 对正式采样。
+
+Windows 原生复测通过：victory-gpu 默认 271 项、忽略 1 项，diagnostics 287 项、忽略 14 项；victory-formats 在两个配置下各 47 项通过、5 项忽略；victory-hle 的 152 个单元测试及 2 个集成测试通过。默认 smoke 3 次、专项 smoke 1 次及合成像素 CheckOnly 均通过。专项 smoke 中单张、8 张、64 张小补丁和 64 张大补丁的复制量依次为 2、1、8、32 MiB。D3D12 Debug Layer 和 GBV 仍待有 Windows 图形工具的环境验证。

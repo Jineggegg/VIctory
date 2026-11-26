@@ -51,9 +51,10 @@ pub(crate) struct Staging {
     /// Mips per array slice.
     mips: u32,
     memory: *const u8,
-    /// The memory's pages changed since detiled (none: not the runtime's
-    /// memory, hashed instead).
+    /// Present only when every source page is tracked.
     tracked: Option<crate::watch::Tracked>,
+    /// Hash a safe snapshot when runtime and ordinary private pages coexist.
+    mixed_memory: bool,
     /// Per subresource, the bytes of the texture's memory it lies in (from
     /// its start, whole layout blocks); empty where the layout gives none.
     spans: Vec<(usize, usize)>,
@@ -66,6 +67,13 @@ pub(crate) struct Staging {
     copied: std::sync::atomic::AtomicU64,
     #[cfg(test)]
     copied_bytes: std::sync::atomic::AtomicU64,
+    #[cfg(test)]
+    detile_errors: std::sync::atomic::AtomicU64,
+}
+
+enum UploadError {
+    NoStagingSpace,
+    InvalidLayout,
 }
 
 /// What was last detiled: the hash of the memory (not tracked), or of each
@@ -709,19 +717,26 @@ impl Staging {
             if fresh.is_empty() {
                 return (bytes, None);
             }
-            let buffer = self.detile(read, &fresh);
+            let result = self.detile(read, &fresh);
             self.retry
-                .store(buffer.is_none(), std::sync::atomic::Ordering::Relaxed);
-            if buffer.is_none() {
+                .store(matches!(result, Err(UploadError::NoStagingSpace)), std::sync::atomic::Ordering::Relaxed);
+            if result.is_err() {
                 for &i in &fresh {
                     last.hashes[i as usize] = None;
                 }
             }
             #[cfg(feature = "diagnostics")]
             crate::copystat::add(crate::copystat::C::TexWatched, bytes as u64);
-            return (bytes, buffer);
+            return (bytes, result.ok());
         }
-        if !committed(self.memory, size) {
+        let mut scratch;
+        let tiled = if self.mixed_memory {
+            // Private pages can change without a fault; other pages may be
+            // unmapped. Snapshot the whole range with the fault-tolerant copy.
+            scratch = Scratch::take(size);
+            crate::host::copy_mapped(scratch.0.as_mut_ptr(), self.memory, size, false);
+            &scratch.0[..size]
+        } else if !committed(self.memory, size) {
             #[cfg(feature = "diagnostics")]
             tracing::debug!(
                 memory = ?self.memory,
@@ -736,12 +751,13 @@ impl Staging {
             }
             let zeros = vec![0u8; size];
             let every = all();
-            let buffer = self.detile(&zeros, &every);
+            let buffer = self.detile(&zeros, &every).ok();
             last.hash = buffer.is_some().then(|| blake3::hash(&zeros));
             return (0, buffer);
-        }
-        // SAFETY: committed memory of the texture's layout size.
-        let tiled = unsafe { std::slice::from_raw_parts(self.memory, size) };
+        } else {
+            // SAFETY: committed memory of the texture's layout size.
+            unsafe { std::slice::from_raw_parts(self.memory, size) }
+        };
         let hash = blake3::hash(tiled);
         #[cfg(feature = "diagnostics")]
         crate::copystat::add(crate::copystat::C::TexHashed, size as u64);
@@ -749,7 +765,7 @@ impl Staging {
             return (size, None);
         }
         let every = all();
-        let buffer = self.detile(tiled, &every);
+        let buffer = self.detile(tiled, &every).ok();
         last.hash = buffer.is_some().then_some(hash);
         #[cfg(feature = "diagnostics")]
         crate::copystat::add(crate::copystat::C::TexChanged, size as u64);
@@ -757,9 +773,8 @@ impl Staging {
     }
 
     /// Detiles `subresources` of `tiled` (the texture's memory) into a
-    /// staging buffer (`None` if none could be had or a subresource could
-    /// not be read).
-    fn detile(&self, tiled: &[u8], subresources: &[u32]) -> Option<Upload> {
+    /// staging buffer. Only a staging allocation failure can succeed on retry.
+    fn detile(&self, tiled: &[u8], subresources: &[u32]) -> Result<Upload, UploadError> {
         let mut parts = Vec::with_capacity(subresources.len());
         let mut size = 0;
         for &index in subresources {
@@ -771,7 +786,7 @@ impl Staging {
                 .map_or(self.size, |next| next.Offset);
             size = pack(&mut parts, size, index, 0, fp, end - fp.Offset);
         }
-        let (buffer, at, data) = staging_space(size)?;
+        let (buffer, at, data) = staging_space(size).ok_or(UploadError::NoStagingSpace)?;
         #[cfg(feature = "diagnostics")]
         // Scanned only when its message is wanted: a pass over every
         // texture read, in timing runs too.
@@ -802,11 +817,13 @@ impl Staging {
                 self.layout
                     .detile(tiled, mip, slice, linear, pitch, pitch * rows as usize)
             {
+                #[cfg(test)]
+                self.detile_errors.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 tracing::warn!(?e, mip, slice, "texture not detiled");
-                return None;
+                return Err(UploadError::InvalidLayout);
             }
         }
-        Some((buffer, parts))
+        Ok((buffer, parts))
     }
 
     /// Page tracking gives byte ranges. For ordinary 2D mips, each row of
@@ -1044,7 +1061,13 @@ pub(crate) fn staging(resource: This, texture: &ID3D12Resource) -> Option<Arc<St
     // depth/stencil, multi-plane, and translated row sizes on native full
     // footprints. A band uses one element per texel, one plane and one sample.
     use victory_formats::texture::{Dimension, Swizzle};
-    let band_copies = layout.desc.dimension == Dimension::Tex2d
+    let start = memory as usize;
+    let (tracked, mixed_memory) = match crate::watch::track(start, layout_size, true) {
+        Some(t) if !t.untracked(start, start + layout_size).is_empty() => (None, true),
+        tracked => (tracked, false),
+    };
+    let band_copies = tracked.is_some()
+        && layout.desc.dimension == Dimension::Tex2d
         && layout.desc.block == 1
         && layout.desc.samples == 1
         && layout.addressable()
@@ -1065,7 +1088,8 @@ pub(crate) fn staging(resource: This, texture: &ID3D12Resource) -> Option<Arc<St
         layout,
         mips: u32::from(d.MipLevels),
         memory,
-        tracked: crate::watch::track(memory as usize, layout_size, true),
+        tracked,
+        mixed_memory,
         spans,
         last: Mutex::default(),
         retry: Default::default(),
@@ -1073,6 +1097,8 @@ pub(crate) fn staging(resource: This, texture: &ID3D12Resource) -> Option<Arc<St
         copied: Default::default(),
         #[cfg(test)]
         copied_bytes: Default::default(),
+        #[cfg(test)]
+        detile_errors: Default::default(),
     });
     *held = Some(s.clone());
     Some(s)

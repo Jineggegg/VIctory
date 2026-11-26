@@ -71,8 +71,8 @@ fn array_mips_match_full_detile_after_repeated_updates() {
         assert_eq!(uploads(guest) - before, 1);
         check_readback(host, guest, &texture, &layout, &tiled);
 
-        // Only the final visible row changes. The enclosing tile row can end
-        // partway through a block, and the footprint has a short final row.
+        // The page containing the last visible row extends outside mip 0.
+        // Its full-mip fallback must include the short native final row.
         let before = copied_bytes(guest);
         let at = layout
             .offset(0, layout.mips[0].width - 1, layout.mips[0].height - 1, 1)
@@ -85,12 +85,14 @@ fn array_mips_match_full_detile_after_repeated_updates() {
         last.close();
         host.execute(&[&last]);
         let bytes = copied_bytes(guest) - before;
-        assert!(bytes > 0);
+        let mip0 = layout.mips[0];
+        let full = u64::from(mip0.width) * u64::from(mip0.height) * u64::from(layout.desc.element_bytes);
+        assert_eq!(bytes, full);
         check_readback(host, guest, &texture, &layout, &tiled);
 
-        // A private page strictly inside mip 0 exercises a nonzero
-        // destination Y even when its last page was shared with another mip.
-        let at = layout.offset(0, m.width / 2, m.height / 2, 1).unwrap() as usize;
+        // Update the middle of mip 0 in slice 1. RGBA8 can upload a band
+        // here; BC1 and BC3 retain complete native subresource footprints.
+        let at = layout.offset(0, mip0.width / 2, mip0.height / 2, 1).unwrap() as usize;
         tiled[at] ^= 0x87;
         // SAFETY: the coordinate is inside the tracked mip.
         unsafe { (memory as *mut u8).add(at).write(tiled[at]) };
@@ -101,9 +103,187 @@ fn array_mips_match_full_detile_after_repeated_updates() {
         host.execute(&[&interior]);
         if format == 28 {
             let bytes = copied_bytes(guest) - before;
-            assert!((1..u64::from(772 * 516 * 4u32)).contains(&bytes));
+            let stride = (mip0.pitch / layout.block[0]) as usize * layout.alignment as usize;
+            let rows = 1 + (crate::watch::PAGE - 1).div_ceil(stride);
+            let limit = rows as u64 * u64::from(layout.block[1]) * u64::from(mip0.width) * 4;
+            assert!(limit < full && (1..=limit).contains(&bytes), "band {bytes}, limit {limit}");
         }
         check_readback(host, guest, &texture, &layout, &tiled);
+    }
+}
+
+fn texture_layout(words: &[u32; 14]) -> Layout {
+    // SAFETY: all fourteen words include the guest descriptor and padding.
+    let desc = unsafe { words.as_ptr().cast::<crate::resource::ResourceDesc>().read_unaligned() };
+    crate::resource::texture_layout(&desc).unwrap().planes.remove(0).layout
+}
+
+fn submit_texture(host: &crate::host::Host, guest: This, texture: &ID3D12Resource) {
+    let list = host.new_list().unwrap();
+    upload(&list, guest, texture);
+    list.close();
+    host.execute(&[&list]);
+}
+
+#[test]
+fn permanent_detile_error_consumes_dirty_pages_once() {
+    let host = host().expect("D3D12");
+    let words = [3, 0, 0, 0, 256, 0, 128, 1 | (1 << 16), 28, 1, 0, 0, 0, 0];
+    let layout = texture_layout(&words);
+    let pages = (layout.size as usize).div_ceil(crate::watch::PAGE);
+    let guest = crate::resource::texture_at(crate::watch::tests::pool(pages) as u64, &words).unwrap();
+    // Supply a genuine R8 footprint for an RGBA8 guest row. Both resources
+    // are valid; this layout can never fit and no GPU copy may be recorded.
+    let mut narrow = words;
+    narrow[8] = 61;
+    let other = crate::resource::texture_at(crate::watch::tests::pool(pages) as u64, &narrow).unwrap();
+    let native = crate::resource::host_resource(other).unwrap();
+    let state = staging(guest, &native).unwrap();
+    assert!(state.tracked.is_some());
+    assert!(!state.band_copies);
+    assert!(state.maybe_changed());
+    let fp = state.footprints[0].Footprint;
+    assert!(fp.RowPitch < 4 * layout.mips[0].width);
+    submit_texture(host, guest, &native);
+    for _ in 0..3 {
+        assert!(!state.maybe_changed());
+        let (read, copy) = state.refresh_now();
+        assert_eq!(read, 0);
+        assert!(copy.is_none());
+        submit_texture(host, guest, &native);
+    }
+    assert_eq!(uploads(guest), 0);
+    assert_eq!(state.detile_errors.load(std::sync::atomic::Ordering::Relaxed), 1);
+}
+
+#[test]
+fn non_xor_msaa_does_not_retry_without_a_write() {
+    let host = host().expect("D3D12");
+    let words = [3, 0, 0, 0, 256, 0, 128, 1 | (1 << 16), 28, 2, 0, 0x105, 1, 0];
+    let layout = texture_layout(&words);
+    assert!(!layout.addressable() && !layout.desc.swizzle.xor());
+    let pages = (layout.size as usize).div_ceil(crate::watch::PAGE);
+    let guest = crate::resource::texture_at(crate::watch::tests::pool(pages) as u64, &words).unwrap();
+    let texture = crate::resource::host_resource(guest).unwrap();
+    let state = staging(guest, &texture).unwrap();
+    assert_ne!(state.size, u64::MAX, "invalid native footprint");
+    for _ in 0..4 {
+        submit_texture(host, guest, &texture);
+        assert!(!state.maybe_changed());
+    }
+    assert_eq!(uploads(guest), 0);
+    assert_eq!(state.detile_errors.load(std::sync::atomic::Ordering::Relaxed), 1);
+}
+
+#[test]
+fn mixed_texture_detects_changes_to_private_pages_alone() {
+    use windows_sys::Win32::System::Memory::{
+        MEM_COMMIT, MEM_RELEASE, MEM_RESERVE, PAGE_READWRITE, VirtualAlloc, VirtualFree,
+    };
+    let host = host().expect("D3D12");
+    let page = crate::watch::PAGE;
+    // A normal private allocation directly followed by a write-watched pool.
+    // Keep both mappings alive with the placed texture, as in the array test.
+    let memory = (0..16).find_map(|_| unsafe {
+        let range = VirtualAlloc(std::ptr::null(), 2 * page, MEM_RESERVE, PAGE_READWRITE);
+        if range.is_null() { return None }
+        VirtualFree(range, 0, MEM_RELEASE);
+        let flags = MEM_RESERVE | MEM_COMMIT;
+        let private = VirtualAlloc(range, page, flags, PAGE_READWRITE);
+        if private.is_null() { return None }
+        let watched = VirtualAlloc(
+            (private as usize + page) as *const _, page,
+            flags | crate::watch::tests::MEM_WRITE_WATCH, PAGE_READWRITE,
+        );
+        if watched.is_null() {
+            VirtualFree(private, 0, MEM_RELEASE);
+            return None;
+        }
+        Some(private as usize)
+    }).expect("two adjacent allocations");
+    let words = [3, 0, 0, 0, 256, 0, 128, 1 | (1 << 16), 28, 1, 0, 0, 0, 0];
+    let layout = texture_layout(&words);
+    let mut tiled = vec![0x37; layout.size as usize];
+    assert_eq!(tiled.len(), 2 * page);
+    // SAFETY: both fresh mappings are committed and writable.
+    unsafe { (memory as *mut u8).write_bytes(0x37, page) };
+    unsafe { ((memory + page) as *mut u8).write_bytes(0x37, page) };
+    let guest = crate::resource::texture_at(memory as u64, &words).unwrap();
+    let texture = crate::resource::host_resource(guest).unwrap();
+    let state = staging(guest, &texture).unwrap();
+    assert!(state.mixed_memory);
+    assert!(!state.band_copies);
+    submit_texture(host, guest, &texture);
+    check_readback(host, guest, &texture, &layout, &tiled);
+    for at in [0, page] {
+        let before = copied_bytes(guest);
+        tiled[at] ^= 0xff;
+        // SAFETY: the first byte of the private or watched allocation.
+        unsafe { ((memory + at) as *mut u8).write(tiled[at]) };
+        submit_texture(host, guest, &texture);
+        assert_eq!(copied_bytes(guest) - before, tiled.len() as u64);
+        check_readback(host, guest, &texture, &layout, &tiled);
+    }
+    let before = uploads(guest);
+    submit_texture(host, guest, &texture);
+    assert_eq!(uploads(guest), before);
+}
+
+#[test]
+fn tails_small_mips_cube_faces_and_depth_copy_complete_rows() {
+    let host = host().expect("D3D12");
+    let rgba = [3, 0, 0, 0, 128, 0, 128, 1 | (8 << 16), 28, 1, 0, 0, 0, 0];
+    let mut cube = rgba;
+    cube[7] = 6 | (1 << 16);
+    cube[11] = 1; // D3D12 cube storage is a six-face square array; linear layout.
+    let mut depth = rgba;
+    depth[7] = 1 | (1 << 16);
+    depth[8] = 40; // D32_FLOAT
+    depth[11] = 0x105; // explicit non-XOR tiled layout
+    depth[12] = 2; // ALLOW_DEPTH_STENCIL
+    for words in [rgba, cube, depth] {
+        let layout = texture_layout(&words);
+        let memory = crate::watch::tests::pool((layout.size as usize).div_ceil(crate::watch::PAGE));
+        let mut tiled = vec![0x39; layout.size as usize];
+        // SAFETY: the pool fits the entire guest texture.
+        unsafe { (memory as *mut u8).write_bytes(0x39, tiled.len()) };
+        let guest = crate::resource::texture_at(memory as u64, &words).unwrap();
+        let texture = crate::resource::host_resource(guest).unwrap();
+        let state = staging(guest, &texture).unwrap();
+        submit_texture(host, guest, &texture);
+        check_readback(host, guest, &texture, &layout, &tiled);
+        let mips = if words == rgba {
+            assert!(layout.first_tail_mip < 6);
+            assert_eq!((layout.mips[6].width, layout.mips[7].width), (2, 1));
+            vec![layout.first_tail_mip, 6, 7]
+        } else {
+            assert!(!state.band_copies);
+            vec![0]
+        };
+        for mip in mips {
+            let slice = layout.slices - 1;
+            let at = layout.offset(mip, 0, 0, slice).unwrap() as usize;
+            tiled[at] ^= 0xff;
+            // SAFETY: at addresses an element in the selected subresource.
+            unsafe { (memory as *mut u8).add(at).write(tiled[at]) };
+            let (_, copy) = state.refresh_now();
+            let copy = copy.expect("changed subresource");
+            assert!(copy.1.iter().any(|p| p.index == slice * layout.desc.mips + mip));
+            for part in &copy.1 {
+                let native = state.footprints[part.index as usize].Footprint;
+                assert_eq!(part.y, 0);
+                assert_eq!(part.footprint.Footprint.Height, native.Height);
+                assert_eq!(part.footprint.Footprint.Width, native.Width);
+            }
+            let list = host.new_list().unwrap();
+            if let Some(barrier) = record_upload(&list, &crate::resource::host_copy(guest).unwrap(), &state, &copy) {
+                // SAFETY: record_upload returned the final transition for this resource.
+                unsafe { list.list.ResourceBarrier(&[barrier]) };
+            }
+            list.close();
+            host.execute(&[&list]);
+            check_readback(host, guest, &texture, &layout, &tiled);
+        }
     }
 }
 
