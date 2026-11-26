@@ -58,6 +58,8 @@ out="$root/docs/bench/logs/hot-$(date +%Y%m%d-%H%M%S)"
 while (($#)); do
     case "$1" in
         --a) a=$(winpath "${2:?missing A directory}"); shift 2 ;;
+        --a=*) a=$(winpath "${1#*=}"); shift ;;
+        --b=*) b=$(winpath "${1#*=}"); shift ;;
         --b) b=$(winpath "${2:?missing B directory}"); shift 2 ;;
         --runs) runs=${2:?missing count}; shift 2 ;;
         --runs=*) runs=${1#*=}; shift ;;

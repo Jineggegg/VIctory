@@ -281,20 +281,32 @@ function Paired-Report($a, $b) {
     }
     if (Compare-Object @($a.summary.Keys) @($b.summary.Keys) -CaseSensitive) { throw 'Metric sets differ' }
     $table = [ordered]@{}
-    $keys = $timings + @('peak_working_set_bytes','sampled_local_peak_mb')
-    $lines = $keys | ForEach-Object { "$_`t$(Series $a.runs $_)`t$(Series $b.runs $_)" } | & $xtask bench-stats --paired
+    [string[]]$keys = @($a.summary.Keys)
+    [array]::Sort($keys, [StringComparer]::Ordinal)
+    # A zero baseline makes a pair's percentage undefined. Keep the two
+    # medians and mark the entire metric inestimable instead of dropping pairs.
+    $undefined = @($keys | Where-Object {
+        $k = $_
+        @($a.runs | Where-Object { $_.values[$k] -le 0 }).Count -gt 0
+    })
+    foreach ($k in $undefined) {
+        $table[$k] = [ordered]@{a_median=$a.summary[$k].median; b_median=$b.summary[$k].median;
+            change_pct=$null; ci95_pct=$null; family95_pct=$null}
+    }
+    $keys = @($keys | Where-Object { $_ -cnotin $undefined })
+    $lines = @($keys | ForEach-Object { "$_`t$(Series $a.runs $_)`t$(Series $b.runs $_)" } | & $xtask bench-stats --paired)
     if ($LASTEXITCODE -ne 0 -or $lines.Count -ne $keys.Count) { throw 'Paired bootstrap failed' }
     foreach ($line in $lines) {
         $k,$m,$n,$d,$lo,$hi,$flo,$fhi = $line.Split("`t")
         $table[$k] = [ordered]@{a_median=[double]$m; b_median=[double]$n; change_pct=[double]$d;
             ci95_pct=@([double]$lo,[double]$hi); family95_pct=@([double]$flo,[double]$fhi)}
     }
-    $outside = @($timings | Where-Object { $table[$_].family95_pct[0] -gt 0 -or $table[$_].family95_pct[1] -lt 0 })
-    $nominal = @($timings | Where-Object { $table[$_].ci95_pct[0] -gt 0 -or $table[$_].ci95_pct[1] -lt 0 })
+    $outside = @($timings | Where-Object { $_ -cin $undefined -or $table[$_].family95_pct[0] -gt 0 -or $table[$_].family95_pct[1] -lt 0 })
+    $nominal = @($timings | Where-Object { $_ -cin $undefined -or $table[$_].ci95_pct[0] -gt 0 -or $table[$_].ci95_pct[1] -lt 0 })
     $aa = ($a.binary.sha256 -ceq $b.binary.sha256)
     [ordered]@{schema=1; complete=$true; pairs=$Runs; a_commit=$a.binary.commit; b_commit=$b.binary.commit; a_correct=$a.complete;
         b_correct=$b.complete; same_binary=$aa; order='alternating AB / BA by pair'; bootstrap_draws=5000; seed=5090;
-        pointwise_excludes_zero=$nominal; family_excludes_zero=$outside; pointwise_pass=(!$aa -or $nominal.Count -eq 0); pass=(!$aa -or $outside.Count -eq 0); metrics=$table}
+        undefined_percentages=$undefined; pointwise_excludes_zero=$nominal; family_excludes_zero=$outside; family_pass=(!$aa -or $outside.Count -eq 0); pass=(!$aa -or $nominal.Count -eq 0); metrics=$table}
 }
 
 function Sample {
@@ -351,11 +363,23 @@ function Sample {
             Write-Host "Correctness: A $($result.a_correct), B $($result.b_correct). Median paired change [pointwise 95%]:"
             foreach ($k in $result.metrics.Keys) {
                 $v = $result.metrics[$k]
+                if ($null -eq $v.change_pct) { Write-Host "${k}: undefined percentage (nonpositive baseline)"; continue }
                 Write-Host ('{0}: {1:+0.00;-0.00;0.00}% [{2:F2}%, {3:F2}%]' -f $k,$v.change_pct,$v.ci95_pct[0],$v.ci95_pct[1])
             }
-            if (!$result.pass) { throw 'A/A family interval excludes zero; inspect paired.json' }
+            if (!$result.pass) { throw 'A/A timing interval excludes zero or is undefined; inspect paired.json' }
             Write-Host "Paired bootstrap: $Runs pairs; see paired.json"
         }
+    } catch {
+        if ($paired -and !(Test-Path -LiteralPath (Join-Path $OutDir paired.json))) {
+            $failure = [ordered]@{schema=1; complete=$false; pass=$false; requested_pairs=$Runs;
+                error=Protect-Log $_.Exception.Message; arms=[ordered]@{}}
+            foreach ($label in $reports.Keys) {
+                $r=$reports[$label]
+                $failure.arms[$label] = @{completed=@($r.runs | Where-Object { $_.ok }).Count; invalid=$r.invalid_count}
+            }
+            Save-Json (Join-Path $OutDir paired.json) $failure
+        }
+        throw
     } finally { $log.Dispose() }
 }
 function Passed($report) {

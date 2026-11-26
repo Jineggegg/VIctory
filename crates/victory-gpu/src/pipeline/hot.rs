@@ -117,16 +117,10 @@ fn descriptors(count: usize) {
         list.list.SetDescriptorHeaps(&[Some(host.heap.clone())]);
         list.list.SetComputeRootSignature(&root);
         list.list.SetPipelineState(&pso);
-        list.list
-            .SetComputeRootDescriptorTable(0, host.heap.GetGPUDescriptorHandleForHeapStart());
+        list.list.SetComputeRootDescriptorTable(0, host.heap.GetGPUDescriptorHandleForHeapStart());
         let strides = host.strides().unwrap().GetGPUVirtualAddress();
-        let offset = if paged {
-            victory_shader::emit::VIEW_PAGE_TABLE
-        } else {
-            0
-        };
-        list.list
-            .SetComputeRootShaderResourceView(2, strides + u64::from(offset));
+        let offset = if paged { victory_shader::emit::VIEW_PAGE_TABLE } else { 0 };
+        list.list.SetComputeRootShaderResourceView(2, strides + u64::from(offset));
         list.list
             .SetComputeRootUnorderedAccessView(1, output.GetGPUVirtualAddress());
         list.list
