@@ -147,7 +147,11 @@ pub(crate) struct Cache {
 impl Cache {
     pub(crate) fn open(dir: &Path) -> anyhow::Result<Self> {
         victory_core::ensure_outside_repo(dir)?;
-        std::fs::create_dir_all(dir)?;
+        if dir.is_dir() {
+            remove_stale_temps(dir);
+        } else {
+            std::fs::create_dir_all(dir)?;
+        }
         Ok(Self {
             dir: dir.to_owned(),
         })
@@ -181,6 +185,27 @@ impl Cache {
         std::fs::rename(stage.path(), path)?;
         stage.disable_cleanup(true);
         Ok(())
+    }
+}
+
+// tempfile's default names are .tmp plus six random alphanumerics.
+fn remove_stale_temps(dir: &Path) {
+    use std::time::{Duration, SystemTime};
+    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let now = SystemTime::now();
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        let Some(suffix) = name.to_str().and_then(|s| s.strip_prefix(".tmp")) else { continue };
+        if suffix.len() == 6 && suffix.bytes().all(|c| c.is_ascii_alphanumeric())
+            && let Ok(meta) = entry.metadata()
+            && meta.is_file() && !meta.file_type().is_symlink()
+            && let Ok(age) = meta.modified().and_then(|t| now.duration_since(t).map_err(io::Error::other))
+            && age >= Duration::from_secs(3600)
+        {
+            if let Err(error) = std::fs::remove_file(entry.path()) {
+                tracing::debug!(%error, "could not remove abandoned shader staging file");
+            }
+        }
     }
 }
 
@@ -641,6 +666,22 @@ mod tests {
             assert_eq!(lookup(), (Ok(shader()), true));
             assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
         }
+    }
+
+    #[test]
+    fn open_removes_only_old_shader_staging_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = Cache::open(dir.path()).unwrap();
+        let (old, path) = cache.stage().unwrap().keep().unwrap();
+        let stale = std::time::SystemTime::now() - std::time::Duration::from_secs(7200);
+        old.set_modified(stale).unwrap();
+        drop(old);
+        let fresh = cache.stage().unwrap();
+        let other = dir.path().join(".tmp-not-ours");
+        std::fs::File::create(&other).unwrap().set_modified(stale).unwrap();
+        Cache::open(dir.path()).unwrap();
+        assert!(!path.exists());
+        assert!(fresh.path().is_file() && other.is_file());
     }
 
     #[test]
