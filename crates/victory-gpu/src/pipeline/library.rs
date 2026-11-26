@@ -117,6 +117,9 @@ struct Shared {
     /// The same library as `state`'s, loaded from without its lock.
     loads: ID3D12PipelineLibrary1,
     state: Mutex<Library>,
+    /// Whether a disk cache was configured when this library opened.
+    /// A later configuration must not replace an unconsulted library.
+    disk_configured: bool,
 }
 
 // SAFETY: as for `Library`.
@@ -181,7 +184,8 @@ fn library() -> Option<&'static Shared> {
     LIBRARY
         .get_or_init(|| {
             let device = crate::host::host()?.device.cast::<ID3D12Device1>().ok()?;
-            let dir = existing_library_dir();
+            let disk_configured = DIR.get().is_some();
+            let dir = disk_configured.then(existing_library_dir).flatten();
             let read = |file| dir.and_then(|d| std::fs::read(d.join(file)).ok());
             let blob = read(LIBRARY_FILE).unwrap_or_default();
             let mut library = open(&device, blob);
@@ -194,7 +198,7 @@ fn library() -> Option<&'static Shared> {
             if library.is_none() {
                 tracing::warn!("no host pipeline library: pipelines are not kept");
             }
-            library.map(|l| Shared { loads: l.library.clone(), state: Mutex::new(l) })
+            library.map(|l| Shared { loads: l.library.clone(), state: Mutex::new(l), disk_configured })
         })
         .as_ref()
 }
@@ -378,7 +382,9 @@ pub(crate) fn save(now: bool) {
     }
 
     let Some(library) = library() else { return };
-    save_library(dir, library);
+    if library.disk_configured {
+        save_library(dir, library);
+    }
 }
 
 fn save_library(dir: &std::path::Path, library: &Shared) {
@@ -529,13 +535,15 @@ static USED_CHANGED: AtomicBool = AtomicBool::new(false);
 
 fn used() -> std::sync::MutexGuard<'static, Option<Used>> {
     let mut used = USED.lock().unwrap_or_else(|e| e.into_inner());
-    if used.is_none() {
+    static READ_DISK: OnceLock<()> = OnceLock::new();
+    if DIR.get().is_some() && READ_DISK.get().is_none() {
         let listed = existing_library_dir()
             .and_then(|d| std::fs::read_to_string(d.join(EARLY_FILE)).ok())
             .unwrap_or_default();
-        let read = Used::read(&listed);
-        tracing::info!(pipelines = read.before.len(), "title pipelines to start early");
-        *used = Some(read);
+        let before = Used::read(&listed).before;
+        tracing::info!(pipelines = before.len(), "title pipelines to start early");
+        used.get_or_insert_with(Used::default).before = before;
+        let _ = READ_DISK.set(());
     }
     used
 }
@@ -909,8 +917,27 @@ mod tests {
         const ROOT: &str = "VICTORY_TEST_PSO_ROOT";
         if let Ok(phase) = std::env::var(PHASE) {
             let root = PathBuf::from(std::env::var_os(ROOT).unwrap());
-            use_pipeline_cache(root);
             let host = crate::host::host().expect("D3D12 device");
+            if phase == "late" {
+                // A run without a configured disk cache has an in-memory PSO.
+                note_used("before-configuration");
+                let pixels = super::super::placed_uav_tests::run_store(host, |_| {}).unwrap();
+                assert_eq!(pixels, [[1.0, 0.5, -0.25, 2.0], [0.0; 4]]);
+                use_pipeline_cache(root);
+                let dir = library_dir().unwrap();
+                let list = std::fs::read(dir.join(PREBUILT_FILE)).unwrap();
+                let blob = std::fs::read(dir.join(LIBRARY_FILE)).unwrap();
+                assert!(wanted_early("old-draw"));
+                note_prebuilt("late-marker".to_owned());
+                save(true);
+                assert_eq!(std::fs::read(dir.join(PREBUILT_FILE)).unwrap(), list);
+                assert_eq!(std::fs::read(dir.join(LIBRARY_FILE)).unwrap(), blob);
+                let early = std::fs::read_to_string(dir.join(EARLY_FILE)).unwrap();
+                assert!(early.lines().any(|k| k == "old-draw"));
+                assert!(early.lines().any(|k| k == "before-configuration"));
+                return;
+            }
+            use_pipeline_cache(root);
             let dir = library_dir().expect("cacheable driver version");
             let blob = dir.join(LIBRARY_FILE);
             if phase == "damaged" {
@@ -922,13 +949,17 @@ mod tests {
             let hit = phase == "hit" || phase == "repaired";
             assert_eq!(LOADED.load(Ordering::Relaxed), u64::from(hit));
             assert_eq!(MADE.load(Ordering::Relaxed), u64::from(!hit));
+            if phase == "empty" {
+                note_used("old-draw");
+                note_prebuilt("old-marker".to_owned());
+            }
             save(true);
             assert!(std::fs::metadata(blob).unwrap().len() > 32);
             return;
         }
 
         let root = tempfile::tempdir().unwrap();
-        for phase in ["empty", "hit", "damaged", "repaired"] {
+        for phase in ["empty", "late", "hit", "damaged", "repaired"] {
             let child = std::process::Command::new(std::env::current_exe().unwrap())
                 .args(["--exact", "pipeline::library::tests::reopened_library_loads_then_recovers_a_rejected_blob", "--ignored", "--nocapture"])
                 .env(PHASE, phase)
