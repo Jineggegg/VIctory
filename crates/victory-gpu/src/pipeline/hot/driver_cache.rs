@@ -4,7 +4,7 @@ use crate::pipeline::{Prebuild, gfx10, pipeline_counts};
 use std::collections::{HashSet, VecDeque};
 use std::hash::{BuildHasher, RandomState};
 use std::process::Command;
-use std::sync::Mutex;
+use std::sync::{Condvar, Mutex};
 use std::time::Instant;
 use windows_sys::Win32::System::{ProcessStatus::*, Threading::GetCurrentProcess};
 
@@ -20,6 +20,10 @@ fn compile_one_process() {
     let seed: u32 = std::env::var("VICTORY_DRIVER_CHILD_SEED").unwrap().parse().unwrap();
     let count = number("VICTORY_BENCH_DRIVER_COUNT", 1996);
     let workers = number("VICTORY_BENCH_DRIVER_WORKERS", 24);
+    let heavy_every = number("VICTORY_BENCH_DRIVER_HEAVY_EVERY", 0);
+    let rounds = number("VICTORY_BENCH_DRIVER_HEAVY_ROUNDS", 1);
+    let budget = number("VICTORY_BENCH_DRIVER_BUDGET_KIB", 0) * 1024;
+    assert!((1..=4096).contains(&rounds));
     assert!((1..=4096).contains(&count) && (1..=64).contains(&workers));
     let dir = tempfile::tempdir().unwrap();
     crate::pipeline::library::use_pipeline_cache(dir.path().to_owned());
@@ -27,31 +31,60 @@ fn compile_one_process() {
     let mut hashes = HashSet::new();
     let mut digest = blake3::Hasher::new();
     let mut jobs = VecDeque::with_capacity(count);
+    let salts: Vec<_> = (0..rounds as u32)
+        .map(|n| seed.wrapping_add(n.wrapping_mul(0x9e37_79b9)))
+        .collect();
     let mut bytes = 0;
+    let mut largest = 0;
     for i in 1..=count as u32 {
         let width = if i <= 16 { 128 * i } else { 2048 + i };
-        let container = gfx10::salted_compute_container(width, seed);
+        let heavy = heavy_every != 0 && (i as usize).is_multiple_of(heavy_every);
+        let container = gfx10::salted_compute_container(width, if heavy { &salts } else { &salts[..1] });
         let job = Prebuild::compute(&container);
         let dxil = &job.shaders[0].translated().unwrap().host.dxil;
         if i == 1 {
-            let alternate = Prebuild::compute(&gfx10::salted_compute_container(width, !seed));
+            let alternate = Prebuild::compute(&gfx10::salted_compute_container(width, &[!seed]));
             assert_ne!(*dxil, alternate.shaders[0].translated().unwrap().host.dxil);
             let plain = Prebuild::compute(&gfx10::compute_container(width));
             assert_ne!(*dxil, plain.shaders[0].translated().unwrap().host.dxil);
         }
         assert!(hashes.insert(blake3::hash(dxil)));
         bytes += dxil.len();
+        largest = largest.max(dxil.len());
         digest.update(dxil);
-        jobs.push_back(job);
+        jobs.push_back((dxil.len(), job));
     }
-    let jobs = Mutex::new(jobs);
+    let queue = Mutex::new((jobs, 0usize));
+    let finished = Condvar::new();
     assert_eq!(pipeline_counts(), (0, 0));
     let start = Instant::now();
     std::thread::scope(|scope| {
         for _ in 0..workers.min(count) {
             scope.spawn(|| loop {
-                let Some(job) = jobs.lock().unwrap().pop_front() else { break };
-                job.make().unwrap();
+                let mut state = queue.lock().unwrap();
+                let (cost, job) = loop {
+                    if state.0.is_empty() { return; }
+                    // A shader larger than the budget can proceed on its own.
+                    // Small ready jobs can fill the remaining byte allowance.
+                    let index = if budget == 0 || state.1 == 0 { Some(0) } else {
+                        state.0.iter().position(|(cost, _)| state.1 + cost <= budget)
+                    };
+                    if let Some(i) = index {
+                        let next = state.0.remove(i).unwrap();
+                        if budget != 0 { state.1 += next.0; }
+                        break next;
+                    }
+                    state = finished.wait(state).unwrap();
+                };
+                drop(state);
+                let result = job.make();
+                if budget != 0 {
+                    let mut state = queue.lock().unwrap();
+                    state.1 -= cost;
+                    drop(state);
+                    finished.notify_all();
+                }
+                result.unwrap();
             });
         }
     });
@@ -65,7 +98,7 @@ fn compile_one_process() {
     assert_ne!(unsafe { K32GetProcessMemoryInfo(GetCurrentProcess(), &mut memory, memory.cb) }, 0);
     let pixels = crate::pipeline::placed_uav_tests::run_store_with_salt(host, Some(seed), |_| {}).unwrap();
     assert_eq!(pixels, [[1., 0.5, -0.25, 2.], [0.; 4]]);
-    println!("DRIVER_RESULT {} {bytes} {elapsed} {} {count} {workers}",
+    println!("DRIVER_RESULT {} {bytes} {elapsed} {} {count} {workers} {largest}",
         digest.finalize().to_hex(), memory.PeakWorkingSetSize);
 }
 
@@ -88,12 +121,14 @@ fn fresh_and_replayed() {
     };
     let fresh = sample();
     let replay = sample();
-    assert_eq!(fresh.len(), 6);
-    assert_eq!(replay.len(), 6);
+    assert_eq!(fresh.len(), 7);
+    assert_eq!(replay.len(), 7);
     assert_eq!(fresh[..2], replay[..2], "both processes must compile identical bytes");
     assert_eq!(fresh[4..], replay[4..], "workload and worker count");
     println!("driver seed={seed} digest={} DXIL bytes={} workers={}", fresh[0], fresh[1], fresh[5]);
     println!("BENCH driver_seed={seed}");
+    println!("BENCH driver_largest_dxil_bytes={}", fresh[6]);
+    println!("BENCH driver_total_dxil_bytes={}", fresh[1]);
     println!("BENCH driver_fresh_us={}", fresh[2]);
     println!("BENCH driver_replay_us={}", replay[2]);
     println!("BENCH driver_fresh_peak_bytes={}", fresh[3]);

@@ -280,10 +280,10 @@ pub fn pixel() -> Vec<u32> {
 /// 64 bytes; four floats per pixel, row after row). The group id arrives
 /// in s1-s2, the thread id in v0-v1. A neighbour past the edge reads 0.
 pub fn compute(width: u32) -> Vec<u32> {
-    compute_with_salt(width, None)
+    compute_with_salts(width, &[])
 }
 
-fn compute_with_salt(width: u32, salt: Option<u32>) -> Vec<u32> {
+fn compute_with_salts(width: u32, salts: &[u32]) -> Vec<u32> {
     let mut a = Asm::default();
     a.table(4, 0);
     a.smem(3, 8, 4, 0); // s_load_dwordx8 s[8:15]: the frame
@@ -315,7 +315,7 @@ fn compute_with_salt(width: u32, salt: Option<u32>) -> Vec<u32> {
         u16::try_from(width).expect("a frame at most 65,535 pixels wide"),
     );
     a.vop3(0x143, 24, v(3), 30, v(2)); // v_mad_u32_u24 v24, y, width, x
-    if let Some(salt) = salt {
+    for &salt in salts {
         a.0.extend(salted_identity(24, 25, salt));
     }
     a.vop2(0x1a, v(24), 4 + 128, 24); // v_lshlrev_b32 v24, 4, v24
@@ -584,8 +584,8 @@ pub fn compute_container(width: u32) -> Vec<u8> {
     compute_program_container(compute(width))
 }
 
-pub(super) fn salted_compute_container(width: u32, salt: u32) -> Vec<u8> {
-    compute_program_container(compute_with_salt(width, Some(salt)))
+pub(super) fn salted_compute_container(width: u32, salts: &[u32]) -> Vec<u8> {
+    compute_program_container(compute_with_salts(width, salts))
 }
 
 fn compute_program_container(code: Vec<u32>) -> Vec<u8> {
