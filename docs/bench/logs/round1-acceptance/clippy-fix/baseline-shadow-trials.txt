@@ -1,0 +1,32 @@
+次数	线程与筛选	该影子内存用例的结果	GPU 测试程序退出码
+1	默认线程，全 GPU 库	通过	101
+2	默认线程，全 GPU 库	通过	101
+3	默认线程，全 GPU 库	通过	101
+4	默认线程，全 GPU 库	通过	101
+5	默认线程，全 GPU 库	通过	101
+6	默认线程，全 GPU 库	通过	101
+7	默认线程，全 GPU 库	通过	101
+8	默认线程，全 GPU 库	通过	101
+9	默认线程，全 GPU 库	通过	101
+10	默认线程，全 GPU 库	通过	101
+11	默认线程，全 GPU 库	通过	101
+12	默认线程，全 GPU 库	通过	101
+13	threads=32 filter=	通过	101
+14	threads=32 filter=	通过	0
+15	threads=32 filter=	通过	101
+16	threads=32 filter=	通过	101
+17	threads=32 filter=shadow::tests:: watch::tests:: texture::readback_tests::	通过	101
+18	threads=32 filter=shadow::tests:: watch::tests:: texture::readback_tests::	通过	101
+19	threads=32 filter=shadow::tests:: watch::tests:: texture::readback_tests::	通过	101
+20	threads=32 filter=shadow::tests:: watch::tests:: texture::readback_tests::	通过	101
+21	threads=48 filter=	通过	101
+22	threads=48 filter=	通过	101
+23	threads=48 filter=	通过	101
+24	threads=48 filter=	通过	101
+25	threads=48 filter=shadow::tests:: watch::tests:: texture::readback_tests::	通过	101
+26	threads=48 filter=shadow::tests:: watch::tests:: texture::readback_tests::	通过	101
+27	threads=48 filter=shadow::tests:: watch::tests:: texture::readback_tests::	通过	101
+28	threads=48 filter=shadow::tests:: watch::tests:: texture::readback_tests::	通过	101
+29	threads=24 filter=	通过	101
+30	threads=24 filter=	通过	101
+31	threads=24 filter=	相同断言失败	101
