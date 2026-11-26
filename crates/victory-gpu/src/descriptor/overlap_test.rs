@@ -9,7 +9,10 @@ const LANES: usize = 32;
 const ELEMENTS: usize = 36;
 const FIELDS: usize = 3;
 const BYTES: usize = ELEMENTS * FIELDS * 4;
-const WRITER_SLOT: u32 = 6;
+const TITLE_VIEWS: u32 = 1_245_184;
+// Exercise the first page boundary, a slot above the hardware cap, and the last guest slot.
+const READERS: [u32; 5] = [1, 255, 256, 1_099_777, TITLE_VIEWS - 1];
+const WRITER_SLOT: u32 = 1_099_778;
 
 // Each lane addresses element v0 of the heap view at s0. Readers export the
 // selected field through a separate raw output UAV in s2. Writers store the
@@ -137,10 +140,10 @@ struct Kernel {
 }
 
 impl Kernel {
-    fn new(device: &victory_shader::emit::host::Host, write: bool, field: usize) -> Option<Self> {
+    fn new(device: &victory_shader::emit::host::Host, write: bool, field: usize) -> Self {
         let shader = shader(write, field);
-        let (root, pso) = device.compute_pipeline(&shader).ok()?;
-        Some(Self { shader, root, pso })
+        let (root, pso) = device.compute_pipeline(&shader).expect("overlap kernel on SM 6.6");
+        Self { shader, root, pso }
     }
 
     fn run(&self, host: &Host, heap: &HostHeap, slot: u32) {
@@ -184,21 +187,20 @@ fn gpu_writes_visible_through_overlapping_views() {
         return; // no host GPU here
     };
     let _ = host.log_messages();
-    let cache_dir = tempfile::tempdir().unwrap();
-    let _ = crate::shader_cache::use_shader_cache(cache_dir.path().to_owned());
-    let Some(heap) = HostHeap::new(false, 128) else {
-        return;
+    let mut sm = D3D12_FEATURE_DATA_SHADER_MODEL { HighestShaderModel: D3D_SHADER_MODEL_6_6 };
+    // SAFETY: the feature query receives the corresponding structure and size.
+    let queried = unsafe {
+        host.device.CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, (&raw mut sm).cast(),
+            size_of_val(&sm) as u32)
     };
+    if queried.is_err() || sm.HighestShaderModel.0 < D3D_SHADER_MODEL_6_6.0 {
+        eprintln!("overlap fixture requires SM 6.6");
+        return;
+    }
+    let heap = HostHeap::new(false, TITLE_VIEWS).expect("guest heap with high view indices");
     let device = victory_shader::emit::host::Host::from_device(host.device.clone());
-    let Some(writer) = Kernel::new(&device, true, FIELDS - 1) else {
-        return; // host adapter lacks SM 6.6
-    };
-    let Some(readers) = (0..FIELDS)
-        .map(|field| Kernel::new(&device, false, field))
-        .collect::<Option<Vec<_>>>()
-    else {
-        return;
-    };
+    let writer = Kernel::new(&device, true, FIELDS - 1);
+    let readers: Vec<_> = (0..FIELDS).map(|field| Kernel::new(&device, false, field)).collect();
     let (output, mapped) = host.shared_buffer((LANES * 4) as u64).unwrap();
     heap.raw_view_at(0, Some(&output), 0, (LANES * 4) as u64, true);
 
@@ -212,8 +214,8 @@ fn gpu_writes_visible_through_overlapping_views() {
         // SAFETY: this new page contains the whole 432-byte allocation.
         unsafe { std::ptr::copy_nonoverlapping(initial.as_ptr(), page as *mut u32, initial.len()) };
         crate::shadow::register(address as usize, address, BYTES as u64);
-        for reader_first in 0..5 {
-            mirror(&heap, 1 + reader_first as u32, address, reader_first, false);
+        for (reader_first, slot) in READERS.into_iter().enumerate() {
+            mirror(&heap, slot, address, reader_first, false);
         }
         mirror(&heap, WRITER_SLOT, address, writer_first, true);
         writer.run(host, &heap, WRITER_SLOT);
@@ -222,11 +224,11 @@ fn gpu_writes_visible_through_overlapping_views() {
             expected[(writer_first + lane) * FIELDS + FIELDS - 1] = lane as u32;
         }
         // The title makes no CPU-side changes between the writer and readers.
-        for reader_first in 0..5 {
+        for (reader_first, slot) in READERS.into_iter().enumerate() {
             for (field, reader) in readers.iter().enumerate() {
                 // SAFETY: the previous submission completed; 32 mapped output dwords.
                 unsafe { std::ptr::write_bytes(mapped, 0x55, LANES * 4) };
-                reader.run(host, &heap, 1 + reader_first as u32);
+                reader.run(host, &heap, slot);
                 // SAFETY: every lane's output is visible after the queue fence.
                 let values = unsafe { std::slice::from_raw_parts(mapped.cast::<u32>(), LANES) };
                 let want = (0..LANES)
@@ -255,4 +257,5 @@ fn gpu_writes_visible_through_overlapping_views() {
     crate::watch::tests::free(pool);
     assert_eq!(host.log_messages(), None, "D3D12 validation errors");
     assert_eq!(total_wrong, 0, "mismatches out of 2400");
+    eprintln!("Verified 2400 words across five view origins and guest slots through {}.", TITLE_VIEWS - 1);
 }

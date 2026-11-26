@@ -2750,18 +2750,26 @@ mod tests {
     /// Dynamic slots stay taken until given back, and runs do not wrap.
     #[test]
     fn dynamic_slots_are_held_until_released() {
-        let Some(heap) = HostHeap::new(false, 4) else {
-            return; // no host GPU
-        };
-        // Every index a translated shader can reach exists (clamped below
-        // `HEAP_VIEWS`, `HEAP_SAMPLERS`): in the host heap, or in a paged
-        // heap's pages.
-        // SAFETY: plain queries of live heaps.
+        if host().is_none() {
+            return;
+        }
+        let heap = HostHeap::new(false, 4).expect("view heap");
+        let views = victory_shader::emit::HEAP_VIEWS;
+        // SAFETY: plain queries of live heaps and their mapped page table.
         unsafe {
-            assert!(
-                heap.pages.is_some()
-                    || heap.heap.GetDesc().NumDescriptors >= victory_shader::emit::HEAP_VIEWS
-            );
+            let total = heap.heap.GetDesc().NumDescriptors;
+            if view_pages() {
+                assert!(heap.pages.is_some());
+                let pages = views.div_ceil(PAGE);
+                let table_end = u64::from(victory_shader::emit::VIEW_PAGE_TABLE) + u64::from(pages) * 4;
+                assert!(heap.strides().unwrap().GetDesc().Width >= table_end);
+                for page in 0..pages {
+                    assert!(heap.page_table_entry(page) < total / PAGE, "virtual page {page} outside host heap");
+                }
+                assert_ne!(heap.page_table_entry((views - 1) / PAGE), NULL_PAGE, "reserved null buffer views");
+            } else {
+                assert!(total >= views);
+            }
             let samplers = HostHeap::new(true, 128).unwrap();
             assert!(samplers.heap.GetDesc().NumDescriptors >= victory_shader::emit::HEAP_SAMPLERS);
         }
