@@ -230,6 +230,8 @@ struct Lower<'a> {
     /// `VIEW_STRIDES` dword loaded by [`Lower::buffer_guard`], reused by
     /// [`Lower::view_raw_bias`] to avoid a second load or OOB read at null.
     guarded_stride: HashMap<V, V>,
+    /// Defining block and lazily decoded raw offset of each table buffer handle.
+    table_bias: HashMap<V, (usize, Option<V>)>,
     /// Blocks splitting the edge from one IR block to another.
     edges: HashMap<(usize, usize), usize>,
     /// Per IR block: a `done` export is behind every lane entering it.
@@ -691,6 +693,7 @@ impl<'a> Lower<'a> {
             entry_handles: HashMap::new(),
             join_handles: HashMap::new(),
             guarded_stride: HashMap::new(),
+            table_bias: HashMap::new(),
             edges: HashMap::new(),
             exported: vec![false; p.blocks.len()],
             rpo: vec![usize::MAX; p.blocks.len()],
@@ -5555,6 +5558,8 @@ impl<'a> Lower<'a> {
         let h = self.s.heap_handle(self.cur, index, sampler, nonuniform, props);
         if let Some(word) = word {
             self.guarded_stride.insert(h, word);
+        } else if self.s.view_index.contains_key(&h) && self.used_kind(src).is_some_and(|u| u.stride >= 4) {
+            self.table_bias.insert(h, (self.cur, None));
         }
         h
     }

@@ -42,6 +42,20 @@ impl Lower<'_> {
     /// [`VIEW_STRIDES`] bits 28..29; `None` if the handle's heap index is not
     /// known.
     pub(super) fn view_raw_bias(&mut self, h: V) -> Option<V> {
+        if let Some(&(block, cached)) = self.table_bias.get(&h) {
+            if let Some(bias) = cached {
+                return Some(bias);
+            }
+            // An entry or join handle may be used in separate branches. Its
+            // metadata belongs beside the handle so it dominates every use.
+            let index = self.s.view_index[&h];
+            let here = std::mem::replace(&mut self.cur, block);
+            let word = self.view_word(index);
+            let bias = self.decode_raw_bias(word);
+            self.cur = here;
+            self.table_bias.insert(h, (block, Some(bias)));
+            return Some(bias);
+        }
         let word = match self.guarded_stride.get(&h).copied() {
             Some(word) => word,
             None => {
@@ -49,10 +63,14 @@ impl Lower<'_> {
                 self.view_word(index)
             }
         };
+        Some(self.decode_raw_bias(word))
+    }
+
+    fn decode_raw_bias(&mut self, word: V) -> V {
         let c = self.cur;
         let shift = self.s.m.i32(VIEW_RAW_OFFSET_SHIFT - 2);
         let mask = self.s.m.i32(0xC);
         let shifted = self.s.m.bin(c, Bin::LShr, word, shift);
-        Some(self.s.m.bin(c, Bin::And, shifted, mask))
+        self.s.m.bin(c, Bin::And, shifted, mask)
     }
 }
