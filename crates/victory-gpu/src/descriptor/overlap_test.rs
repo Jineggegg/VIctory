@@ -92,7 +92,7 @@ fn shader(write: bool, field: usize) -> HostShader {
         version: (1, 0),
         parts: Vec::new(),
     };
-    let options = victory_shader::emit::Options { view_marks: false, view_pages: view_pages() };
+    let options = victory_shader::emit::Options { view_marks: false, view_pages: view_pages(), ..Default::default() };
     let emitted = victory_shader::emit::emit_with(&signatures, &native, &ir, &st, &io, &res, options).unwrap();
     assert!(emitted.heap && emitted.heap_writes == write);
     assert_eq!(emitted.root_srvs, [VIEW_STRIDES]);
