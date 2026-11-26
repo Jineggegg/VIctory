@@ -55,6 +55,12 @@ fn wave_mark_capability_selects_its_cached_dxil() {
     }
     assert_ne!(outputs[0].0, outputs[1].0);
     assert_ne!(outputs[0].1, outputs[1].1);
+    // A shader without a bitmap access keeps byte-for-byte identical DXIL.
+    let vertex = super::gfx10::fullscreen();
+    let plain = |wave_marks| translate_with(
+        &vertex, Options { wave_marks, view_marks: true, view_pages: true },
+    ).unwrap().dxil;
+    assert_eq!(plain(false), plain(true));
 }
 
 fn scenarios(host: &Host, extended: bool) {
@@ -201,14 +207,7 @@ fn scenarios(host: &Host, extended: bool) {
                 .ResolveQueryData(&query, D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, &readback, 0);
         }
         list.close();
-        if extended {
-            // Repeat the closed command list. The normal host submission
-            // resets and collects the marks before the next iteration.
-            let start = Instant::now();
-            while start.elapsed().as_secs_f32() < 1.5 {
-                host.execute(&[&list]);
-            }
-        }
+        // One dispatch between timestamps; the sampler warms the device separately.
         host.execute(&[&list]);
         let times = unsafe { data.cast::<[u64; 2]>().read_unaligned() };
         assert!(times[1] > times[0]);
