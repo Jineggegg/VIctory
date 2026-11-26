@@ -117,16 +117,10 @@ fn descriptors(count: usize) {
         list.list.SetDescriptorHeaps(&[Some(host.heap.clone())]);
         list.list.SetComputeRootSignature(&root);
         list.list.SetPipelineState(&pso);
-        list.list
-            .SetComputeRootDescriptorTable(0, host.heap.GetGPUDescriptorHandleForHeapStart());
+        list.list.SetComputeRootDescriptorTable(0, host.heap.GetGPUDescriptorHandleForHeapStart());
         let strides = host.strides().unwrap().GetGPUVirtualAddress();
-        let offset = if paged {
-            victory_shader::emit::VIEW_PAGE_TABLE
-        } else {
-            0
-        };
-        list.list
-            .SetComputeRootShaderResourceView(2, strides + u64::from(offset));
+        let offset = if paged { victory_shader::emit::VIEW_PAGE_TABLE } else { 0 };
+        list.list.SetComputeRootShaderResourceView(2, strides + u64::from(offset));
         list.list
             .SetComputeRootUnorderedAccessView(1, output.GetGPUVirtualAddress());
         list.list
@@ -327,8 +321,58 @@ fn shaders(dir: &std::path::Path, count: usize) {
     );
 }
 
+/// Prime clocks in a separate process so both measured checkouts start with
+/// empty application caches. No GPU work from this process survives the fence.
 #[test]
-#[ignore = "run alone in a fresh process via tools/bench/hot.py"]
+#[ignore = "GPU clock warmup for tools/bench/hot.sh"]
+fn warm_adapter() {
+    let host = crate::host::host().unwrap();
+    let (root, pso) = crate::draw::tests::compile_cs(
+        r#"
+        RWByteAddressBuffer dst : register(u0);
+        [RootSignature("UAV(u0)")]
+        [numthreads(64,1,1)]
+        void main(uint3 id : SV_DispatchThreadID) {
+            uint x = id.x + 1;
+            [loop] for (uint i = 0; i < 256; ++i) {
+                x ^= x << 13; x ^= x >> 17; x ^= x << 5;
+            }
+            dst.Store(4 * id.x, x);
+        }"#,
+    );
+    let (buffer, data) = host.shared_buffer(4096 * 64 * 4).unwrap();
+    let list = host.new_list().unwrap();
+    // SAFETY: the root UAV covers one word per thread and all objects live
+    // through the final completed submission.
+    unsafe {
+        list.list.SetComputeRootSignature(&root);
+        list.list.SetPipelineState(&pso);
+        list.list
+            .SetComputeRootUnorderedAccessView(0, buffer.GetGPUVirtualAddress());
+        list.list.Dispatch(4096, 1, 1);
+    }
+    list.close();
+    let start = Instant::now();
+    host.execute(&[&list]);
+    println!("WARMUP active");
+    // The driver releases the load only after observing three continuous
+    // seconds at benchmark clocks. EOF and the deadline also release it.
+    let stop = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let stopped = stop.clone();
+    std::thread::spawn(move || {
+        let _ = std::io::stdin().read_line(&mut String::new());
+        stopped.store(true, Relaxed);
+    });
+    while !stop.load(Relaxed) && start.elapsed() < std::time::Duration::from_secs(20) {
+        host.execute(&[&list]);
+    }
+    // SAFETY: the completed dispatch wrote nonzero xorshift(1) to word zero.
+    assert_ne!(unsafe { data.cast::<u32>().read_volatile() }, 0);
+    println!("WARMUP completed");
+}
+
+#[test]
+#[ignore = "run alone in a fresh process via bash tools/bench/hot.sh smoke"]
 fn hot_paths() {
     let cache = tempfile::tempdir().unwrap();
     super::library::use_pipeline_cache(cache.path().to_owned());
