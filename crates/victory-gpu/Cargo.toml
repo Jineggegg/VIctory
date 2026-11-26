@@ -14,11 +14,8 @@ tracing.workspace = true
 anyhow.workspace = true
 victory-formats.workspace = true
 victory-core.workspace = true
-rusqlite = { version = "0.37.0", features = ["bundled"] }
-victory-shader = { workspace = true, features = ["host"] }
-
-[dev-dependencies]
 tempfile.workspace = true
+victory-shader = { workspace = true, features = ["host"] }
 
 [features]
 # Debugging switches (frame capture, the host debug layer, per-draw data).

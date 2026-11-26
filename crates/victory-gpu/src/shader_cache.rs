@@ -4,8 +4,8 @@
 //! an old translation, while rebuilding the rest of VIctory keeps them.
 //! Each translator's entries are in a folder of their own, named by the
 //! start of that key: older translators' folders can be deleted whole.
-//! Entries share a SQLite database. Each translation is published in one
-//! transaction and verified against its key and checksum on read. Refusals
+//! Entries are written beside their final path and atomically renamed.
+//! Reads verify both the container key and the payload checksum. Refusals
 //! are cached with their reason so they are not retried on every run.
 //!
 //! `victory translate --cache` fills the same cache ahead of a run, through
@@ -15,10 +15,10 @@
 //! of the key, so changing the encoding invalidates every entry.
 
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Mutex, OnceLock};
 
-use rusqlite::{Connection, OptionalExtension};
+use std::io::{self, Write};
 use victory_shader::emit::{HostShader, StaticSampler, UserData};
 use victory_shader::{HwStage, RootType};
 
@@ -91,12 +91,10 @@ pub fn host_shader(container: &[u8]) -> (Result<HostShader, String>, bool) {
     }
 }
 
-/// All processes using this translator share the same WAL. NORMAL commits are
-/// visible immediately. Power loss can discard recent entries, which are
-/// reproducible. A partial transaction is never returned as a translation.
+/// A single directory per translator. A hit needs one file open, and a
+/// miss can stage its bytes in the already existing destination directory.
 struct Cache {
     dir: PathBuf,
-    db: Mutex<Option<Connection>>,
 }
 
 impl Cache {
@@ -105,64 +103,37 @@ impl Cache {
         std::fs::create_dir_all(dir)?;
         Ok(Self {
             dir: dir.to_owned(),
-            db: Mutex::new(None),
         })
     }
 
-    // A run that translates nothing should not create a database. Keep the
-    // one-time schema setup in the first lookup, and retry failed opens.
-    fn with_db<T>(
-        &self,
-        f: impl FnOnce(&Connection) -> rusqlite::Result<T>,
-    ) -> rusqlite::Result<T> {
-        let mut slot = self.db.lock().unwrap_or_else(|e| e.into_inner());
-        if let Some(db) = slot.as_ref() {
-            return f(db);
+    fn read(path: &Path, key: &[u8; 32]) -> Option<Result<HostShader, String>> {
+        let entry = std::fs::read(path).ok()?;
+        let (bytes, digest) = entry.split_at(entry.len().checked_sub(32)?);
+        if blake3::keyed_hash(key, bytes).as_bytes() != digest {
+            return None;
         }
-        let db = Connection::open(self.dir.join("shaders.sqlite3"))?;
-        db.execute_batch(
-            "PRAGMA journal_mode=WAL;
-             PRAGMA synchronous=NORMAL;
-             CREATE TABLE IF NOT EXISTS shaders (
-                key BLOB PRIMARY KEY,
-                digest BLOB NOT NULL,
-                translation BLOB NOT NULL
-             ) WITHOUT ROWID;",
-        )?;
-        // Another process may have the writer lock. Return the fresh shader
-        // immediately in that case, even when it cannot be persisted.
-        db.busy_timeout(std::time::Duration::ZERO)?;
-        f(slot.insert(db))
+        decode(bytes)
     }
 
-    fn read(&self, key: &[u8; 32]) -> rusqlite::Result<Option<Result<HostShader, String>>> {
-        self.with_db(|db| {
-            let mut query =
-                db.prepare_cached("SELECT digest, translation FROM shaders WHERE key=?1")?;
-            let entry = query
-                .query_row([key], |row| {
-                    let digest = row.get_ref(0)?.as_blob()?;
-                    let bytes = row.get_ref(1)?.as_blob()?;
-                    if blake3::keyed_hash(key, bytes).as_bytes() == digest {
-                        Ok(decode(bytes))
-                    } else {
-                        Ok(None)
-                    }
-                })
-                .optional()?;
-            Ok(entry.flatten())
+    fn stage(&self) -> io::Result<tempfile::NamedTempFile> {
+        // Create an ordinary file: persisting a Windows temporary-attribute
+        // file would also change its attributes on every publication.
+        tempfile::Builder::new().make_in(&self.dir, |p| {
+            std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(p)
         })
     }
 
-    fn write(&self, key: &[u8; 32], bytes: &[u8]) -> rusqlite::Result<()> {
-        let digest = blake3::keyed_hash(key, bytes);
-        self.with_db(|db| {
-            let mut insert = db.prepare_cached(
-                "INSERT OR REPLACE INTO shaders (key, digest, translation) VALUES (?1, ?2, ?3)",
-            )?;
-            insert.execute(rusqlite::params![key, digest.as_bytes(), bytes])?;
-            Ok(())
-        })
+    fn write(&self, path: &Path, key: &[u8; 32], mut bytes: Vec<u8>) -> io::Result<()> {
+        let digest = blake3::keyed_hash(key, &bytes);
+        bytes.extend_from_slice(digest.as_bytes());
+        let mut stage = self.stage()?;
+        stage.write_all(&bytes)?;
+        std::fs::rename(stage.path(), path)?;
+        stage.disable_cleanup(true);
+        Ok(())
     }
 }
 
@@ -173,13 +144,14 @@ fn cached(
     translate: impl Fn(&[u8]) -> Result<HostShader, String>,
 ) -> (Result<HostShader, String>, bool) {
     let key = blake3::keyed_hash(build, container);
-    if let Ok(Some(shader)) = cache.read(key.as_bytes()) {
+    let path = cache.dir.join(key.to_hex().as_str());
+    if let Some(shader) = Cache::read(&path, key.as_bytes()) {
         HITS.fetch_add(1, Ordering::Relaxed);
         return (shader, true);
     }
     MISSES.fetch_add(1, Ordering::Relaxed);
     let shader = translate(container);
-    if let Err(e) = cache.write(key.as_bytes(), &encode(&shader)) {
+    if let Err(e) = cache.write(&path, key.as_bytes(), encode(&shader)) {
         tracing::debug!(error = %e, "shader cache entry not written");
     }
     (shader, false)
@@ -439,14 +411,12 @@ mod tests {
         assert_eq!(runs.load(Ordering::Relaxed), 2);
 
         // A damaged entry is a miss, translated and stored again.
-        cache
-            .with_db(|db| {
-                db.execute(
-                    "UPDATE shaders SET translation = ?1",
-                    [encode(&Err("readable but wrong entry".into()))],
-                )
-            })
-            .unwrap();
+        let path = cache
+            .dir
+            .join(blake3::keyed_hash(&build, container).to_hex().as_str());
+        let mut damaged = std::fs::read(&path).unwrap();
+        damaged[12] ^= 1; // DXIL payload: still decodes structurally.
+        std::fs::write(&path, damaged).unwrap();
         assert_eq!(
             cached(&cache, &build, container, translate),
             (Ok(shader()), false)
@@ -496,35 +466,45 @@ mod tests {
     }
 
     #[test]
-    fn interrupted_writer_preserves_only_committed_rows() {
+    fn interrupted_writer_preserves_only_published_entries() {
         const CHILD: &str = "VICTORY_TEST_INTERRUPTED_SHADER_WRITER";
         if let Some(dir) = std::env::var_os(CHILD) {
             let cache = Cache::open(Path::new(&dir)).unwrap();
             assert!(!cached(&cache, &[7; 32], b"committed", |_| Ok(shader())).1);
-            cache.with_db(|db| db.execute_batch("BEGIN IMMEDIATE")).unwrap();
-            assert!(!cached(&cache, &[7; 32], b"unfinished", |_| Ok(shader())).1);
-            // Exit without destructors, while the second transaction is open.
+            let mut partial = cache.stage().unwrap();
+            partial.write_all(b"incomplete shader").unwrap();
+            // Exit before the temporary file is published at a cache key.
             std::process::exit(71);
         }
 
         let dir = tempfile::tempdir().unwrap();
         let status = std::process::Command::new(std::env::current_exe().unwrap())
-            .args(["--exact", "shader_cache::tests::interrupted_writer_preserves_only_committed_rows"])
+            .args([
+                "--exact",
+                "shader_cache::tests::interrupted_writer_preserves_only_published_entries",
+            ])
             .env(CHILD, dir.path())
-            .status().unwrap();
+            .status()
+            .unwrap();
         assert_eq!(status.code(), Some(71));
         let cache = Cache::open(dir.path()).unwrap();
-        assert_eq!(cached(&cache, &[7; 32], b"committed", |_| panic!()), (Ok(shader()), true));
-        assert_eq!(cached(&cache, &[7; 32], b"unfinished", |_| Ok(shader())), (Ok(shader()), false));
+        assert_eq!(
+            cached(&cache, &[7; 32], b"committed", |_| panic!()),
+            (Ok(shader()), true)
+        );
+        assert_eq!(
+            cached(&cache, &[7; 32], b"unfinished", |_| Ok(shader())),
+            (Ok(shader()), false)
+        );
     }
 
     #[test]
     fn a_translation_is_made_once_when_its_entry_cannot_be_written() {
         let dir = tempfile::tempdir().unwrap();
-        let cache = Cache::open(dir.path()).unwrap();
-        cache
-            .with_db(|db| db.execute_batch("PRAGMA query_only=ON"))
-            .unwrap();
+        let root = dir.path().join("cache");
+        let cache = Cache::open(&root).unwrap();
+        std::fs::remove_dir(&root).unwrap();
+        std::fs::write(&root, b"not a directory").unwrap();
         let runs = AtomicU64::new(0);
         let translate = |_: &[u8]| {
             runs.fetch_add(1, Ordering::Relaxed);
