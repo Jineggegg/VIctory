@@ -1159,6 +1159,10 @@ impl HostHeap {
         for slot in slots.drain(..) {
             let view = slot.view();
             let (at, placed) = self.cpu_placed(slot.index);
+            if !placed {
+                // The guest slot still resolves to the null texture page.
+                self.write_stride(slot.index, 0);
+            }
             let (kept, _, _) = make_marked(&view, at);
             if kept.is_none() {
                 null_for(&view, at);
@@ -3454,16 +3458,23 @@ mod tests {
         let start = records.as_mut_ptr() as u64;
         crate::descriptor::create_cbv(std::ptr::null(),
             &[address as u32, (address >> 32) as u32, 256, 0], start);
+        let stride = || {
+            let data = heap.strides.as_ref().unwrap().1 as *const u32;
+            // SAFETY: entry zero of the test heap's mapped stride table.
+            unsafe { data.read_volatile() }
+        };
         heap.hold_page_room(true);
         heap.sync_slots(0, 1, start, 32);
         assert!(heap.made_from(0, start));
         assert!(!heap.kept(0));
+        assert_eq!(stride(), 0, "unplaced slots resolve to the null texture page");
         assert_eq!(heap.host_page_of(0), Some(NULL_PAGE));
         heap.hold_page_room(false);
         heap.place_page(0);
         let remakes = heap.remakes();
         assert_eq!(remakes, [(0, PAGE)]);
         heap.sync_ranges(&remakes, start, 32);
+        assert_eq!(stride(), 4, "the resident constant is a raw buffer");
         assert!(heap.kept(0));
         assert_ne!(heap.host_page_of(0), Some(NULL_PAGE));
         drop(heap);
