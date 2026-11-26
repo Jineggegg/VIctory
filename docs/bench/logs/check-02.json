@@ -1,0 +1,89 @@
+{
+    "started_utc":  "2026-11-26T10:54:28.7398601Z",
+    "commit":  "63bcca43c6a00a758510398fa43096ce7e4f7df0",
+    "working_tree":  "M crates/victory-gpu/src/pipeline.rs\n M crates/victory-gpu/src/pipeline/depth_bounds_test.rs\n M crates/victory-gpu/src/pipeline/placed_uav_tests.rs\n?? crates/victory-gpu/src/pipeline/baseline.rs\n?? docs/bench/\n?? tools/",
+    "rustc":  "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.1\nLLVM version: 22.1.8",
+    "profile":  "diag (release code generation), diagnostics; debug layer off during timings",
+    "cpu":  "Intel(R) Core(TM) Ultra 9 285K",
+    "ram_bytes":  136871063552,
+    "os":  "10.0.26300",
+    "gpu":  {
+                "name":  "NVIDIA GeForce RTX 5090",
+                "uuid":  "GPU-REDACTED",
+                "driver":  "621.14",
+                "memory_mib":  "32607"
+            },
+    "max_pre_sample_gpu_utilization_pct":  10,
+    "requested_samples":  0,
+    "process_crashes":  0,
+    "failed_runs":  1,
+    "runs":  [
+                 {
+                     "mode":  "check",
+                     "index":  0,
+                     "utc":  "2026-11-26T10:54:41.4899552Z",
+                     "pre_run":  {
+                                     "uuid":  "GPU-REDACTED",
+                                     "gpu_pct":  "100",
+                                     "used_mib":  "22236",
+                                     "temp_c":  "66.27"
+                                 },
+                     "values":  {
+                                    "adapter":  "NVIDIA GeForce RTX 5090",
+                                    "compute_local_mb":  24.272896,
+                                    "compute_working_set_bytes":  188448768,
+                                    "rgba":  {
+                                                 "value":  [
+                                                               [
+                                                                   1.0,
+                                                                   0.5,
+                                                                   -0.25,
+                                                                   2.0
+                                                               ],
+                                                               [
+                                                                   0.0,
+                                                                   0.0,
+                                                                   0.0,
+                                                                   0.0
+                                                               ]
+                                                           ],
+                                                 "Count":  2
+                                             },
+                                    "depth_local_mb":  22.13888,
+                                    "depth_working_set_bytes":  190918656,
+                                    "depth":  {
+                                                  "value":  [
+                                                                0.25,
+                                                                0.5,
+                                                                0.25,
+                                                                0.25
+                                                            ],
+                                                  "Count":  4
+                                              }
+                                },
+                     "exit_code":  0,
+                     "status":  "passed"
+                 },
+                 {
+                     "mode":  "validate",
+                     "index":  0,
+                     "utc":  "2026-11-26T10:54:42.2617336Z",
+                     "pre_run":  {
+                                     "uuid":  "GPU-REDACTED",
+                                     "gpu_pct":  "100",
+                                     "used_mib":  "22236",
+                                     "temp_c":  "66.36"
+                                 },
+                     "values":  {
+
+                                },
+                     "exit_code":  101,
+                     "status":  "failed",
+                     "reason":  "thread \u0027pipeline::baseline::synthetic_gpu\u0027 (28564) panicked at crates\\victory-gpu\\src\\pipeline\\baseline.rs:55:48:\ninstall Windows Graphics Tools: Error { code: HRESULT(0x887A002D), message: \"Õ║öþö¿þ¿ïÕ║ÅÞ»Àµ▒éþÜäµôìõ¢£õ¥ØÞÁûõ║ÄÕÀ▓þ╝║Õñ▒µêûõ©ìÕî╣ÚàìþÜä SDK þ╗äõ╗ÂÒÇé\" }\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+                 }
+             ],
+    "summary":  {
+
+                },
+    "complete":  false
+}
