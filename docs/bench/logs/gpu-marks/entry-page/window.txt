@@ -1,0 +1,55 @@
+Local build-queue slots reserved: 4
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+2026-11-26 15:46:24Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=3721/32607 MiB | power=22.82 W | temp=40.39 C | graphics=270 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.7s, 10 samples, max GPU=0%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Sample A 1/12 P0 2895/14001 MHz
+Sample B 1/12 P0 2827/14001 MHz
+Sample B 2/12 P0 2932/14001 MHz
+Sample A 2/12 P0 2932/14001 MHz
+Sample A 3/12 P0 2932/14001 MHz
+Sample B 3/12 P0 2932/14001 MHz
+Sample B 4/12 P0 2932/14001 MHz
+Sample A 4/12 P0 2932/14001 MHz
+Sample A 5/12 P0 2932/14001 MHz
+Sample B 5/12 P0 2932/14001 MHz
+Sample B 6/12 P0 2932/14001 MHz
+Sample A 6/12 P0 2932/14001 MHz
+Sample A 7/12 P0 2932/14001 MHz
+Sample B 7/12 P0 2932/14001 MHz
+Sample B 8/12 P0 2932/14001 MHz
+Sample A 8/12 P0 2932/14001 MHz
+Sample A 9/12 P0 2932/14001 MHz
+Sample B 9/12 P0 2932/14001 MHz
+Sample B 10/12 P0 2932/14001 MHz
+Sample A 10/12 P0 2932/14001 MHz
+Sample A 11/12 P0 2932/14001 MHz
+Sample B 11/12 P0 2932/14001 MHz
+Sample B 12/12 P0 2932/14001 MHz
+Sample A 12/12 P0 2932/14001 MHz
+Correctness: A True, B True. Median paired change [pointwise 95%]:
+loop_early_exit_gpu_us: -1.29% [-13.89%, 27.63%]
+loop_early_exit_lanes: 0.00% [0.00%, 0.00%]
+loop_global_loads: 0.00% [0.00%, 0.00%]
+loop_page_lookup_gpu_us: +7.54% [-4.65%, 92.36%]
+loop_page_lookup_lanes: 0.00% [0.00%, 0.00%]
+pixel_helper_descriptor_page_gpu_us: +2.50% [-18.43%, 15.70%]
+pixel_helper_scattered_view_pages_gpu_us: -1.39% [-7.72%, 0.31%]
+pixel_helper_shared_view_page_gpu_us: +1.03% [-32.01%, 57.71%]
+title_odd_lanes_gpu_us: -0.69% [-0.88%, -0.16%]
+title_odd_lanes_lanes: 0.00% [0.00%, 0.00%]
+title_scattered_odd_lanes_gpu_us: -0.42% [-14.48%, 11.48%]
+title_scattered_odd_lanes_lanes: 0.00% [0.00%, 0.00%]
+wave_page_marks_gpu_us: -15.58% [-25.93%, 24.62%]
+wave_page_marks_lanes: 0.00% [0.00%, 0.00%]
+wave_sixteen_pages_gpu_us: +1.95% [-4.63%, 14.63%]
+wave_sixteen_pages_lanes: 0.00% [0.00%, 0.00%]
+wave_straddling_pairs_gpu_us: +0.97% [-0.47%, 1.45%]
+wave_straddling_pairs_lanes: 0.00% [0.00%, 0.00%]
+wave_two_pages_gpu_us: -4.51% [-16.99%, 35.92%]
+wave_two_pages_lanes: 0.00% [0.00%, 0.00%]
+Paired bootstrap: 12 pairs; see paired.json
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

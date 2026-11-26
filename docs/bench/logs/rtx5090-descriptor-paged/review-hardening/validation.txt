@@ -1,0 +1,10 @@
+default
+Running unittests src\lib.rs (target\debug\deps\victory_gpu-430539b01b4c91b0.exe)
+test descriptor::host::tests::sync_dirty_mirrors_both_sides_of_unmapped_pages ... ok
+test result: ok. 266 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.69s
+diagnostics
+Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe)
+test descriptor::host::tests::sync_dirty_mirrors_both_sides_of_unmapped_pages ... ok
+test result: ok. 282 passed; 0 failed; 13 ignored; 0 measured; 0 filtered out; finished in 2.92s
+3 次热点冒烟均校验通过。
+像素与深度回读符合预期。D3D12 Debug Layer 待补。

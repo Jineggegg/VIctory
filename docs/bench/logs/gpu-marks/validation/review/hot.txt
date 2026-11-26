@@ -1,0 +1,59 @@
+asset policy: 410 files ok
+
+running 1 test
+test pipeline::hot::waves::wave_scenarios ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH wave_page_marks_gpu_us=3142.016
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=4942.944
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH wave_two_pages_gpu_us=2671.392
+BENCH wave_two_pages_lanes=262144
+BENCH wave_sixteen_pages_gpu_us=2068.992
+BENCH wave_sixteen_pages_lanes=262144
+BENCH wave_straddling_pairs_gpu_us=45867.392
+BENCH wave_straddling_pairs_lanes=262144
+BENCH loop_early_exit_gpu_us=810.368
+BENCH loop_early_exit_lanes=262144
+BENCH title_odd_lanes_gpu_us=20011.040
+BENCH title_odd_lanes_lanes=262144
+BENCH title_scattered_odd_lanes_gpu_us=2688.704
+BENCH title_scattered_odd_lanes_lanes=262144
+BENCH pixel_helper_shared_view_page_gpu_us=20.992
+BENCH pixel_helper_scattered_view_pages_gpu_us=39.392
+BENCH pixel_helper_descriptor_page_gpu_us=17.920
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 278 filtered out; finished in 0.86s
+
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\opt-gpumarks\crates\victory-gpu)
+    Finished `diag` profile [optimized + debuginfo] target(s) in 12.93s
+     Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe)
+
+running 1 test
+test pipeline::hot::waves::wave_scenarios ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH wave_page_marks_gpu_us=3238.976
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=3879.936
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH wave_two_pages_gpu_us=3041.312
+BENCH wave_two_pages_lanes=262144
+BENCH wave_sixteen_pages_gpu_us=1941.120
+BENCH wave_sixteen_pages_lanes=262144
+BENCH wave_straddling_pairs_gpu_us=43075.008
+BENCH wave_straddling_pairs_lanes=262144
+BENCH loop_early_exit_gpu_us=1093.504
+BENCH loop_early_exit_lanes=262144
+BENCH title_odd_lanes_gpu_us=19831.520
+BENCH title_odd_lanes_lanes=262144
+BENCH title_scattered_odd_lanes_gpu_us=2753.376
+BENCH title_scattered_odd_lanes_lanes=262144
+BENCH pixel_helper_shared_view_page_gpu_us=14.368
+BENCH pixel_helper_scattered_view_pages_gpu_us=37.120
+BENCH pixel_helper_descriptor_page_gpu_us=14.624
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 287 filtered out; finished in 0.66s
