@@ -23,6 +23,7 @@ fn sparse_profiles() {
     exercise(host, 1, 4096, 1, "single", false, false);
     exercise(host, 8, 2048, 4, "eight", false, false);
     exercise(host, 64, 2048, 4, "large", true, false);
+    // SAFETY: the host owns this live device through the query.
     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
     println!("BENCH verified=1");
 }
@@ -42,9 +43,11 @@ fn exercise(host: &Host, count: usize, side: u32, mips: u32, prefix: &str, extra
     for k in 0..count {
         // Placed textures cache their address for the lifetime of this sample process.
         let base = pool((layout.size as usize).div_ceil(PAGE));
+        // SAFETY: the committed pool has at least layout.size writable bytes.
         unsafe { std::ptr::write_bytes(base as *mut u8, k as u8 + 1, layout.size as usize) };
         for mip in 0..mips {
             let offset = layout.offset(mip, 73, 39, 0).unwrap();
+            // SAFETY: layout.offset located a complete RGBA8 pixel in this mip.
             unsafe { ((base + offset as usize) as *mut u32).write_unaligned(0x1234abcd + mip) };
         }
         let guest = crate::resource::texture_at(base as u64, &desc).unwrap();
@@ -150,6 +153,7 @@ fn verify(host: &Host, textures: &[Texture], side: u32, mips: u32, patches: &[Pa
         crate::list::ensure_state(&list, guest, D3D12_RESOURCE_STATE_COPY_SOURCE.0 as u32);
         let mut footprints = vec![D3D12_PLACED_SUBRESOURCE_FOOTPRINT::default(); mips as usize];
         let mut total = 0;
+        // SAFETY: this texture has mips subresources and one output slot per mip.
         unsafe {
             host.device.GetCopyableFootprints(
                 &texture.GetDesc(),

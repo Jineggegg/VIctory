@@ -69,6 +69,9 @@ pub(crate) struct Staging {
     copied_bytes: std::sync::atomic::AtomicU64,
     #[cfg(test)]
     detile_errors: std::sync::atomic::AtomicU64,
+    /// Actual copy footprints, retained only for a texture under readback test.
+    #[cfg(test)]
+    recorded_parts: std::sync::OnceLock<Mutex<Vec<CopyPart>>>,
 }
 
 enum UploadError {
@@ -434,6 +437,10 @@ pub(crate) fn record_upload(
         subresources,
         String::new,
     );
+    #[cfg(test)]
+    if let Some(parts) = staging.recorded_parts.get() {
+        parts.lock().unwrap().extend_from_slice(subresources);
+    }
     list.keep(buffer);
     staging.uploads.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     staging.copied.fetch_add(subresources.len() as u64, std::sync::atomic::Ordering::Relaxed);
@@ -1099,6 +1106,8 @@ pub(crate) fn staging(resource: This, texture: &ID3D12Resource) -> Option<Arc<St
         copied_bytes: Default::default(),
         #[cfg(test)]
         detile_errors: Default::default(),
+        #[cfg(test)]
+        recorded_parts: Default::default(),
     });
     *held = Some(s.clone());
     Some(s)

@@ -118,11 +118,15 @@ fn texture_layout(words: &[u32; 14]) -> Layout {
     crate::resource::texture_layout(&desc).unwrap().planes.remove(0).layout
 }
 
-fn submit_texture(host: &crate::host::Host, guest: This, texture: &ID3D12Resource) {
+fn recorded_update(host: &crate::host::Host, guest: This, texture: &ID3D12Resource) -> HostList {
     let list = host.new_list().unwrap();
     upload(&list, guest, texture);
     list.close();
-    host.execute(&[&list]);
+    list
+}
+
+fn submit_texture(host: &crate::host::Host, guest: This, texture: &ID3D12Resource) {
+    host.execute(&[&recorded_update(host, guest, texture)]);
 }
 
 #[test]
@@ -184,6 +188,8 @@ fn mixed_texture_detects_changes_to_private_pages_alone() {
     let page = crate::watch::PAGE;
     // A normal private allocation directly followed by a write-watched pool.
     // Keep both mappings alive with the placed texture, as in the array test.
+    // SAFETY: each explicit address is only a placement request. On failure we
+    // release only allocations made by this attempt; the successful pair stays live.
     let memory = (0..16).find_map(|_| unsafe {
         let range = VirtualAlloc(std::ptr::null(), 2 * page, MEM_RESERVE, PAGE_READWRITE);
         if range.is_null() { return None }
@@ -206,8 +212,10 @@ fn mixed_texture_detects_changes_to_private_pages_alone() {
     let mut tiled = vec![0x37; layout.size as usize];
     assert_eq!(tiled.len(), 2 * page);
     // SAFETY: both fresh mappings are committed and writable.
-    unsafe { (memory as *mut u8).write_bytes(0x37, page) };
-    unsafe { ((memory + page) as *mut u8).write_bytes(0x37, page) };
+    unsafe {
+        (memory as *mut u8).write_bytes(0x37, page);
+        ((memory + page) as *mut u8).write_bytes(0x37, page);
+    }
     let guest = crate::resource::texture_at(memory as u64, &words).unwrap();
     let texture = crate::resource::host_resource(guest).unwrap();
     let state = staging(guest, &texture).unwrap();
@@ -260,31 +268,58 @@ fn tails_small_mips_cube_faces_and_depth_copy_complete_rows() {
             assert!(!state.band_copies);
             vec![0]
         };
+        let recorded = state.recorded_parts.get_or_init(Mutex::default);
         for mip in mips {
             let slice = layout.slices - 1;
             let at = layout.offset(mip, 0, 0, slice).unwrap() as usize;
             tiled[at] ^= 0xff;
             // SAFETY: at addresses an element in the selected subresource.
             unsafe { (memory as *mut u8).add(at).write(tiled[at]) };
-            let (_, copy) = state.refresh_now();
-            let copy = copy.expect("changed subresource");
-            assert!(copy.1.iter().any(|p| p.index == slice * layout.desc.mips + mip));
-            for part in &copy.1 {
+            submit_texture(host, guest, &texture);
+            let parts = std::mem::take(&mut *recorded.lock().unwrap());
+            assert!(parts.iter().any(|p| p.index == slice * layout.desc.mips + mip));
+            for part in &parts {
                 let native = state.footprints[part.index as usize].Footprint;
                 assert_eq!(part.y, 0);
                 assert_eq!(part.footprint.Footprint.Height, native.Height);
                 assert_eq!(part.footprint.Footprint.Width, native.Width);
             }
-            let list = host.new_list().unwrap();
-            if let Some(barrier) = record_upload(&list, &crate::resource::host_copy(guest).unwrap(), &state, &copy) {
-                // SAFETY: record_upload returned the final transition for this resource.
-                unsafe { list.list.ResourceBarrier(&[barrier]) };
-            }
-            list.close();
-            host.execute(&[&list]);
             check_readback(host, guest, &texture, &layout, &tiled);
         }
     }
+}
+
+#[test]
+fn recorded_tail_update_survives_an_intervening_texture_submission() {
+    let host = host().expect("D3D12");
+    let make = |side: u32, mips: u32, value: u8| {
+        let words = [3, 0, 0, 0, side, 0, side, 1 | (mips << 16), 28, 1, 0, 0, 0, 0];
+        let layout = texture_layout(&words);
+        let tiled = vec![value; layout.size as usize];
+        let memory = crate::watch::tests::pool(tiled.len().div_ceil(crate::watch::PAGE));
+        // SAFETY: the allocation covers the complete tiled image and outlives the texture.
+        unsafe { (memory as *mut u8).write_bytes(value, tiled.len()) };
+        let guest = crate::resource::texture_at(memory as u64, &words).unwrap();
+        let native = crate::resource::host_resource(guest).unwrap();
+        (memory, guest, native, layout, tiled)
+    };
+    let (memory, first, native, layout, mut tiled) = make(128, 8, 0x39);
+    let (_, second, other, other_layout, other_tiled) = make(256, 1, 0xa7);
+    submit_texture(host, first, &native);
+    // A clean submission recycles the chunk without reserving any of it.
+    submit_texture(host, first, &native);
+    let at = layout.offset(layout.first_tail_mip, 0, 0, 0).unwrap() as usize;
+    tiled[at] ^= 0xff;
+    // SAFETY: at is the first element of a tail mip inside the tracked allocation.
+    unsafe { (memory as *mut u8).add(at).write(tiled[at]) };
+
+    // Enforce the interleaving without depending on thread scheduling: another
+    // texture consumes the start of the staging chunk before this list runs.
+    let pending = recorded_update(host, first, &native);
+    submit_texture(host, second, &other);
+    host.execute(&[&pending]);
+    check_readback(host, first, &native, &layout, &tiled);
+    check_readback(host, second, &other, &other_layout, &other_tiled);
 }
 
 fn check_readback(
