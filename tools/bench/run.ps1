@@ -6,6 +6,7 @@ param(
     [ValidateRange(0,100)][int]$MaxGpuUtilization = 10,
     [int]$GpuIndex = 0,
     [switch]$CheckOnly,
+    [switch]$SkipValidation,
     [string]$OutputDirectory
 )
 $ErrorActionPreference = 'Stop'
@@ -88,7 +89,7 @@ try {
         gpu = $gpuInfo
         max_pre_sample_gpu_utilization_pct = $MaxGpuUtilization
         requested_samples = $(if ($CheckOnly) { 0 } else { $Runs })
-        process_crashes = 0; failed_runs = 0; runs = @(); summary = @{}; complete = $false
+        validation_status = 'pending'; process_crashes = 0; failed_runs = 0; runs = @(); summary = @{}; complete = $false
     }
     $build = Native $cargo 'test --locked --profile diag -p victory-gpu --lib --features diagnostics --no-run --message-format=json'
     if ($build.code -ne 0) { throw "Benchmark build failed. See $log" }
@@ -137,7 +138,13 @@ try {
     }
     $check = RunScene 'check' 0
     if ($check.status -ne 'passed') { throw "Pixel or adapter check failed. See $log" }
-    $validation = RunScene 'validate' 0
+    if ($SkipValidation) {
+        $report.validation_status = 'skipped by request'
+        Log 'D3D12 Debug Layer and GPU-based validation skipped by request.'
+    } else {
+        $validation = RunScene 'validate' 0
+        $report.validation_status = $validation.status
+    }
     if (!$CheckOnly) {
         for ($i = 1; $i -le $Runs; $i++) {
             $row = RunScene 'sample' $i
@@ -150,8 +157,9 @@ try {
             }
         }
     }
-    if ($validation.status -ne 'passed') { throw "D3D12 validation failed. See $log" }
-    $report.complete = $true
+    if (!$SkipValidation -and $validation.status -ne 'passed') { throw "D3D12 validation failed. See $log" }
+    $report.complete = !$SkipValidation
+    $report.requested_run_complete = $true
 } finally {
     if ($report) { Save }
     foreach ($key in $settings) { [Environment]::SetEnvironmentVariable($key, $saved[$key]) }
