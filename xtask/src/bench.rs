@@ -78,7 +78,7 @@ pub fn compare(root: &Path, before: &Path, after: &Path) -> Result<()> {
     Ok(())
 }
 
-fn sorted_median(sorted: &[f64]) -> f64 {
+pub(super) fn sorted_median(sorted: &[f64]) -> f64 {
     let half = sorted.len() / 2;
     if sorted.len() % 2 == 1 {
         sorted[half]
@@ -117,7 +117,7 @@ impl Wide {
     }
 }
 
-fn stdev(values: &[f64]) -> Option<f64> {
+pub(super) fn stdev(values: &[f64]) -> Option<f64> {
     if values.len() == 1 {
         return None;
     }
@@ -227,7 +227,7 @@ fn interval(a: &[f64], b: &[f64]) -> Option<(f64, f64)> {
 }
 
 /// Resampling these pairwise ratios is equivalent to drawing whole pairs.
-fn paired_interval(a: &[f64], b: &[f64], family_size: usize) -> Result<[f64; 5]> {
+pub(super) fn paired_interval(a: &[f64], b: &[f64], family_size: usize) -> Result<[f64; 5]> {
     ensure!(family_size > 0, "empty timing family");
     ensure!(a.len() == b.len() && a.len() >= 2, "incomplete pairs");
     ensure!(
