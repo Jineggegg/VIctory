@@ -962,7 +962,9 @@ impl Shadow {
         // Keep one bit per byte rather than a second copy of every page.
         // One small read buffer is reused for the full run.
         let mut masks = Vec::with_capacity((to - from).div_ceil(16) + count);
-        let mut title = [0u8; 8192];
+        // Batch the kernel reads, leaving the submitting thread's stack small.
+        // A failed block still skips the whole page before any publication.
+        let mut title = vec![0u8; (to - from).min(PAGE / 2)];
         let mut changed = Vec::new();
         let mut taken = Vec::new();
         let mut synced = Vec::new();
@@ -2406,6 +2408,33 @@ pub(crate) mod tests {
         let mut bytes = [0; 2];
         assert!(crate::host::read_into((p + 2) as *const u8, &mut bytes));
         assert_eq!(bytes, [0xa1, 0xc2]);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
+
+    #[test]
+    fn marked_read_failure_skips_both_sides_of_the_block_boundary() {
+        let h = host().expect("D3D12 for marked write-back");
+        let p = crate::watch::tests::pool(1);
+        let (resource, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(resource, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p, PAGE, true);
+        let boundary = p + PAGE / 2;
+        copy.write_host((boundary - 1) as u64, &[0xa1, 0xa2]);
+        let mut calls = Vec::new();
+        let written = copy.copy_back_marked_with(p, 1, |address, out| {
+            calls.push((address, out.len()));
+            address < boundary && crate::host::read_into(address as *const u8, out)
+        });
+        assert_eq!(calls, [(p, PAGE / 2), (boundary, PAGE / 2)]);
+        assert_eq!(written, 0);
+        let mut bytes = [0; 4];
+        assert!(crate::host::read_into((boundary - 2) as *const u8, &mut bytes));
+        assert_eq!(bytes, [0; 4]);
+        assert_eq!(copy.copy_back_marked(p, 1), PAGE);
+        assert!(crate::host::read_into((boundary - 2) as *const u8, &mut bytes));
+        assert_eq!(bytes, [0, 0xa1, 0xa2, 0]);
         drop(copy);
         crate::watch::tests::free(p);
     }
