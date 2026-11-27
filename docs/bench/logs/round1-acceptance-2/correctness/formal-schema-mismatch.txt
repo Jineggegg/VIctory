@@ -1,0 +1,22 @@
+exit=1  recorded_utc=2026-11-27T01:49:11Z
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+    Finished `diag` profile [optimized + debuginfo] target(s) in 0.06s
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 01:47:35Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=6% | VRAM=5161/32607 MiB | power=77.47 W | temp=36.45 C | graphics=1852 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=2%, dwm(pid=61556) 3D=1%
+Idle window: 12.1s, 10 samples, max GPU=6%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Sample A 1/30 P0 2895/14001 MHz
+Sample B 1/30 P0 2730/14001 MHz
+A/B pair 1 metric mismatch; missing=[], extra=[texture_full_staging_requested_bytes, texture_full_staging_backing_bytes
+, texture_partial_staging_requested_bytes, texture_partial_staging_backing_bytes]
+At E:\Projects\GTA-build\accept-r1\tools\bench\hot.ps1:137 char:9
++         throw "$context metric mismatch; missing=[$($missing -join ', ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (A/B pair 1 metr..._backing_bytes]:String) [], RuntimeException
+    + FullyQualifiedErrorId : A/B pair 1 metric mismatch; missing=[], extra=[texture_full_staging_requested_bytes, tex
+   ture_full_staging_backing_bytes, texture_partial_staging_requested_bytes, texture_partial_staging_backing_bytes]
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active
