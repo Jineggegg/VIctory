@@ -227,12 +227,15 @@ mod delta_store {
         movdqu [rcx], xmm0
         jmp 3f
     6:
+        // Find the lane and clear its bit independently. The next scan
+        // need not wait for the index of this store.
+        xor r10d, r10d
         bsf r10d, eax
         mov r11b, [rdx + r10]
     victory_store_byte:
         mov [rcx + r10], r11b
-        btr eax, r10d
-        test eax, eax
+        lea r11d, [rax - 1]
+        and eax, r11d
         jnz 6b
     3:
         add rcx, 16
@@ -2529,6 +2532,64 @@ pub(crate) mod tests {
         unregister(p, p as u64);
         drop(copy);
         crate::watch::tests::free(p);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn masked_stores_match_every_vector_mask_and_partial_tail() {
+        // Every mask sees late CPU data in its gaps. Skew the destination
+        // so some vectors straddle 4 KiB, and put sentinels beyond both ends.
+        let masks: Vec<u16> = (0..=u16::MAX).collect();
+        let gpu: Vec<u8> = (0..16 * masks.len()).map(|i| (i % 127) as u8).collect();
+        let mut dst = vec![0xee; gpu.len() + 2];
+        write_masked(dst.as_mut_ptr() as usize + 1, &gpu, &masks);
+        for (i, &byte) in gpu.iter().enumerate() {
+            let selected = masks[i / 16] & (1 << (i % 16)) != 0;
+            assert_eq!(dst[1 + i], if selected { byte } else { 0xee });
+        }
+        assert_eq!((dst[0], dst[dst.len() - 1]), (0xee, 0xee));
+
+        for len in 1..16 {
+            for pattern in 0..16 {
+                let mask = (0x1111 * pattern) & ((1 << len) - 1);
+                let mut dst = [0xee; 18];
+                write_masked(dst.as_mut_ptr() as usize + 1, &gpu[..len], &[mask]);
+                for (i, &got) in dst[1..].iter().enumerate() {
+                    let selected = i < len && mask & (1 << i) != 0;
+                    assert_eq!(got, if selected { gpu[i] } else { 0xee });
+                }
+                assert_eq!(dst[0], 0xee);
+            }
+        }
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn patterned_stores_report_the_first_unfinished_byte_on_a_guard() {
+        use windows_sys::Win32::System::Memory::{PAGE_GUARD, PAGE_READWRITE, VirtualProtect};
+
+        const BLOCK: usize = 4096;
+        let pool = crate::watch::tests::pool(1);
+        let at = pool + BLOCK - 16;
+        let gpu = [0xab; 32];
+        for pattern in 1u16..16 {
+            let mask = pattern * 0x1111;
+            // SAFETY: both vectors are inside this live allocation. The
+            // preceding iteration consumed its one-shot guard, if any.
+            unsafe { (at as *mut u8).write_bytes(0xee, gpu.len()) };
+            let mut previous = 0;
+            // SAFETY: the second vector begins a private OS page of this pool.
+            assert_ne!(unsafe { VirtualProtect((pool + BLOCK) as *const _, BLOCK, PAGE_READWRITE | PAGE_GUARD, &mut previous) }, 0);
+            let left = delta_store::remaining_after_store(at, &gpu, &[mask, mask]);
+            assert_eq!(left, 16 - mask.trailing_zeros() as usize);
+            let mut actual = [0; 32];
+            assert!(crate::host::read_into(at as *const _, &mut actual));
+            for (i, &byte) in actual.iter().enumerate() {
+                let completed = i < 16 && mask & (1 << i) != 0;
+                assert_eq!(byte, if completed { 0xab } else { 0xee });
+            }
+        }
+        crate::watch::tests::free(pool);
     }
 
     #[test]
