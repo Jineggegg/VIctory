@@ -952,12 +952,6 @@ pub(crate) fn hold_mappings() -> Option<MappingsHeld> {
 /// See [`hold_mappings`].
 pub(crate) struct MappingsHeld(());
 
-/// Whether a parallel write-back holds mappings now.
-#[cfg(test)]
-pub(crate) fn mappings_held() -> bool {
-    remaps().1 != 0
-}
-
 impl Drop for MappingsHeld {
     fn drop(&mut self) {
         let mut state = remaps();

@@ -366,8 +366,59 @@ fn write_changed(at: usize, host: &[u8], old: &[u8]) {
 thread_local! {
     static BEFORE_KERNEL_RETRY: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
     static AFTER_MARK_READ: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
-    /// The calling thread's snapshot write-backs keep address order.
+    /// The calling thread's snapshot and marked write-backs keep address order.
     static FORCE_SEQUENTIAL: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Where the parallel write-backs under way start.
+#[cfg(test)]
+static PARALLEL: Mutex<Vec<usize>> = Mutex::new(Vec::new());
+
+/// A parallel write-back starting at its address, while it lives.
+#[cfg(test)]
+struct Parallel(usize);
+
+#[cfg(test)]
+impl Parallel {
+    fn at(at: usize) -> Self {
+        PARALLEL.lock().unwrap_or_else(|e| e.into_inner()).push(at);
+        Self(at)
+    }
+}
+
+#[cfg(test)]
+impl Drop for Parallel {
+    fn drop(&mut self) {
+        let mut all = PARALLEL.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(i) = all.iter().position(|&a| a == self.0) {
+            all.swap_remove(i);
+        }
+    }
+}
+
+/// Whether a parallel write-back starting at `at` is under way.
+#[cfg(test)]
+fn parallel_at(at: usize) -> bool {
+    PARALLEL.lock().unwrap_or_else(|e| e.into_inner()).contains(&at)
+}
+
+/// Called on whichever thread copies back the marked run starting at its
+/// title page, once, before the run is read.
+#[cfg(test)]
+static MARKED_CHUNK_HOOK: Mutex<Option<(usize, ChunkHook)>> = Mutex::new(None);
+
+#[cfg(test)]
+type ChunkHook = Box<dyn FnOnce() + Send>;
+
+#[cfg(test)]
+fn marked_chunk_hook(page: usize) {
+    let hook = {
+        let mut slot = MARKED_CHUNK_HOOK.lock().unwrap_or_else(|e| e.into_inner());
+        if slot.as_ref().is_some_and(|(at, _)| *at == page) { slot.take() } else { None }
+    };
+    if let Some((_, f)) = hook {
+        f();
+    }
 }
 
 /// Write contiguous shader changes without replaying adjacent CPU bytes.
@@ -834,6 +885,8 @@ impl Shadow {
                 .flatten()
                 .filter(|_| private_write_watch(start + from, to - from));
             let synced = if let Some(_held) = held {
+                #[cfg(test)]
+                let _parallel = Parallel::at(start + from);
                 // Bound scratch allocations even for large declarations.
                 let group_size = MIN_GROUP.max(changed.len().div_ceil(16));
                 let groups: Vec<_> = changed.chunks(group_size)
@@ -1645,6 +1698,8 @@ pub(crate) fn copy_back_marks(declared: &[(Arc<Shadow>, usize, usize, bool)], me
         let end = last.page + last.pages * PAGE;
         let copy_chunk = |i: usize| {
             let run = &chunks[i];
+            #[cfg(test)]
+            marked_chunk_hook(run.page);
             let written = if run.valid.is_empty() {
                 copy.copy_back_marked(run.page, run.pages)
             } else {
@@ -1658,7 +1713,21 @@ pub(crate) fn copy_back_marks(declared: &[(Arc<Shadow>, usize, usize, bool)], me
             #[cfg(not(feature = "diagnostics"))]
             let _ = written;
         };
-        if count >= 128 && private_write_watch(first.page, end - first.page) {
+        // As in `Shadow::snapshot_copy`: the hold, taken before the query
+        // and kept until every chunk joins, keeps the private allocation the
+        // query found at these addresses, so no two chunks come to store into
+        // one physical page. A remap under way keeps address order.
+        #[cfg(test)]
+        let sequential = FORCE_SEQUENTIAL.get();
+        #[cfg(not(test))]
+        let sequential = false;
+        let held = (!sequential && count >= 128)
+            .then(crate::watch::hold_mappings)
+            .flatten()
+            .filter(|_| private_write_watch(first.page, end - first.page));
+        if let Some(_held) = held {
+            #[cfg(test)]
+            let _parallel = Parallel::at(first.page);
             parallel_items(chunks.len(), copy_chunk);
         } else {
             (0..chunks.len()).for_each(copy_chunk);
@@ -3164,7 +3233,7 @@ pub(crate) mod tests {
         let written = copy.snapshot_copy(pool, len, true, |at, title| {
             let page = (at as usize - pool) / PAGE;
             let base = pool + page * PAGE;
-            if !crate::watch::mappings_held() {
+            if !parallel_at(pool) {
                 parallel.store(false, SeqCst);
             }
             assert!(crate::host::read_into(at, title));
@@ -3217,21 +3286,34 @@ pub(crate) mod tests {
         crate::watch::tests::free(pool);
     }
 
-    /// The title releases a pool while a parallel snapshot write-back is
-    /// storing into it and maps one physical page at two addresses that
-    /// belong to different groups. The release waits for every group, so
-    /// the outcome is the address-order write-back followed by the remap.
-    #[test]
-    fn a_release_and_alias_during_parallel_groups_waits_for_them() {
+    /// One parallel write-back racing a remap of its pool: the title
+    /// releases the pool and then the runtime maps one physical page of a
+    /// section at two addresses that belong to different groups. `seen`:
+    /// the release goes through `XMemFreeDefault`'s [`crate::watch::Writing::before_remap`];
+    /// otherwise the title releases through the host behind the runtime's
+    /// back, and only the mapping's own wait ([`crate::watch::remapping`],
+    /// what the runtime's `map()` takes) holds the alias off. Each mapping
+    /// is a separate remap, as `map()` makes it.
+    ///
+    /// `write_back(pool, sequential, hook)` registers a copy of the pool,
+    /// lets the GPU change it, and copies it back, calling `hook` on the
+    /// thread of the group holding the first alias before that group reads.
+    /// Run in address order, then racing: the section, never written by a
+    /// group, must be the same, and with a seen release so must the result.
+    fn alias_race(
+        pages: usize, aliases: [usize; 2], seen: bool,
+        write_back: &dyn Fn(usize, bool, Arc<dyn Fn() + Send + Sync>) -> usize,
+    ) {
         use std::sync::atomic::{AtomicBool, Ordering::SeqCst};
         use windows_sys::Win32::System::Memory::{
             CreateFileMappingW, FILE_MAP_WRITE, MEM_RELEASE, MEMORY_MAPPED_VIEW_ADDRESS,
             MapViewOfFile, MapViewOfFileEx, PAGE_READWRITE, UnmapViewOfFile, VirtualFree,
         };
-        const PAGES: usize = 16;
-        // Groups of four pages: the first and the third group.
-        const ALIASES: [usize; 2] = [1, 9];
-        let h = host().expect("D3D12 for snapshot copy-back");
+        // One race at a time: each one's remaps send the others' write-backs
+        // into address order.
+        static ONE: Mutex<()> = Mutex::new(());
+        let _one = ONE.lock().unwrap_or_else(|e| e.into_inner());
+        let len = pages * PAGE;
         // SAFETY: a pagefile section of one page, filled through a temporary view.
         let section = unsafe {
             let section = CreateFileMappingW(
@@ -3254,98 +3336,190 @@ pub(crate) mod tests {
             unsafe { UnmapViewOfFile(view) };
             bytes
         };
-        // What the runtime does in `XMemFreeDefault` and then mapping
-        // physical pages. Returns the views this call mapped: fewer than
-        // the aliases if another thread took part of the freed range.
+        // Returns the views this call mapped: fewer than the aliases if
+        // another thread took part of the freed range.
         let remap = move |pool: usize| {
-            let _remapping = crate::watch::Writing::before_remap(pool, PAGES * PAGE);
-            // SAFETY: the test's pool; the shadow tolerates unmapped title memory.
-            assert_ne!(unsafe { VirtualFree(pool as *mut _, 0, MEM_RELEASE) }, 0);
+            if seen {
+                let _remapping = crate::watch::Writing::before_remap(pool, len);
+                // SAFETY: the test's pool; the shadow tolerates unmapped title memory.
+                assert_ne!(unsafe { VirtualFree(pool as *mut _, 0, MEM_RELEASE) }, 0);
+                crate::watch::title_memory_remapped(pool, len);
+            } else {
+                // SAFETY: as above, with nothing reported.
+                assert_ne!(unsafe { VirtualFree(pool as *mut _, 0, MEM_RELEASE) }, 0);
+            }
             let mut views = Vec::new();
-            for page in ALIASES {
+            for page in aliases {
                 let at = pool + page * PAGE;
+                let _remapping = crate::watch::remapping();
                 // SAFETY: a view of the live section in the address range just released.
                 let view = unsafe { MapViewOfFileEx(section as _, FILE_MAP_WRITE, 0, 0, PAGE, at as _) };
                 if view.Value.is_null() {
                     break;
                 }
-                views.push(view.Value as usize);
+                crate::watch::title_memory_remapped(at, PAGE);
+                views.push(at);
             }
-            crate::watch::title_memory_remapped(pool, PAGES * PAGE);
             views
         };
-        // Only the views this test mapped: an address it failed to map may
-        // be another test's memory by now.
-        let unmap = |views: &[usize]| {
-            for &view in views {
-                crate::watch::title_memory_remapped(view, PAGE);
-                // SAFETY: a view `remap` mapped; the shadow is gone.
-                unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: view as _ }) };
-            }
-        };
+        struct Race {
+            on: bool,
+            fired: AtomicBool,
+            parallel: AtomicBool,
+            remapped_early: AtomicBool,
+            remapper: Mutex<Option<std::thread::JoinHandle<Vec<usize>>>>,
+        }
         let run = |race: bool| {
-            let mut attempts = 0;
-            loop {
-                attempts += 1;
-                assert!(attempts <= 5, "no undisturbed attempt");
-                let pool = crate::watch::tests::pool(PAGES);
-                let len = PAGES * PAGE;
-                let (buffer, data) = h.shared_buffer(len as u64).unwrap();
-                let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
-                copy.update(pool, len);
-                copy.writing(pool, len, false);
-                for page in 0..PAGES {
-                    copy.write_host((pool + page * PAGE + 10) as u64, &[0xa0 + page as u8, 0, 0xb0]);
-                }
-                FORCE_SEQUENTIAL.set(!race);
-                let held = AtomicBool::new(false);
-                let remapped_early = AtomicBool::new(false);
-                let remapper = Mutex::new(None);
-                let written = copy.snapshot_copy(pool, len, true, |at, title| {
-                    if race && at as usize == pool {
-                        held.store(crate::watch::mappings_held(), SeqCst);
-                        let done = std::sync::Arc::new(AtomicBool::new(false));
-                        let finished = done.clone();
-                        *remapper.lock().unwrap() = Some(std::thread::spawn(move || {
-                            let mapped = remap(pool);
-                            finished.store(true, SeqCst);
-                            mapped
-                        }));
-                        let waited = std::time::Instant::now();
-                        while !done.load(SeqCst) && waited.elapsed() < std::time::Duration::from_millis(300) {
-                            std::thread::yield_now();
-                        }
-                        remapped_early.store(done.load(SeqCst), SeqCst);
-                    }
-                    crate::host::read_into(at, title)
+            for _ in 0..5 {
+                let pool = crate::watch::tests::pool(pages);
+                let state = Arc::new(Race {
+                    on: race,
+                    fired: AtomicBool::new(false),
+                    parallel: AtomicBool::new(false),
+                    remapped_early: AtomicBool::new(false),
+                    remapper: Mutex::new(None),
                 });
-                FORCE_SEQUENTIAL.set(false);
-                let views = match remapper.into_inner().unwrap() {
+                let s = state.clone();
+                let hook: Arc<dyn Fn() + Send + Sync> = Arc::new(move || {
+                    if !s.on || s.fired.swap(true, SeqCst) {
+                        return;
+                    }
+                    s.parallel.store(parallel_at(pool), SeqCst);
+                    let done = Arc::new(AtomicBool::new(false));
+                    let finished = done.clone();
+                    *s.remapper.lock().unwrap() = Some(std::thread::spawn(move || {
+                        let views = remap(pool);
+                        finished.store(true, SeqCst);
+                        views
+                    }));
+                    let waited = std::time::Instant::now();
+                    while !done.load(SeqCst) && waited.elapsed() < std::time::Duration::from_millis(300) {
+                        std::thread::yield_now();
+                    }
+                    s.remapped_early.store(done.load(SeqCst), SeqCst);
+                });
+                let result = write_back(pool, !race, hook);
+                let thread = state.remapper.lock().unwrap().take();
+                let views = match thread {
                     Some(thread) => thread.join().unwrap(),
                     None => remap(pool),
                 };
-                drop(copy);
-                let mapped = views.len() == ALIASES.len();
-                // Read the section before giving the views back.
+                // Read the section before giving back the views.
                 let bytes = section_bytes();
-                unmap(&views);
+                // Only the views this run mapped: an address it failed to map
+                // may be another test's memory by now.
+                for &view in &views {
+                    crate::watch::title_memory_remapped(view, PAGE);
+                    // SAFETY: a view `remap` mapped; the copy is gone.
+                    unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: view as _ }) };
+                }
+                crate::watch::title_memory_remapped(pool, len);
                 // Another test's remap kept this one in address order, or took
                 // the released range: neither is the case under test.
-                if !mapped || race && !held.into_inner() {
-                    continue;
+                if views.len() == aliases.len()
+                    && (!race || state.fired.load(SeqCst) && state.parallel.load(SeqCst))
+                {
+                    return (result, state.remapped_early.load(SeqCst), bytes);
                 }
-                break (written, remapped_early.into_inner(), bytes);
             }
+            panic!("no undisturbed attempt");
         };
         let (expected, _, untouched) = run(false);
-        assert_eq!(expected, PAGES * PAGE);
         assert!(untouched.iter().all(|&b| b == 0x5a));
-        let (written, remapped_early, aliased) = run(true);
+        let (result, remapped_early, aliased) = run(true);
         assert!(aliased == untouched, "a group stored into the remapped physical page");
-        assert_eq!(written, expected);
-        assert!(!remapped_early, "the release completed while groups were storing");
-        // SAFETY: the section handle of this test, no views left.
+        if seen {
+            assert_eq!(result, expected);
+        }
+        assert!(!remapped_early, "the remap completed while groups were storing");
+        // SAFETY: the section handle of this run, no views left.
         unsafe { windows_sys::Win32::Foundation::CloseHandle(section as _) };
+    }
+
+    /// [`alias_race`] for a snapshot write-back of 16 pages (groups of four:
+    /// the aliases are in the first and the third).
+    fn snapshot_alias_race(seen: bool) {
+        const PAGES: usize = 16;
+        let h = host().expect("D3D12 for snapshot copy-back");
+        alias_race(PAGES, [1, 9], seen, &|pool, sequential, hook| {
+            let len = PAGES * PAGE;
+            let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+            let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+            copy.update(pool, len);
+            copy.writing(pool, len, false);
+            for page in 0..PAGES {
+                copy.write_host((pool + page * PAGE + 10) as u64, &[0xa0 + page as u8, 0, 0xb0]);
+            }
+            FORCE_SEQUENTIAL.set(sequential);
+            let written = copy.snapshot_copy(pool, len, true, |at, title| {
+                if at as usize == pool {
+                    hook();
+                }
+                crate::host::read_into(at, title)
+            });
+            FORCE_SEQUENTIAL.set(false);
+            written
+        });
+    }
+
+    /// [`alias_race`] for the marks of 128 pages of one copy, the fewest
+    /// copied back in parallel (runs of eight: the aliases are in the first
+    /// and the ninth).
+    fn marked_alias_race(seen: bool) {
+        const PAGES: usize = 128;
+        let h = host().expect("D3D12 for marked write-back");
+        alias_race(PAGES, [1, 65], seen, &|pool, sequential, hook| {
+            let len = PAGES * PAGE;
+            let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+            let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+            // Host::execute owns the process-wide bitmaps from refresh through drain.
+            crate::host::tests::without_submissions(|| {
+                copy.update(pool, len);
+                copy.writing(pool, len, true);
+                for page in 0..PAGES {
+                    copy.write_host((pool + page * PAGE + 10) as u64, &[0x80 | page as u8, 0, 0xb0]);
+                }
+                let base = copy.marks.expect("tracked memory gets mark bits") as usize;
+                let bits = bitmap(false).expect("a host GPU").data as *mut u32;
+                for bit in base..base + PAGES {
+                    // SAFETY: a dword of the mapped bitmap, under the submission lock.
+                    unsafe { *bits.add(bit / 32) |= 1 << (bit % 32) };
+                }
+                *MARKED_CHUNK_HOOK.lock().unwrap() = Some((pool, Box::new(move || hook())));
+                FORCE_SEQUENTIAL.set(sequential);
+                copy_back_marks(&[], false);
+                FORCE_SEQUENTIAL.set(false);
+                MARKED_CHUNK_HOOK.lock().unwrap().take();
+            });
+            drop(copy);
+            0
+        });
+    }
+
+    /// The release waits for every group of a parallel snapshot write-back.
+    #[test]
+    fn a_release_and_alias_during_parallel_groups_waits_for_them() {
+        snapshot_alias_race(true);
+    }
+
+    /// With the pool released behind the runtime's back, mapping the alias
+    /// waits for every group of a parallel snapshot write-back.
+    #[test]
+    fn an_alias_after_an_unseen_release_waits_for_snapshot_groups() {
+        snapshot_alias_race(false);
+    }
+
+    /// The release waits for every run of a parallel marked write-back.
+    #[test]
+    fn a_release_and_alias_during_parallel_marked_runs_waits_for_them() {
+        marked_alias_race(true);
+    }
+
+    /// With the pool released behind the runtime's back, mapping the alias
+    /// waits for every run of a parallel marked write-back.
+    #[test]
+    fn an_alias_after_an_unseen_release_waits_for_marked_runs() {
+        marked_alias_race(false);
     }
 
     #[test]
