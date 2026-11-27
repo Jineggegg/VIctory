@@ -192,7 +192,7 @@ fn private_write_watch(start: usize, len: usize) -> bool {
 /// the kernel. Host reads and unrelated faults use normal exception handling.
 #[cfg(target_arch = "x86_64")]
 mod delta_store {
-    use windows_sys::Win32::Foundation::{EXCEPTION_ACCESS_VIOLATION, EXCEPTION_IN_PAGE_ERROR};
+    use windows_sys::Win32::Foundation::{EXCEPTION_ACCESS_VIOLATION, EXCEPTION_GUARD_PAGE, EXCEPTION_IN_PAGE_ERROR};
     use windows_sys::Win32::System::Diagnostics::Debug::{
         AddVectoredExceptionHandler, EXCEPTION_CONTINUE_EXECUTION, EXCEPTION_CONTINUE_SEARCH,
         EXCEPTION_POINTERS,
@@ -253,12 +253,11 @@ mod delta_store {
     unsafe extern "system" fn on_store_fault(info: *mut EXCEPTION_POINTERS) -> i32 {
         // SAFETY: the OS supplies the record and context for this thread.
         let record = unsafe { &*(*info).ExceptionRecord };
-        if !matches!(
-            record.ExceptionCode,
-            EXCEPTION_ACCESS_VIOLATION | EXCEPTION_IN_PAGE_ERROR
-        ) || record.NumberParameters < 2
-            || record.ExceptionInformation[0] != 1
-        {
+        // Only the two destination-store PCs below qualify. A one-shot guard
+        // fault need not supply the access parameters of an access violation.
+        let write_fault = matches!(record.ExceptionCode, EXCEPTION_ACCESS_VIOLATION | EXCEPTION_IN_PAGE_ERROR)
+            && record.NumberParameters >= 2 && record.ExceptionInformation[0] == 1;
+        if !write_fault && record.ExceptionCode != EXCEPTION_GUARD_PAGE {
             return EXCEPTION_CONTINUE_SEARCH;
         }
         let pc = record.ExceptionAddress as usize;
@@ -2378,6 +2377,27 @@ pub(crate) mod tests {
         assert_eq!(copy.read_host((p + PAGE - 4) as u64, 1)[0], 0x00c2a200);
         drop(copy);
         crate::watch::tests::free(p);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn snapshot_stores_retry_a_guard_installed_after_reading_the_title() {
+        use windows_sys::Win32::System::Memory::{PAGE_GUARD, PAGE_READWRITE, VirtualProtect};
+
+        let at = crate::watch::tests::pool(1);
+        for gpu in [[0x41; 16], std::array::from_fn(|i| if i == 7 { 0x62 } else { 0x41 })] {
+            let mut before = [0; 16];
+            assert!(crate::host::read_into(at as *const u8, &mut before));
+            let title = before;
+            let mut previous = 0;
+            // SAFETY: the fresh allocation contains this whole 4 KiB page.
+            assert_ne!(unsafe { VirtualProtect(at as *const _, 4096, PAGE_READWRITE | PAGE_GUARD, &mut previous) }, 0);
+            assert!(store_snapshot_changes(at, &gpu, &before, &title));
+            let mut actual = [0; 16];
+            assert!(crate::host::read_into(at as *const u8, &mut actual));
+            assert_eq!(actual, gpu);
+        }
+        crate::watch::tests::free(at);
     }
 
     #[test]
