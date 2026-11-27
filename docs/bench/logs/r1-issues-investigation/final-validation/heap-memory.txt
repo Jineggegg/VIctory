@@ -1,0 +1,12 @@
+RTX 5090, driver 621.14. Generic local-memory snapshots from CheckOnly, in decimal MB.
+Commit   mode      compute_local_mb  depth_local_mb  validation_errors
+54c8ae9  check            54.157312       22.138880  unmeasured
+54c8ae9  validate         60.145664       27.996160  3
+b551948  check            54.157312       54.185984  unmeasured
+b551948  validate         60.145664       60.043264  0
+fde2795  check            54.157312       22.138880  unmeasured
+fde2795  validate         60.145664       27.996160  0
+
+54c8ae9: original B; b551948: both heap types bound with full fallback view heap;
+fde2795: one-slot fallback for shaders without view accesses.
+Each reading follows its scene in a fresh CheckOnly run. These samples do not measure peak usage.

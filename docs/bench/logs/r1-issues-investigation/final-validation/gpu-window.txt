@@ -1,0 +1,32 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 10:19:32Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5707/32607 MiB | power=49.33 W | temp=41.30 C | graphics=330 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 12.1s, 10 samples, max GPU=5%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+CheckOnly GPU percent: 1,2,0,1,0,0,0,0,0,1; busy samples before gate: 0
+Results: <worktree>\target\r1-final\validation-20261127-101933
+commit=fde27957db939813be15dad052ee6d320d7c3009 sha256=BA53A884F8CC65EA8272BE56FD4DA41AC6D616D438C2C6BDD854073D8477C39D
+Soak GPU percent: 2,1,0,1,0,1,1,0,0,0; busy samples before gate: 0
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=27275
+BENCH soak_1_p50_us=2151.400
+BENCH soak_1_p95_us=2434.400
+BENCH soak_1_p99_us=2685.300
+BENCH soak_1_ws_bytes=184987648
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=27275
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 342 filtered out; finished in 60.29s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active
