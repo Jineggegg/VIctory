@@ -564,19 +564,22 @@ fn null_sampler(at: D3D12_CPU_DESCRIPTOR_HANDLE) {
 /// view. One shader-visible slot satisfies the binding without allocating
 /// title descriptors, dynamic slots or their metadata.
 pub(crate) fn empty_view_heap() -> Option<&'static ID3D12DescriptorHeap> {
-    static HEAP: std::sync::OnceLock<Option<ID3D12DescriptorHeap>> = std::sync::OnceLock::new();
-    HEAP.get_or_init(|| {
-        let device = &host()?.device;
-        // SAFETY: this heap is only selected when no shader accesses a view.
-        unsafe {
-            device.CreateDescriptorHeap(&D3D12_DESCRIPTOR_HEAP_DESC {
-                Type: D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                NumDescriptors: 1,
-                Flags: D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-                NodeMask: 0,
-            })
-        }.ok()
-    }).as_ref()
+    static HEAP: std::sync::OnceLock<ID3D12DescriptorHeap> = std::sync::OnceLock::new();
+    if let Some(heap) = HEAP.get() {
+        return Some(heap);
+    }
+    let device = &host()?.device;
+    // SAFETY: this heap is only selected when no shader accesses a view.
+    let heap = unsafe {
+        device.CreateDescriptorHeap(&D3D12_DESCRIPTOR_HEAP_DESC {
+            Type: D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            NumDescriptors: 1,
+            Flags: D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+            NodeMask: 0,
+        })
+    }.ok()?;
+    // Only publish success. Concurrent successful callers share the winner.
+    Some(HEAP.get_or_init(|| heap))
 }
 
 /// A sampler heap of our own, for the lists that set a root signature whose
