@@ -386,8 +386,8 @@ B 每轮恰有 65,536 个 16 字节掩码，全部是混合块。空块、整向
 
 #### 测试与 Validation
 
-- `cargo test --workspace --locked`：33 个测试程序，980 项通过，0 失败，13 项忽略。[日志](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/workspace.txt)
-- `cargo test --locked -p victory-gpu` 连跑 3 轮：每轮 324 项通过，0 失败，4 项忽略。[第 1 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu1.txt) · [第 2 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu2.txt) · [第 3 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu3.txt) · [窗口](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/ci-window.txt)
+- `cargo test --workspace --locked`：29 个顶层测试程序，976 项通过，0 失败，13 项忽略。（初稿写成 33 个程序、980 项，是把用例自己启动的子进程的结果也算了进去；本文此后都只按顶层测试程序计数。）[日志](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/workspace.txt)
+- `cargo test --locked -p victory-gpu` 连跑 3 轮：每轮 321 项通过，0 失败，4 项忽略（初稿的 324 同样多算了子进程）。[第 1 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu1.txt) · [第 2 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu2.txt) · [第 3 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu3.txt) · [窗口](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/ci-window.txt)
 - `tools/bench/run.ps1 -CheckOnly`，开启 D3D12 Debug Layer 和 GPU-based validation：`validation_status` 为 passed，`validation_errors` = 0，失败和崩溃均为 0。颜色读回 `[[1, 0.5, -0.25, 2], [0, 0, 0, 0]]`，深度 `[0.25, 0.5, 0.25, 0.25]`，普通检查与验证场景一致。[窗口](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/validation-window.txt) · [结果](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/validation.json)
 - 两套 Clippy 已在三个代码提交上跑过（见上文），之后代码没有改动，没有重跑。
 
