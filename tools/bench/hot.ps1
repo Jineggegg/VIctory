@@ -138,10 +138,10 @@ function Assert-Keys($expected, $actual, $context) {
     }
 }
 
-# Older default-suite binaries predate the four texture staging counters.
+# Older default and scale gradient binaries predate the four texture staging counters.
 # Keep them in each arm's report and compare them when both binaries emit them.
 function Get-ComparableKeys($left, $right, $suite, $context) {
-    if ($suite -ceq 'victory-hot-v1') {
+    if ($suite -cin 'victory-hot-v1','victory-gradient-small-v1','victory-gradient-medium-v1','victory-gradient-large-v1') {
         $staging = 'texture_full_staging_requested_bytes','texture_full_staging_backing_bytes',
                    'texture_partial_staging_requested_bytes','texture_partial_staging_backing_bytes'
         $leftCount = @($staging | Where-Object { $_ -cin $left }).Count
@@ -246,9 +246,31 @@ function Read-QuietWindow {
     $snapshot
 }
 
+# Query the debug interface without enabling validation in timing processes.
+function Get-DebugLayerStatus {
+    if (!('VictoryBench.DebugLayer' -as [type])) {
+        Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+namespace VictoryBench {
+    public static class DebugLayer {
+        [DllImport("d3d12.dll", ExactSpelling = true)]
+        public static extern int D3D12GetDebugInterface(ref Guid iid, out IntPtr result);
+    }
+}
+'@
+    }
+    $iid = [Guid]'affaa4ca-63fe-4d8e-b8ad-159000af4304' # ID3D12Debug1 supports GBV
+    $pointer = [IntPtr]::Zero
+    $hr = [VictoryBench.DebugLayer]::D3D12GetDebugInterface([ref]$iid, [ref]$pointer)
+    if ($pointer -ne [IntPtr]::Zero) { [void][Runtime.InteropServices.Marshal]::Release($pointer) }
+    if ($hr -eq 0 -and $pointer -ne [IntPtr]::Zero) { return 'available: ID3D12Debug1; disabled during timings' }
+    'unavailable: ID3D12Debug1 (HRESULT 0x{0:X8})' -f $hr
+}
+
 function New-Report($target, $system, $gpu) {
     [ordered]@{system=$system; schema=1; suite=$suiteName; test=$testName; parameters=$parameters; timing_keys=$timings; workload_keys=$workload; timeout_seconds=$timeoutSeconds; formal=($Mode -ne 'smoke'); complete=$false;
-        debug_layer='pending: Windows Graphics Tools unavailable'; binary=$target.binary; requested=$Runs; utc=Utc-Now;
+        debug_layer=$debugLayerStatus; binary=$target.binary; requested=$Runs; utc=Utc-Now;
         gpu=$gpu; profile='diag'; runs=[Collections.ArrayList]::new(); summary=@{}; invalid_count=0; max_invalid=[int][Math]::Floor($Runs / 10); invalid_runs=[Collections.ArrayList]::new()}
 }
 
@@ -412,6 +434,7 @@ function Paired-Report($a, $b) {
 function Sample {
     $paired = $Mode -eq 'ab'
     if ($Mode -eq 'smoke' -and [IO.File]::Exists($QuietState)) { throw 'GPU reserved for formal sampling' }
+    $debugLayerStatus = Get-DebugLayerStatus
     $warmer = Get-Target $root
     $targets = [ordered]@{A=$warmer}
     if ($paired) { $targets.A = Get-Target $Before; $targets.B = Get-Target $After }
