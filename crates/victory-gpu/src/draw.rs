@@ -628,12 +628,7 @@ impl State {
         }
         // A signature with no view accesses still needs a bound heap. Avoid
         // creating the full title-memory heap just to record such a draw.
-        let needs_views = self.heaps[0] == 0 && p.stages.iter().any(|stage| {
-            let t = stage.translated();
-            t.host.memory || t.host.heap || t.host.view_addresses || t.host.view_marks
-                || !t.used.is_empty() || t.host.user_data.iter().any(is_root_view)
-        });
-        if !self.bind_heaps(list, needs_views) {
+        if !self.bind_heaps(list, p.indexes_views) {
             not_run("a directly indexed descriptor heap is unavailable");
             return false;
         }
@@ -3594,16 +3589,10 @@ void main(uint3 id : SV_DispatchThreadID) {
         }
     }
 
-    #[test]
-    fn compute_view_marks_rebind_after_depth_twin_conversion() {
+    fn table_texture_shader(options: victory_shader::emit::Options, list_resources: bool) -> crate::pipeline::Translated {
         use victory_shader::emit::emit_with;
         use victory_shader::native::{ComputeIo, HwStage, NativeProgram, RootParam, StageIo};
         use victory_shader::{Container, io, ir, resource, structure};
-
-        let Some(host) = crate::host::host() else {
-            return;
-        };
-        let _ = host.log_messages();
 
         // Synthetic Wave32 compute shader: loads texel (0, 0) of a 2D depth SRV
         // at table+0 (`s[8:15]`) and stores the float bits to byte offset
@@ -3661,7 +3650,7 @@ void main(uint3 id : SV_DispatchThreadID) {
                 user_data: 0,
                 slot: 0,
             }],
-            used: used_entries.clone(),
+            used: if list_resources { used_entries } else { Vec::new() },
             io: StageIo::Cs(ComputeIo {
                 rsrc2: 3 << 1,
                 threads: [1, 1, 1],
@@ -3683,17 +3672,62 @@ void main(uint3 id : SV_DispatchThreadID) {
             &st,
             &io,
             &res,
-            crate::shader_cache::options(),
-        )
-        .unwrap();
-        assert!(host_shader.view_marks);
-        let shader = crate::pipeline::Shader::for_test(
-            "compute",
-            crate::pipeline::Translated {
-                host: host_shader,
-                used: used_entries,
-            },
-        );
+            options,
+        ).unwrap();
+        crate::pipeline::Translated { host: host_shader, used: native.used }
+    }
+
+    #[test]
+    fn flat_texture_table_without_a_resource_list_binds_a_full_view_heap() {
+        let host = crate::host::host().expect("D3D12 for flat table test");
+        let t = table_texture_shader(Default::default(), false);
+        assert!(t.used.is_empty() && !t.host.heap && !t.host.memory && !t.host.view_marks && !t.host.view_addresses);
+        assert!(!t.host.user_data.iter().any(is_root_view));
+        let shader = crate::pipeline::Shader::for_test("compute", t);
+        let p = HostPipeline::new(&[shader], None).expect("flat texture pipeline");
+        let list = host.new_list().unwrap();
+        let mut state = State::default();
+        assert!(state.bind(&list, &p, true));
+        assert_eq!(state.host_heaps, [MEMORY_HEAP, SAMPLERS_OURS]);
+
+        // Use a private consecutive pair in the real fallback heap. The shader
+        // reads a defined null Texture2D at the first slot and writes its zero
+        // texel to the buffer UAV at the next slot. On a paged device supply
+        // the physical table offset because this shader was lowered flat.
+        let heap = crate::memory::heap().unwrap();
+        let run = heap.dynamic(3).unwrap();
+        let page = victory_shader::emit::VIEW_PAGE_SLOTS;
+        let slot = if run == 0 || run % page == page - 1 { run + 1 } else { run };
+        let (out, mapped) = host.shared_buffer(0x10014).unwrap();
+        heap.raw_view_at(slot + 1, Some(&out), 0, 0x10014, true);
+        heap.make_null(slot);
+        // SAFETY: these slots are reserved until fence completion. The mapped
+        // word lies within the UAV and the shader has one table root parameter.
+        unsafe {
+            let first = heap.heap.GetGPUDescriptorHandleForHeapStart().ptr;
+            let step = host.device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            let physical = (heap.gpu(slot).ptr - first) / u64::from(step);
+            let offset = u32::try_from(physical * 32).unwrap();
+            let word = mapped.add(0x10010).cast::<u32>();
+            word.write_volatile(u32::MAX);
+            list.list.SetComputeRoot32BitConstant(0, offset, 0);
+            list.list.Dispatch(1, 1, 1);
+            list.close();
+            host.execute(&[&list]);
+            host.device.GetDeviceRemovedReason().unwrap();
+            assert_eq!(word.read_volatile(), 0);
+        }
+        heap.make_null(slot + 1);
+        heap.release(run, 3);
+    }
+
+    #[test]
+    fn compute_view_marks_rebind_after_depth_twin_conversion() {
+        let Some(host) = crate::host::host() else { return };
+        let _ = host.log_messages();
+        let t = table_texture_shader(crate::shader_cache::options(), true);
+        assert!(t.host.view_marks);
+        let shader = crate::pipeline::Shader::for_test("compute", t);
         let hp = HostPipeline::new(&[shader], None).expect("compute host pipeline");
         assert!(hp.marks.is_some());
 
