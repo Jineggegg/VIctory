@@ -379,7 +379,8 @@ pub extern "system" fn XMemFreeDefault(address: *mut c_void, attributes: u64) {
     unsafe {
         if attributes & ALLOC_32BIT != 0 {
             // A 32-bit block is a watched reservation, which loose windows
-            // may track: released the same way as a commit replaces it.
+            // may track: released the same way as a commit replaces it,
+            // after GPU write-backs storing into it in parallel are done.
             let size = reservation_size(address);
             let _remapping = victory_gpu::KernelWrite::before_remap(address as usize, size);
             if VirtualFree(address, 0, MEM_RELEASE) != 0 {
@@ -848,6 +849,10 @@ pub fn map_alias(to: u64, from: u64, len: u64) -> bool {
 /// Maps `slice` and the slices after it over `[base, base + len)`, which
 /// must lie in one placeholder.
 fn map(physical: &mut Physical, base: usize, len: usize, slice: Slice) -> bool {
+    // A new view can show a physical page at a second address. Parallel GPU
+    // write-backs into private memory finish before it does, even one whose
+    // allocation the title released through the host behind our back.
+    let _remapping = victory_gpu::remapping();
     // SAFETY: splits the placeholder around the range (failing harmlessly
     // when the range is the whole placeholder), then maps the section
     // there; both act only on placeholders.

@@ -366,6 +366,8 @@ fn write_changed(at: usize, host: &[u8], old: &[u8]) {
 thread_local! {
     static BEFORE_KERNEL_RETRY: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
     static AFTER_MARK_READ: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
+    /// The calling thread's snapshot write-backs keep address order.
+    static FORCE_SEQUENTIAL: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
 }
 
 /// Write contiguous shader changes without replaying adjacent CPU bytes.
@@ -817,12 +819,21 @@ impl Shadow {
                 synced
             };
             // A successful write-watch query covers one private allocation.
-            // Its disjoint pages cannot be aliases of each other. Preserve
-            // address order for section views and mixed mappings.
+            // Its disjoint pages cannot be aliases of each other while it
+            // lives: the hold, taken before the query and kept until every
+            // group joins, makes the runtime's releases and view mappings
+            // wait. Preserve address order for section views and mixed
+            // mappings, and while a remap is under way.
             const MIN_GROUP: usize = 4;
-            let synced = if changed.len() >= 4 * MIN_GROUP
-                && private_write_watch(start + from, to - from)
-            {
+            #[cfg(test)]
+            let sequential = FORCE_SEQUENTIAL.get();
+            #[cfg(not(test))]
+            let sequential = false;
+            let held = (!sequential && changed.len() >= 4 * MIN_GROUP)
+                .then(crate::watch::hold_mappings)
+                .flatten()
+                .filter(|_| private_write_watch(start + from, to - from));
+            let synced = if let Some(_held) = held {
                 // Bound scratch allocations even for large declarations.
                 let group_size = MIN_GROUP.max(changed.len().div_ceil(16));
                 let groups: Vec<_> = changed.chunks(group_size)
@@ -3006,6 +3017,125 @@ pub(crate) mod tests {
         }
         drop(copy);
         crate::watch::tests::free(pool);
+    }
+
+    /// The title releases a pool while a parallel snapshot write-back is
+    /// storing into it and maps one physical page at two addresses that
+    /// belong to different groups. The release waits for every group, so
+    /// the outcome is the address-order write-back followed by the remap.
+    #[test]
+    fn a_release_and_alias_during_parallel_groups_waits_for_them() {
+        use std::sync::atomic::{AtomicBool, Ordering::SeqCst};
+        use windows_sys::Win32::System::Memory::{
+            CreateFileMappingW, FILE_MAP_WRITE, MEM_RELEASE, MEMORY_MAPPED_VIEW_ADDRESS,
+            MapViewOfFile, MapViewOfFileEx, PAGE_READWRITE, UnmapViewOfFile, VirtualFree,
+        };
+        const PAGES: usize = 16;
+        // Groups of four pages: the first and the third group.
+        const ALIASES: [usize; 2] = [1, 9];
+        let h = host().expect("D3D12 for snapshot copy-back");
+        // SAFETY: a pagefile section of one page, filled through a temporary view.
+        let section = unsafe {
+            let section = CreateFileMappingW(
+                -1isize as _, std::ptr::null(), PAGE_READWRITE, 0, PAGE as u32, std::ptr::null(),
+            );
+            assert!(!section.is_null());
+            let view = MapViewOfFile(section, FILE_MAP_WRITE, 0, 0, PAGE);
+            assert!(!view.Value.is_null());
+            view.Value.cast::<u8>().write_bytes(0x5a, PAGE);
+            UnmapViewOfFile(view);
+            section as usize
+        };
+        let section_bytes = || {
+            // SAFETY: a fresh read-only use of the live section.
+            unsafe {
+                let view = MapViewOfFile(section as _, FILE_MAP_WRITE, 0, 0, PAGE);
+                let bytes = std::slice::from_raw_parts(view.Value.cast::<u8>(), PAGE).to_vec();
+                UnmapViewOfFile(view);
+                bytes
+            }
+        };
+        // What the runtime does in `XMemFreeDefault` and then mapping
+        // physical pages. False if another thread took the freed range.
+        let remap = move |pool: usize| {
+            let _remapping = crate::watch::Writing::before_remap(pool, PAGES * PAGE);
+            // SAFETY: the test's pool; the shadow tolerates unmapped title memory.
+            assert_ne!(unsafe { VirtualFree(pool as *mut _, 0, MEM_RELEASE) }, 0);
+            let mapped = ALIASES.iter().all(|page| {
+                let at = pool + page * PAGE;
+                // SAFETY: a view of the live section in the address range just released.
+                let view = unsafe { MapViewOfFileEx(section as _, FILE_MAP_WRITE, 0, 0, PAGE, at as _) };
+                view.Value as usize == at
+            });
+            crate::watch::title_memory_remapped(pool, PAGES * PAGE);
+            mapped
+        };
+        let unmap = |pool: usize| {
+            for page in ALIASES {
+                // SAFETY: the views mapped by `remap`, if any; the shadow is gone.
+                unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: (pool + page * PAGE) as _ }) };
+            }
+        };
+        let run = |race: bool| {
+            let mut attempts = 0;
+            loop {
+                attempts += 1;
+                assert!(attempts <= 5, "no undisturbed attempt");
+                let pool = crate::watch::tests::pool(PAGES);
+                let len = PAGES * PAGE;
+                let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+                let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+                copy.update(pool, len);
+                copy.writing(pool, len, false);
+                for page in 0..PAGES {
+                    copy.write_host((pool + page * PAGE + 10) as u64, &[0xa0 + page as u8, 0, 0xb0]);
+                }
+                FORCE_SEQUENTIAL.set(!race);
+                let held = AtomicBool::new(false);
+                let remapped_early = AtomicBool::new(false);
+                let remapper = Mutex::new(None);
+                let written = copy.snapshot_copy(pool, len, true, |at, title| {
+                    if race && at as usize == pool {
+                        held.store(crate::watch::mappings_held(), SeqCst);
+                        let done = std::sync::Arc::new(AtomicBool::new(false));
+                        let finished = done.clone();
+                        *remapper.lock().unwrap() = Some(std::thread::spawn(move || {
+                            let mapped = remap(pool);
+                            finished.store(true, SeqCst);
+                            mapped
+                        }));
+                        let waited = std::time::Instant::now();
+                        while !done.load(SeqCst) && waited.elapsed() < std::time::Duration::from_millis(300) {
+                            std::thread::yield_now();
+                        }
+                        remapped_early.store(done.load(SeqCst), SeqCst);
+                    }
+                    crate::host::read_into(at, title)
+                });
+                FORCE_SEQUENTIAL.set(false);
+                let mapped = match remapper.into_inner().unwrap() {
+                    Some(thread) => thread.join().unwrap(),
+                    None => remap(pool),
+                };
+                drop(copy);
+                unmap(pool);
+                // Another test's remap kept this one in address order, or took
+                // the released range: neither is the case under test.
+                if !mapped || race && !held.into_inner() {
+                    continue;
+                }
+                break (written, remapped_early.into_inner(), section_bytes());
+            }
+        };
+        let (expected, _, untouched) = run(false);
+        assert_eq!(expected, PAGES * PAGE);
+        assert!(untouched.iter().all(|&b| b == 0x5a));
+        let (written, remapped_early, aliased) = run(true);
+        assert!(aliased == untouched, "a group stored into the remapped physical page");
+        assert_eq!(written, expected);
+        assert!(!remapped_early, "the release completed while groups were storing");
+        // SAFETY: the section handle of this test, no views left.
+        unsafe { windows_sys::Win32::Foundation::CloseHandle(section as _) };
     }
 
     #[test]
