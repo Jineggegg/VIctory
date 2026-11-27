@@ -31,9 +31,13 @@
 //! the addresses showing them as written.
 //!
 //! shortcut: a system call writing into a guarded block fails; the known
-//! ones (file reads, DirectStorage) open their blocks first. An existing
-//! clean tracker needs a mapping notification to see an address reused in
-//! place. New trackers and alias registrations check inherited guards.
+//! ones (file reads, DirectStorage) open their blocks first. New trackers
+//! and alias registrations check the guards they inherit; an existing
+//! tracker sees an address reused in place only when the runtime reports
+//! it (its mappings of physical pages, `XMemVirtualAlloc` commits at an
+//! address, `XMemFreeDefault`'s releases). A title freeing and committing
+//! its memory through the host's `VirtualFree` and `VirtualAlloc` directly
+//! goes unseen by a tracker holding it then.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -895,6 +899,28 @@ pub struct Writing {
     last: usize,
 }
 
+impl Writing {
+    /// Before the runtime commits or releases title memory `[at, at + len)`
+    /// in place (a resident tracker, such as a loose window's, would never
+    /// see the new mapping): opens our guards there and keeps the pages
+    /// from being guarded until the result is dropped, as [`writing`]. The
+    /// guards are opened *before* Windows installs the title's protection,
+    /// which opening them after would override, and fragments of a guard a
+    /// partial decommit left are opened alone ([`guards_for_mapping`]). On
+    /// success the caller reports [`title_memory_remapped`] while this
+    /// lives; on failure the alias links and the bytes saved before the
+    /// write stay.
+    pub fn before_remap(at: usize, len: usize) -> Self {
+        let (first, last) = (at / PAGE, at.saturating_add(len).div_ceil(PAGE));
+        let g = guards();
+        let inherited = g.protected.range(first..last).map(|(&p, &generation)| (p, generation)).collect();
+        let mut g = check_inherited(g, inherited);
+        g.busy.push((first, last));
+        changed(&mut g, first, last, true);
+        Self { first, last }
+    }
+}
+
 impl Drop for Writing {
     fn drop(&mut self) {
         let mut g = guards();
@@ -1174,6 +1200,34 @@ pub(crate) mod tests {
         unsafe { (p as *mut u8).write_volatile(42) };
         assert_eq!(new.take(p, p + PAGE), [(p, p + PAGE)]);
         drop((old, new));
+        free(p);
+    }
+
+    #[test]
+    fn a_live_tracker_observes_a_reported_recommit_without_registering_again() {
+        use windows_sys::Win32::System::Memory::MEM_DECOMMIT;
+        let p = pool(1);
+        let active = track(p, PAGE, true).unwrap();
+        assert_eq!(active.take(p, p + PAGE), [(p, p + PAGE)]);
+        let part = p + 4096;
+        // SAFETY: the live tracker keeps its address while a native subpage
+        // is decommitted. The HLE will commit that subpage again.
+        assert_ne!(unsafe { VirtualFree(part as _, 4096, MEM_DECOMMIT) }, 0);
+        {
+            let _remapping = Writing::before_remap(part, 4096);
+            active.take(p, p + PAGE);
+            assert!(!active.clean(), "a take during remapping must leave the page dirty");
+            // SAFETY: our reservation, including both surviving fragments.
+            assert_eq!(unsafe { VirtualAlloc(part as _, 4096, MEM_COMMIT, PAGE_READWRITE) } as usize, part);
+            title_memory_remapped(part, 4096);
+            active.take(p, p + PAGE);
+            assert!(!active.clean(), "a take during remapping must leave the page dirty");
+        }
+        assert_eq!(active.take(p, p + PAGE), [(p, p + PAGE)]);
+        // SAFETY: a committed title page, watched by the original tracker.
+        unsafe { (part as *mut u8).write_volatile(0x42) };
+        assert_eq!(active.take(p, p + PAGE), [(p, p + PAGE)]);
+        drop(active);
         free(p);
     }
 
