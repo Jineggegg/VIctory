@@ -1,0 +1,96 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 14:32:24Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5185/32607 MiB | power=24.68 W | temp=35.29 C | graphics=270 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.8s, 10 samples, max GPU=1%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+ARM par test=shadow::tests::sparse_write_back_timing sha256=738F5024852DBA888B5D646AF60214941569D872FC186F011FE124AE23938891
+GPU gate samples=0,0,1,0,0,1,0,0,0,0 busy=0
+
+running 1 test
+test shadow::tests::sparse_write_back_timing ... BENCH sparse_writeback_parallel_rounds=10000
+BENCH sparse_writeback_parallel_p50_us=170.600
+BENCH sparse_writeback_parallel_p95_us=266.100
+BENCH sparse_writeback_parallel_p99_us=354.200
+BENCH sparse_writeback_sequential_rounds=10000
+BENCH sparse_writeback_sequential_p50_us=228.400
+BENCH sparse_writeback_sequential_p95_us=285.800
+BENCH sparse_writeback_sequential_p99_us=359.800
+BENCH sparse_writeback_block_pairs=200
+BENCH sparse_writeback_parallel_slower_pairs=5
+BENCH sparse_writeback_paired_ratio_median=0.7395
+BENCH sparse_writeback_paired_ratio_q1=0.5831
+BENCH sparse_writeback_paired_ratio_q3=0.8783
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 355 filtered out; finished in 5.10s
+
+ARM seq test=shadow::tests::sparse_write_back_timing sha256=BCD182D1DE34C0C9C30A5C5AEBC8F35D8D5CCD398041BD90FC25AF80FD129302
+GPU gate samples=1,0,0,0,0,0,0,0,0,0 busy=0
+
+running 1 test
+test shadow::tests::sparse_write_back_timing ... BENCH sparse_writeback_parallel_rounds=10000
+BENCH sparse_writeback_parallel_p50_us=230.200
+BENCH sparse_writeback_parallel_p95_us=272.800
+BENCH sparse_writeback_parallel_p99_us=413.000
+BENCH sparse_writeback_sequential_rounds=10000
+BENCH sparse_writeback_sequential_p50_us=232.000
+BENCH sparse_writeback_sequential_p95_us=272.700
+BENCH sparse_writeback_sequential_p99_us=380.600
+BENCH sparse_writeback_block_pairs=200
+BENCH sparse_writeback_parallel_slower_pairs=106
+BENCH sparse_writeback_paired_ratio_median=1.0009
+BENCH sparse_writeback_paired_ratio_q1=0.9920
+BENCH sparse_writeback_paired_ratio_q3=1.0110
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 355 filtered out; finished in 5.40s
+
+ARM seq test=shadow::tests::sparse_write_back_timing sha256=BCD182D1DE34C0C9C30A5C5AEBC8F35D8D5CCD398041BD90FC25AF80FD129302
+GPU gate samples=0,0,0,0,0,0,0,0,0,0 busy=0
+
+running 1 test
+test shadow::tests::sparse_write_back_timing ... BENCH sparse_writeback_parallel_rounds=10000
+BENCH sparse_writeback_parallel_p50_us=228.900
+BENCH sparse_writeback_parallel_p95_us=280.800
+BENCH sparse_writeback_parallel_p99_us=416.900
+BENCH sparse_writeback_sequential_rounds=10000
+BENCH sparse_writeback_sequential_p50_us=229.200
+BENCH sparse_writeback_sequential_p95_us=281.000
+BENCH sparse_writeback_sequential_p99_us=422.400
+BENCH sparse_writeback_block_pairs=200
+BENCH sparse_writeback_parallel_slower_pairs=88
+BENCH sparse_writeback_paired_ratio_median=0.9991
+BENCH sparse_writeback_paired_ratio_q1=0.9902
+BENCH sparse_writeback_paired_ratio_q3=1.0074
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 355 filtered out; finished in 5.52s
+
+ARM par test=shadow::tests::sparse_write_back_timing sha256=738F5024852DBA888B5D646AF60214941569D872FC186F011FE124AE23938891
+GPU gate samples=1,0,0,0,0,0,0,0,0,0 busy=0
+
+running 1 test
+test shadow::tests::sparse_write_back_timing ... BENCH sparse_writeback_parallel_rounds=10000
+BENCH sparse_writeback_parallel_p50_us=170.500
+BENCH sparse_writeback_parallel_p95_us=264.500
+BENCH sparse_writeback_parallel_p99_us=349.900
+BENCH sparse_writeback_sequential_rounds=10000
+BENCH sparse_writeback_sequential_p50_us=226.500
+BENCH sparse_writeback_sequential_p95_us=301.800
+BENCH sparse_writeback_sequential_p99_us=363.600
+BENCH sparse_writeback_block_pairs=200
+BENCH sparse_writeback_parallel_slower_pairs=10
+BENCH sparse_writeback_paired_ratio_median=0.7261
+BENCH sparse_writeback_paired_ratio_q1=0.6112
+BENCH sparse_writeback_paired_ratio_q3=0.8582
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 355 filtered out; finished in 5.10s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

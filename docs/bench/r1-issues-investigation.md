@@ -229,3 +229,73 @@ B 每轮恰有 65,536 个 16 字节掩码，全部是混合块。空块、整向
 - 三次代码提交各自运行 Windows x64 原生的工作区 Clippy，包含全部 targets，分别使用默认特性和全部特性，都采用 `--locked -- -D warnings`，六次零诊断。三次的定向 shadow 测试分别通过 30、31、32 项。[第一项默认](logs/r1-issues-investigation/optimize-1mib/scalar-clippy.txt) · [第一项全特性](logs/r1-issues-investigation/optimize-1mib/scalar-clippy_all.txt) · [第二项默认](logs/r1-issues-investigation/optimize-1mib/private-clippy.txt) · [第二项全特性](logs/r1-issues-investigation/optimize-1mib/private-clippy_all.txt) · [第三项默认](logs/r1-issues-investigation/optimize-1mib/mark-clippy.txt) · [第三项全特性](logs/r1-issues-investigation/optimize-1mib/mark-clippy_all.txt)
 - 最终版 `cargo test --workspace --locked` 通过 970、失败 0、忽略 12；`cargo test --locked -p victory-gpu` 连续三轮各通过 315、失败 0、忽略 3。只统计每个顶层 harness 的最终结果。首次全量运行的文件策略检查指出新增计时表的 CSV 扩展名不在允许列表内，改用纯文本文件后重新跑完整套测试通过。[测试汇总](logs/r1-issues-investigation/optimize-1mib/mark-tests-summary.txt) · [工作区输出](logs/r1-issues-investigation/optimize-1mib/mark-workspace.txt) · [三轮 GPU 测试记录](logs/r1-issues-investigation/optimize-1mib/mark-ci.txt)
 - 在 gpu-quiet 窗口运行 `tools/bench/run.ps1 -CheckOnly`，普通读回和启用 D3D12 Debug Layer、GPU-based validation 的进程均正常退出；验证错误、失败、崩溃均为 0。两次 RGBA 都是 `[1, 0.5, -0.25, 2]` 和 `[0, 0, 0, 0]`，深度都是 `[0.25, 0.5, 0.25, 0.25]`。[验证报告](logs/r1-issues-investigation/optimize-1mib/mark-validation.json)
+
+## 审核修改（并行回写）
+
+独立审核未通过 `f907845` 至 `feb14ed` 的回写优化，提出一项必须修改和三项建议。四项各自单独提交在 `investigate/r1-issues`，最后一个代码提交是 `bf688eb`。1 MiB 短测在正序、反序两个窗口中 p50 分别是同窗 A 的 **96.9% 和 96.0%**。默认 19 项和三档规模与 `679826a` 配对比较，逐项区间都跨零。测试、两套 Clippy 和 Debug Layer 验证全部通过。日志在 [parallel-review-fixes](logs/r1-issues-investigation/parallel-review-fixes/)，各二进制的来源、哈希和对照补丁见 [builds.txt](logs/r1-issues-investigation/parallel-review-fixes/builds.txt)。
+
+### 四项修改
+
+1. **并行回写期间的重映射，`b6dc581`。** 原先 `GetWriteWatch` 成功后，没有机制保证这块私有分配在各组写完前仍然存在。另一个线程可以在这期间释放它，再把两个组的地址映射到同一物理页，两组随后向同一字节写入不同的值，结果取决于线程调度。`crate::watch` 新增一个门，记录正在进行的重映射数和持有映射的回写数。并行回写在查询前取得持有，所有组结束后才放开。`Writing::before_remap`（32 位释放、原地提交）和运行时映射物理页视图时取得 `Remapping`：先等持有者归零，存在期间阻止新的并行回写开始。回写遇到正在进行的重映射时不等待，改走按地址顺序的路径，提交线程不会因此阻塞在 title 上。多个重映射之间互不等待。门用互斥量加计数实现，没有用读写锁的守卫，这样 `Writing` 仍可跨线程传递。也考虑过只对生命周期有保证的分配并行，但那需要跟踪每个池的归属；现方案每次并行回写只多一次无竞争的加锁。映射视图也要等，即使 title 绕过运行时直接通过主机释放了分配，也不会在回写期间出现别名。新测试在第一组即将读取页面时从另一线程释放整个池，并把同一 section 页映射到第一组和第三组的两个地址。断言释放被挡到回写结束、section 原值不变、写回字节数与“顺序路径回写后再做同一重映射”的参照一致。带门的版本 3/3 通过。去掉等待的对照版本先后 5 次全部失败：前 3 次按当时的断言顺序报告“释放在组写入期间完成”，调整断言顺序后的 2 次报告“有组写进了重映射后的物理页”。[竞争测试与对照](logs/r1-issues-investigation/parallel-review-fixes/race-test-gate-and-control.txt) · [调整断言顺序后的对照](logs/r1-issues-investigation/parallel-review-fixes/race-test-control-reordered.txt)
+2. **读取半页失败时旧快照被提前消费，`72eb73e`。** 标记页分两个 32 KiB 块读取。前半页读完后 CPU 写入会触发旧页快照，后半页读取失败时，原代码已先 `unarm` 并取走快照，再因读取失败跳过整页。重试时这一页已脏但没有快照，GPU 改动就再也发布不出去。这个问题在两块读取之前就存在：单次读取失败加上并发写入同样会触发。现在读取失败时页面保持已武装、快照留在原处；只有整页读取成功才 `unarm` 并取走快照。`copy_back_marked_ranges` 的顺序相同，一并修正。新增组合用例覆盖“前半页读完后另一线程写入 → 后半页读取失败 → 重试”：要求重试发布边界两侧的 GPU 字节，并保留 CPU 字节。修改前重试写回 0 字节（应为 65,536），修改后通过。[修改前的失败记录](logs/r1-issues-investigation/parallel-review-fixes/marked-retry-before-fix.txt)
+3. **一组走回退、另一组正常完成，`cd7ed42`。** 16 个私有页分为四组。第二组读完一页后，测试在 GPU 改写段两侧写入 CPU 字节（第三组的一页也写），再给改写段所在的 4 KiB 块加上一次性 `PAGE_GUARD`。这一组会等到第三组写完那一页、开始读下一页再继续，两组确实同时进行。断言回写保持并行；每页都有 GPU 改写段；两页的 CPU 字节在 title 内存和重新同步后的副本中都保留；内核写入恰好一次，即被保护的那一段。
+4. **稀疏负载，`bf688eb`。** 新增两个忽略测试。`pipeline::hot::soak::sparse` 与 `soak::mixed` 用同一个 1 MiB 池，着色器只把每个 64 KiB 页改 1 个字节，正好 16 页，刚好触发并行，每轮逐字节校验。`shadow::tests::sparse_write_back_timing` 在同一进程里只计时 `copy_back`，按 50 轮一块、并行/顺序/顺序/并行（ABBA）交替，给出块配对比。对照二进制关闭并行分组，其余相同。结果见下表，并行不慢，**门槛保持按改动的 64 KiB 片数判断**。耗时主要在读取和比较 16 个整页，不在 16 次写入。
+
+| 稀疏负载，同一 gpu-quiet 窗口 | 并行版 | 关闭并行的对照 |
+|---|---:|---:|
+| 进程内回写 p50，µs（ABBA 两臂） | 170.6 / 170.5 | 228.4 / 226.5（同进程顺序路径） |
+| 进程内块配对比中位（并行 ÷ 顺序） | 0.740 / 0.726，并行较慢 5/200、10/200 块 | 1.001 / 0.999（两边都是顺序，方法本身无偏） |
+| 端到端每轮 p50，µs | 1448.5 / 1492.4 | 1570.1 / 1522.5 |
+| 端到端每轮 p99，µs | 1873.2 / 2174.7 | 2014.7 / 1994.3 |
+
+端到端四臂按并行、对照、对照、并行的次序各跑 60 秒，共 155,310 轮，逐轮校验失败和设备移除均为零。端到端 p50 两对分别快 7.7% 和 2.0%；p99 一对较快，另一对慢 9.0%，短测不足以判断尾部。[进程内计时](logs/r1-issues-investigation/parallel-review-fixes/sparse-writeback-timing.txt) · [端到端浸泡](logs/r1-issues-investigation/parallel-review-fixes/sparse-soak.txt)
+
+### 1 MiB 同窗短测
+
+`diag` 构建，每臂 60 秒，A 是 `integ-base` 清单中的 `6b1e408`，本次是干净的 `bf688eb`，`679826a` 臂用上一节 `feb14ed` 的同一二进制（`679826a` 只增加文档）。每个窗口由 gpu-quiet 确认空闲，每臂开跑前再连续采样，桌面 GPU 占用全部 ≤3%。窗口记录的后台占用只有 chrome 和 dwm 各 1% 或没有。[正序窗口](logs/r1-issues-investigation/parallel-review-fixes/mib-forward.txt) · [反序窗口](logs/r1-issues-investigation/parallel-review-fixes/mib-reverse.txt)
+
+| 窗口 / 顺序 | 版本 | 轮数 | p50，ms | p95，ms | p99，ms |
+|---|---|---:|---:|---:|---:|
+| 正序 1 | 原 A `6b1e408` | 42,076 | 1.3861 | 1.6343 | 1.8116 |
+| 正序 2 | 本次 `bf688eb` | 43,099 | **1.3433** | 1.6326 | 1.8037 |
+| 正序 3 | `679826a` | 43,137 | 1.3401 | 1.6439 | 1.8331 |
+| 反序 1 | `679826a` | 43,228 | 1.3365 | 1.6422 | 1.8204 |
+| 反序 2 | 本次 `bf688eb` | 43,282 | **1.3326** | 1.6406 | 1.8505 |
+| 反序 3 | 原 A `6b1e408` | 42,030 | 1.3882 | 1.6364 | 1.8159 |
+
+本次 p50 是 A 的 96.9% 和 96.0%，在 110% 目标以内；对 `679826a` 为 +0.2% 和 −0.3%。p99 相对 A 为 −0.4% 和 +1.9%。六臂共 256,852 轮，逐轮校验失败和设备移除均为零。门控没有带来可测的 1 MiB 开销。
+
+### 默认热点与三档规模
+
+两臂为 `679826a`（同上，`feb14ed` 二进制）和本次 `bf688eb`。每次运行前把二进制复制到同一路径并重新核对哈希，用旧 B 的 `warm_adapter` 预热，频率和 PCIe 链路按 `Warm-Ready` 连续稳定三秒以上才开始计时，逐对交换起跑顺序。下表按对计算本次 ÷ `679826a` − 1 的中位数，正数表示本次较慢。区间按对重抽 5,000 次，种子 5090。默认项 10 对，小档 12 对，中档 8 对，大档 6 对。每次运行都通过仓库的工作量和读回断言。[默认 19 项](logs/r1-issues-investigation/parallel-review-fixes/default-hotspots.txt) · [小档](logs/r1-issues-investigation/parallel-review-fixes/scale-small.txt) · [中档](logs/r1-issues-investigation/parallel-review-fixes/scale-medium.txt) · [大档](logs/r1-issues-investigation/parallel-review-fixes/scale-large.txt) · [全部配对统计](logs/r1-issues-investigation/parallel-review-fixes/paired-stats.txt)
+
+| 指标 | 配对变化 | 逐项 95% 区间 | 本次较慢对数 |
+|---|---:|---:|---:|
+| 默认 `marked_writeback_frame` | −0.8% | −3.6% 至 +1.0% | 4/10 |
+| 默认 `shadow_refresh` | +1.8% | −9.1% 至 +4.7% | 6/10 |
+| 默认 `descriptors_14400` | −0.3% | −1.7% 至 +2.8% | 4/10 |
+| 默认 `texture_full` | −2.7% | −5.9% 至 +11.1% | 4/10 |
+| 小档 `marked_writeback_frame` | +4.8% | −3.3% 至 +9.2% | 7/12 |
+| 小档 `shadow_refresh` | +2.0% | −4.3% 至 +5.2% | 7/12 |
+| 中档 `marked_writeback_frame` | −2.5% | −4.6% 至 +0.9% | 2/8 |
+| 中档 `shadow_refresh` | −6.6% | −18.3% 至 +0.1% | 2/8 |
+| 大档 `marked_writeback_frame` | −0.2% | −3.1% 至 +0.8% | 3/6 |
+| 大档 `shadow_refresh` | −1.3% | −3.4% 至 +3.9% | 2/6 |
+
+默认 19 项的逐项区间全部跨零，完整表格在配对统计文件中。点估计最大的是 `submit_queue_and_fence` +10.3%（−13.3% 至 +16.1%）和 `submit_fence_wait` +8.5%，这两项是提交与围栏等待，与本次改动的代码无关。10 对时，校正 19 项的重抽样分位点只落在第 6 个样本附近，这一列在文件里仅作参考。
+
+**小档副本刷新复核。** 上一节小档副本刷新的 +6.9% 是 `feb14ed` 对旧 B `b5c06a7` 的读数。为此另开一窗，把旧 B、`679826a`、本次三臂的六种次序各跑两遍，共 12 组。`679826a` 对旧 B 为 +1.2%（−5.4% 至 +5.7%，6/12），上一节的 +6.9% 没有重现。本次对旧 B 为 +8.6%（−3.3% 至 +24.2%，8/12），对 `679826a` 为 +6.1%（−2.6% 至 +22.0%）。与两臂窗口合并、按窗口分层后，本次对 `679826a` 共 24 对，配对 +3.2%（−2.3% 至 +7.4%，15/24 对较慢）。这项计时只包含一次新注册副本的首次 `update`，即小档 16 MiB 的首次复制和触页缺页。所走的 `update_tracked`、`take_split`、`refresh_run` 本次没有修改，三臂窗口的读数宽度也说明单次计时噪声较大。现有数据不能确认退步，也不能排除 +7% 以内的小幅差异。小档标记回写合并 24 对为 +3.5%（−2.5% 至 +7.1%）；三臂窗口中本次对旧 B 为 −3.9%。[三臂小档](logs/r1-issues-investigation/parallel-review-fixes/scale-small-three-arm.txt)
+
+### 正确性
+
+- 四个提交各自在 Windows x64 原生运行工作区 Clippy，包含全部 targets，默认特性和全部特性各一次，均使用 `--locked -- -D warnings`，八次零诊断。第三项提交前第一次运行指出新测试缺少 `SAFETY` 注释，补上后重跑通过；日志是通过的那次。[第一项](logs/r1-issues-investigation/parallel-review-fixes/c1-b6dc581-clippy.txt) · [全特性](logs/r1-issues-investigation/parallel-review-fixes/c1-b6dc581-clippy_all.txt) · [第二项](logs/r1-issues-investigation/parallel-review-fixes/c2-72eb73e-clippy.txt) · [全特性](logs/r1-issues-investigation/parallel-review-fixes/c2-72eb73e-clippy_all.txt) · [第三项](logs/r1-issues-investigation/parallel-review-fixes/c3-cd7ed42-clippy.txt) · [全特性](logs/r1-issues-investigation/parallel-review-fixes/c3-cd7ed42-clippy_all.txt) · [第四项](logs/r1-issues-investigation/parallel-review-fixes/c4-bf688eb-clippy.txt) · [全特性](logs/r1-issues-investigation/parallel-review-fixes/c4-bf688eb-clippy_all.txt)
+- 在 `bf688eb` 上，`cargo test --workspace --locked` 通过 973、失败 0、忽略 13；`cargo test --locked -p victory-gpu` 连续三轮各通过 318、失败 0、忽略 4，只统计各顶层 harness 的最终结果。相较上一节，新增三个测试，新增的两个忽略基准中，`pipeline::hot` 只在 `diagnostics` 特性下编译，所以忽略项只多一个。开发中定向的 `shadow::` 35 项连续三轮通过，`watch::` 20 项通过。[工作区](logs/r1-issues-investigation/parallel-review-fixes/workspace.txt) · [GPU 第一轮](logs/r1-issues-investigation/parallel-review-fixes/gpu1.txt) · [第二轮](logs/r1-issues-investigation/parallel-review-fixes/gpu2.txt) · [第三轮](logs/r1-issues-investigation/parallel-review-fixes/gpu3.txt) · [窗口记录](logs/r1-issues-investigation/parallel-review-fixes/ci-window.txt) · [定向 shadow](logs/r1-issues-investigation/parallel-review-fixes/shadow-tests.txt) · [定向 watch](logs/r1-issues-investigation/parallel-review-fixes/watch-tests.txt)
+- 在 gpu-quiet 窗口对 `bf688eb` 运行 `tools/bench/run.ps1 -CheckOnly`。普通读回和启用 D3D12 Debug Layer、GPU-based validation 的进程均正常退出，validation_errors=0，失败和崩溃均为 0。两次 RGBA 都是 `[1, 0.5, -0.25, 2]` 和 `[0, 0, 0, 0]`，深度都是 `[0.25, 0.5, 0.25, 0.25]`。[验证报告](logs/r1-issues-investigation/parallel-review-fixes/validation.json)
+
+### 审核重点
+
+- 门只覆盖运行时看得见的释放和映射：`XMemFreeDefault` 的 32 位释放、`XMemVirtualAlloc` 的原地提交和物理页视图映射。title 直接调用主机 `VirtualFree` 释放、再用自己创建的 section 在同一地址做别名，仍然看不见；这与 `watch.rs` 开头记录的已有限制相同。
+- 物理页映射现在可能等待一次正在进行的并行回写，时长与回写本身相当，1 MiB 时估计为几百微秒，范围更大时更长。GTA 的流式映射线程因此可能偶尔被拖慢，这一点短测没有覆盖，需要在正式浸泡或实机中观察。
+- 锁顺序是“门 → 守卫锁”：`before_remap` 在取守卫锁之前等门；回写持门期间会取守卫锁和副本快照锁，但从不等门。新代码若在持有守卫锁或 `physical()` 锁时进入并行回写，就会破坏这个顺序。
+- 读取失败后页面保持已武装，直到下一次成功读取或 `disarm`。在这期间，这一页的首次 CPU 写入会多保存一份 64 KiB 快照，与读取成功前的行为一致。
+- 小档副本刷新合并点估计 +3.2%，区间上界 +7.4%，代码路径没有改动，建议在正式浸泡中顺带观察。

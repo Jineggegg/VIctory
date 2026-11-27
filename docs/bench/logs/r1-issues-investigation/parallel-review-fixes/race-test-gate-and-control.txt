@@ -1,0 +1,92 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 14:18:11Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=3% | VRAM=4995/32607 MiB | power=63.41 W | temp=34.76 C | graphics=1140 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%, dwm(pid=61556) 3D=1%
+Idle window: 12.1s, 10 samples, max GPU=4%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+RUN gate sha256=8E01359B6412ABC6FDD728792DA59297084E12BA34545DB132B0DB9981173194 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=1
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.69s
+
+EXIT gate round=1 code=0
+RUN gate sha256=8E01359B6412ABC6FDD728792DA59297084E12BA34545DB132B0DB9981173194 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=2
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.59s
+
+EXIT gate round=2 code=0
+RUN gate sha256=8E01359B6412ABC6FDD728792DA59297084E12BA34545DB132B0DB9981173194 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=3
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.60s
+
+EXIT gate round=3 code=0
+RUN nogate sha256=0F0F638E881E80BA1CACB4B84F6D4D083C67FFB921E623EAD4F964B017382E32 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=1
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (67812) panicked at crates\victory-gpu\src\shadow.rs:3134:9:
+the release completed while groups were storing
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.32s
+
+EXIT nogate round=1 code=101
+RUN nogate sha256=0F0F638E881E80BA1CACB4B84F6D4D083C67FFB921E623EAD4F964B017382E32 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=2
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (4524) panicked at crates\victory-gpu\src\shadow.rs:3134:9:
+the release completed while groups were storing
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.28s
+
+EXIT nogate round=2 code=101
+RUN nogate sha256=0F0F638E881E80BA1CACB4B84F6D4D083C67FFB921E623EAD4F964B017382E32 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=3
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (47836) panicked at crates\victory-gpu\src\shadow.rs:3134:9:
+the release completed while groups were storing
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.29s
+
+EXIT nogate round=3 code=101
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

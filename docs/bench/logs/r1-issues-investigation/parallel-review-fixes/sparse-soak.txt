@@ -1,0 +1,72 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 14:34:07Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5169/32607 MiB | power=24.76 W | temp=35.84 C | graphics=270 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.9s, 10 samples, max GPU=0%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+ARM par test=pipeline::hot::soak::sparse sha256=738F5024852DBA888B5D646AF60214941569D872FC186F011FE124AE23938891
+GPU gate samples=0,0,0,0,0,0,0,0,0,0 busy=0
+
+running 1 test
+test pipeline::hot::soak::sparse ... BENCH sparse_elapsed_s=60.002
+BENCH sparse_rounds=40308
+BENCH sparse_p50_us=1448.500
+BENCH sparse_p95_us=1689.500
+BENCH sparse_p99_us=1873.200
+BENCH sparse_failures=0
+BENCH sparse_removed_hresult=0
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 355 filtered out; finished in 60.34s
+
+ARM seq test=pipeline::hot::soak::sparse sha256=BCD182D1DE34C0C9C30A5C5AEBC8F35D8D5CCD398041BD90FC25AF80FD129302
+GPU gate samples=2,1,0,0,0,0,0,0,0,0 busy=0
+
+running 1 test
+test pipeline::hot::soak::sparse ... BENCH sparse_elapsed_s=60.001
+BENCH sparse_rounds=37474
+BENCH sparse_p50_us=1570.100
+BENCH sparse_p95_us=1795.000
+BENCH sparse_p99_us=2014.700
+BENCH sparse_failures=0
+BENCH sparse_removed_hresult=0
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 355 filtered out; finished in 60.33s
+
+ARM seq test=pipeline::hot::soak::sparse sha256=BCD182D1DE34C0C9C30A5C5AEBC8F35D8D5CCD398041BD90FC25AF80FD129302
+GPU gate samples=2,0,0,0,0,0,0,0,0,0 busy=0
+
+running 1 test
+test pipeline::hot::soak::sparse ... BENCH sparse_elapsed_s=60.001
+BENCH sparse_rounds=38838
+BENCH sparse_p50_us=1522.500
+BENCH sparse_p95_us=1731.500
+BENCH sparse_p99_us=1994.300
+BENCH sparse_failures=0
+BENCH sparse_removed_hresult=0
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 355 filtered out; finished in 60.32s
+
+ARM par test=pipeline::hot::soak::sparse sha256=738F5024852DBA888B5D646AF60214941569D872FC186F011FE124AE23938891
+GPU gate samples=2,1,0,0,0,0,0,0,0,0 busy=0
+
+running 1 test
+test pipeline::hot::soak::sparse ... BENCH sparse_elapsed_s=60.001
+BENCH sparse_rounds=38690
+BENCH sparse_p50_us=1492.400
+BENCH sparse_p95_us=1887.300
+BENCH sparse_p99_us=2174.700
+BENCH sparse_failures=0
+BENCH sparse_removed_hresult=0
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 355 filtered out; finished in 60.33s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

@@ -1,0 +1,35 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 14:23:58Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=3% | VRAM=4980/32607 MiB | power=64.60 W | temp=34.96 C | graphics=1170 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%, dwm(pid=61556) 3D=1%
+Idle window: 12.1s, 10 samples, max GPU=5%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+RUN fix3 sha256=E1E5EE20BEB63E72D03F1E1A3684267558B0DD025FF553D1B016F297F94BDF35 filter=watch:: round=1
+
+running 20 tests
+test watch::tests::adjacent_and_overlapping_armed_runs_coalesce ... ok
+test watch::tests::unmapped_pages_are_taken_apart ... ok
+test watch::tests::heap_memory_is_not_tracked_and_placeholders_wait_for_mappings ... ok
+test watch::tests::partial_pages_stay_changed ... ok
+test watch::tests::a_new_tracker_starts_dirty_on_a_bit_given_back ... ok
+test watch::tests::a_range_over_foreign_memory_guards_only_the_runtimes ... ok
+test watch::tests::ranges_past_the_address_space_end_do_not_overflow ... ok
+test watch::tests::kernel_reads_into_guarded_blocks_after_opening ... ok
+test watch::tests::writes_mark_every_tracker_of_their_page ... ok
+test watch::tests::a_new_tracker_rearms_a_recommitted_page_with_a_live_predecessor ... ok
+test watch::tests::a_tracker_dropped_on_one_mapping_leaves_the_other_guarded ... ok
+test watch::tests::a_new_tracker_recognizes_a_hole_in_an_inherited_guard ... ok
+test watch::tests::a_stale_query_does_not_open_a_guard_reinstalled_before_registration ... ok
+test watch::tests::a_live_tracker_observes_a_reported_recommit_without_registering_again ... ok
+test watch::tests::writes_through_another_mapping_mark_the_tracker ... ok
+test watch::tests::a_retake_marks_the_copies_and_keeps_the_guard ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::armed_ranges_keep_their_pages_bytes_from_before_the_first_write ... ok
+test watch::tests::a_retake_marks_buffer_copies_alone ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 301 filtered out; finished in 0.00s
+
+EXIT fix3 round=1 code=0
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active
