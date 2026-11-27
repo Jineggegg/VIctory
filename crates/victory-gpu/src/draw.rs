@@ -122,6 +122,9 @@ impl Drop for State {
 /// The key of our own view heap (`crate::memory::heap`) among the title's.
 const MEMORY_HEAP: usize = crate::memory::OURS;
 
+/// A one-slot view heap for a signature whose shaders use no views.
+const EMPTY_VIEWS: usize = usize::MAX - 1;
+
 /// The sampler heap we bind when the title binds none (a value no title heap
 /// address takes).
 const SAMPLERS_OURS: usize = usize::MAX;
@@ -623,7 +626,14 @@ impl State {
         if list.take_rebind() {
             (self.host_pipeline, self.host_roots[1]) = (0, 0);
         }
-        if !self.bind_heaps(list) {
+        // A signature with no view accesses still needs a bound heap. Avoid
+        // creating the full title-memory heap just to record such a draw.
+        let needs_views = self.heaps[0] == 0 && p.stages.iter().any(|stage| {
+            let t = stage.translated();
+            t.host.memory || t.host.heap || t.host.view_addresses || t.host.view_marks
+                || !t.used.is_empty() || t.host.user_data.iter().any(is_root_view)
+        });
+        if !self.bind_heaps(list, needs_views) {
             not_run("a directly indexed descriptor heap is unavailable");
             return false;
         }
@@ -984,21 +994,26 @@ impl State {
 
     /// Every translated root signature declares both directly indexed heaps,
     /// including resource-free shaders. Supply a host heap for each missing kind.
-    fn wanted([views, samplers]: [usize; 2]) -> [usize; 2] {
+    fn wanted([views, samplers]: [usize; 2], needs_views: bool) -> [usize; 2] {
         [
-            if views == 0 { MEMORY_HEAP } else { views },
+            match views {
+                0 if needs_views => MEMORY_HEAP,
+                0 => EMPTY_VIEWS,
+                h => h,
+            },
             if samplers == 0 { SAMPLERS_OURS } else { samplers },
         ]
     }
 
-    fn bind_heaps(&mut self, list: &HostList) -> bool {
-        let want = Self::wanted(self.heaps);
+    fn bind_heaps(&mut self, list: &HostList, needs_views: bool) -> bool {
+        let want = Self::wanted(self.heaps, needs_views);
         if self.host_heaps == want {
             return true;
         }
-        let views = match self.heaps[0] {
-            0 => crate::memory::heap(),
-            h => crate::descriptor::heap(h as This).host(),
+        let views = match want[0] {
+            EMPTY_VIEWS => crate::descriptor::host::empty_view_heap(),
+            MEMORY_HEAP => crate::memory::heap().map(|h| &h.heap),
+            h => crate::descriptor::heap(h as This).host().map(|h| &h.heap),
         };
         let samplers = match self.heaps[1] {
             0 => crate::descriptor::fallback_samplers(),
@@ -1007,10 +1022,10 @@ impl State {
         let (Some(views), Some(samplers)) = (views, samplers) else {
             return false;
         };
-        list.keep(&views.heap);
+        list.keep(views);
         list.keep(&samplers.heap);
         // SAFETY: both shader-visible heaps remain live through submission.
-        unsafe { list.list.SetDescriptorHeaps(&[Some(views.heap.clone()), Some(samplers.heap.clone())]) };
+        unsafe { list.list.SetDescriptorHeaps(&[Some(views.clone()), Some(samplers.heap.clone())]) };
         self.host_heaps = want;
         self.host_roots = [0; 2];
         true
@@ -1058,7 +1073,7 @@ impl State {
             slot: 0,
         };
         readable(list, &written, &view, false);
-        if !self.bind_heaps(list) { return; }
+        if !self.bind_heaps(list, true) { return; }
         list.keep(&resource);
         let gpu = visible.gpu(slot);
         // SAFETY: an open list; both slots view the live resource.
@@ -2014,16 +2029,18 @@ pub(crate) mod tests {
     #[test]
     fn a_list_without_a_sampler_heap_gets_ours() {
         // The title binds both: nothing of ours.
-        assert_eq!(State::wanted([0x10, 0x20]), [0x10, 0x20]);
+        assert_eq!(State::wanted([0x10, 0x20], false), [0x10, 0x20]);
         // Views only: our sampler heap after them.
-        assert_eq!(State::wanted([0x10, 0]), [0x10, SAMPLERS_OURS]);
-        // Neither, including a depth-only draw: ours of both kinds.
+        assert_eq!(State::wanted([0x10, 0], false), [0x10, SAMPLERS_OURS]);
+        // A depth-only draw binds both kinds without a full view heap.
+        assert_eq!(State::wanted([0, 0], false), [EMPTY_VIEWS, SAMPLERS_OURS]);
+        // Title-memory accesses use the full dynamic view heap.
         assert_eq!(
-            State::wanted([0, 0]),
+            State::wanted([0, 0], true),
             [MEMORY_HEAP, SAMPLERS_OURS]
         );
         // A title sampler heap stays whatever the views are.
-        assert_eq!(State::wanted([0, 0x20]), [MEMORY_HEAP, 0x20]);
+        assert_eq!(State::wanted([0, 0x20], true), [MEMORY_HEAP, 0x20]);
     }
     use crate::object::{HRESULT, S_OK};
     use windows::Win32::Graphics::Direct3D::Fxc::D3DCompile;

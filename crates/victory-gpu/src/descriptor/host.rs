@@ -560,6 +560,25 @@ fn null_sampler(at: D3D12_CPU_DESCRIPTOR_HANDLE) {
     unsafe { host.device.CreateSampler(&desc, at) };
 }
 
+/// A signature declares direct indexing even for shaders that never read a
+/// view. One shader-visible slot satisfies the binding without allocating
+/// title descriptors, dynamic slots or their metadata.
+pub(crate) fn empty_view_heap() -> Option<&'static ID3D12DescriptorHeap> {
+    static HEAP: std::sync::OnceLock<Option<ID3D12DescriptorHeap>> = std::sync::OnceLock::new();
+    HEAP.get_or_init(|| {
+        let device = &host()?.device;
+        // SAFETY: this heap is only selected when no shader accesses a view.
+        unsafe {
+            device.CreateDescriptorHeap(&D3D12_DESCRIPTOR_HEAP_DESC {
+                Type: D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+                NumDescriptors: 1,
+                Flags: D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+                NodeMask: 0,
+            })
+        }.ok()
+    }).as_ref()
+}
+
 /// A sampler heap of our own, for the lists that set a root signature whose
 /// sampler heap is indexed directly (`SAMPLER_HEAP_DIRECTLY_INDEXED`) while
 /// the title binds no sampler heap: D3D12 requires one to be bound first
