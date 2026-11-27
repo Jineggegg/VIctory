@@ -1,0 +1,75 @@
+Windows D3D12; hardware = NVIDIA GeForce RTX 5090. Debug test profile.
+Code under test: ed6f05b (the three review commits). Probe "before" is 00a3d36.
+
+[guard lock hold: watch::tests::joining_a_guarded_pool_held_times]
+features = diagnostics; --ignored --exact --test-threads=1. A 4096-page write-watched
+pool is taken whole by one tracker; 512 one-page trackers then join it.
+held_ms sums every GUARDS hold during the joins (held_times); wall_ms is the joins' own time.
+before = 00a3d36 (query under the lock) + the probe test
+  run 1: joins=512 wall_ms=217.420 held_ms=213.499 max_hold_ms=5.635
+         line=356 held_ms=213.499 max_ms=5.635
+  run 2: joins=512 wall_ms=207.184 held_ms=203.179 max_hold_ms=6.154
+         line=356 held_ms=203.179 max_ms=6.154
+  run 3: joins=512 wall_ms=201.346 held_ms=197.452 max_hold_ms=1.227
+         line=356 held_ms=197.452 max_ms=1.227
+after = this branch (query outside the lock)
+  run 1: joins=512 wall_ms=189.523 held_ms=0.889 max_hold_ms=0.014
+         line=422 held_ms=0.545 max_ms=0.014
+         line=400 held_ms=0.344 max_ms=0.007
+  run 2: joins=512 wall_ms=205.851 held_ms=1.078 max_hold_ms=0.051
+         line=422 held_ms=0.683 max_ms=0.051
+         line=400 held_ms=0.395 max_ms=0.010
+  run 3: joins=512 wall_ms=214.225 held_ms=1.018 max_hold_ms=0.027
+         line=422 held_ms=0.606 max_ms=0.027
+         line=400 held_ms=0.412 max_ms=0.009
+  (after: line 400 reads the records, line 422 clears stale ones and registers holders)
+
+[whole-page reuse: watch::tests::a_new_tracker_rearms_a_recommitted_page_with_a_live_predecessor]
+--exact, default features. The same test text added to each checkout.
+  3d986b3 run 1: test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 303 filtered out; finished in 0 | watch.rs:999:9: left: []
+  3d986b3 run 2: test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 303 filtered out; finished in 0 | watch.rs:999:9: left: []
+  3d986b3 run 3: test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 303 filtered out; finished in 0 | watch.rs:999:9: left: []
+  b2b58bd run 1: test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 306 filtered out; finished in 0 
+  b2b58bd run 2: test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 306 filtered out; finished in 0 
+  b2b58bd run 3: test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 306 filtered out; finished in 0 
+  (3d986b3 = parent of the fix b2b58bd; the failing line is the take after the write)
+
+[full: cargo test -p victory-gpu --locked, default features and parallelism, hardware] runs=20 failing_runs=0
+  1: 306 passed / 0 failed / 3 ignored
+  2: 306 passed / 0 failed / 3 ignored
+  3: 306 passed / 0 failed / 3 ignored
+  4: 306 passed / 0 failed / 3 ignored
+  5: 306 passed / 0 failed / 3 ignored
+  6: 306 passed / 0 failed / 3 ignored
+  7: 306 passed / 0 failed / 3 ignored
+  8: 306 passed / 0 failed / 3 ignored
+  9: 306 passed / 0 failed / 3 ignored
+  10: 306 passed / 0 failed / 3 ignored
+  11: 306 passed / 0 failed / 3 ignored
+  12: 306 passed / 0 failed / 3 ignored
+  13: 306 passed / 0 failed / 3 ignored
+  14: 306 passed / 0 failed / 3 ignored
+  15: 306 passed / 0 failed / 3 ignored
+  16: 306 passed / 0 failed / 3 ignored
+  17: 306 passed / 0 failed / 3 ignored
+  18: 306 passed / 0 failed / 3 ignored
+  19: 306 passed / 0 failed / 3 ignored
+  20: 306 passed / 0 failed / 3 ignored
+
+[warp: VICTORY_D3D12_WARP=1 cargo test -p victory-gpu --locked --features diagnostics]
+  322 passed / 0 failed / 20 ignored
+
+[hle: cargo test -p victory-hle --locked]
+  lib: 153 passed / 0 failed / 0 ignored; fidelityfx 1 passed; no_dll_planting 1 passed
+  includes modules::xmem::tests::fixed_commits_and_default_frees_report_the_title_range ... ok
+
+[clippy, as .github/workflows/ci.yml: --workspace --all-targets, then --all-features]
+  diagnostics in crates/victory-gpu/src/watch.rs: 0 / 0; crates/victory-hle/src/modules/xmem.rs: 0 / 0
+  (other files keep their existing warnings)
+
+[cargo xtask policy] asset policy: 1431 files ok
+
+[tools/bench/hot.sh smoke --runs 3] complete, 0 invalid, see review-hot-smoke/
+  1:  shadow_refresh_bytes=268435456 writeback_bytes=251658240 writeback_withheld_bytes=16777216 verified=1
+  2:  shadow_refresh_bytes=268435456 writeback_bytes=251658240 writeback_withheld_bytes=16777216 verified=1
+  3:  shadow_refresh_bytes=268435456 writeback_bytes=251658240 writeback_withheld_bytes=16777216 verified=1
