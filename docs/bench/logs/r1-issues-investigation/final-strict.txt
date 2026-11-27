@@ -1,0 +1,104 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 09:49:17Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5433/32607 MiB | power=75.04 W | temp=42.58 C | graphics=1290 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=System(pid=4) Copy=3% | tolerated background=chrome(pid=60252) 3D=2%
+Idle window: 11.9s, 10 samples, max GPU=3%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+final gate nvidia-smi total GPU percent: 0,0,1,1,0,0,1,0,0,1
+stage=final sha256=18677D81D63124E5E9DA7F2F4F99811531C9849E55350297F8789801E3C23F5F
+arm=integ-base sha256=888ED490721961CFA2128E4343F91998D47625995A284B6EB2720EC60F21E4A6
+pages=16 mode=integ-base seconds=8
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=8.001
+BENCH soak_1_rounds=6395
+BENCH soak_1_p50_us=1263.700
+BENCH soak_1_p95_us=1467.900
+BENCH soak_1_p99_us=1680.900
+BENCH soak_1_ws_bytes=183148544
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=6395
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 8.28s
+
+arm=accept-r1 sha256=6D7D89464CDB397D2881C1CA1E08E53DBD6345AC583ACDED01302E48581CBDC4
+pages=16 mode=accept-r1 seconds=8
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=8.060
+BENCH soak_1_rounds=103
+BENCH soak_1_p50_us=95275.900
+BENCH soak_1_p95_us=101450.600
+BENCH soak_1_p99_us=103801.500
+BENCH soak_1_ws_bytes=181829632
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=103
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 8.37s
+
+pages=16 mode=clean seconds=60
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=26036
+BENCH soak_1_p50_us=2247.000
+BENCH soak_1_p95_us=2631.900
+BENCH soak_1_p99_us=2956.100
+BENCH soak_1_ws_bytes=184700928
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=26036
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 60.33s
+
+
+running 24 tests
+test shadow::tests::a_replacement_buffer_tracks_cpu_writes_at_its_predecessors_address ... ok
+test shadow::tests::arena_runs_are_aligned_to_their_elements_and_join_again ... ok
+test shadow::tests::bytes_off_the_runtimes_memory_are_copied_at_each_use ... ok
+test shadow::tests::inaccessible_store_retries_mapped_bytes_beyond_the_hole ... ok
+test shadow::tests::last_word_keeps_all_allocatable_marks ... ok
+test shadow::tests::late_cpu_bytes_in_short_gaps_survive_exact_stores ... ok
+test shadow::tests::mark_runs_are_reused_and_joined ... ok
+test shadow::tests::marked_pages_go_back_by_the_bytes_the_gpu_changed ... ok
+test shadow::tests::marks_of_shaders_using_title_memory_are_held_back ... ok
+test shadow::tests::one_cpu_store_crosses_two_gpu_written_pages ... ok
+test shadow::tests::overlapping_snapshot_does_not_replay_cpu_bytes_from_a_marked_page ... ok
+test shadow::tests::overlapping_snapshots_keep_late_cpu_stores ... ok
+test shadow::tests::partial_refresh_under_marked_range_updates_saved_bytes ... ok
+test shadow::tests::partial_snapshot_after_a_full_page_preserves_a_new_cpu_store ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::publish_valid_declaration_beside_a_withheld_write_on_one_page ... ok
+test shadow::tests::readable_partial_snapshot_retries_after_a_full_page_read_fails ... ok
+test shadow::tests::snapshots_cover_the_declared_ranges_and_writes_go_back_once ... ok
+test shadow::tests::title_write_mid_scan_uses_the_pre_write_snapshot ... ok
+test shadow::tests::title_writes_under_a_busy_range_are_copied ... ok
+test shadow::tests::what_a_frame_withholds_leaves_the_copies_at_its_end ... ok
+test shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes ... ok
+test shadow::tests::withheld_byte_on_each_side_of_a_boundary_blocks_both_marked_pages ... ok
+test shadow::writeback_merge_matches_bytewise_oracle ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.38s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active
