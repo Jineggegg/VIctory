@@ -931,10 +931,11 @@ impl Shadow {
         t.arm(from, end);
         let was_dirty = t.changed(index);
         let mut title = vec![0; end - from];
-        let read = crate::host::read_into(from as *const u8, &mut title);
+        // As in `copy_back_marked_with`, an unread page keeps what it saved.
+        if !crate::host::read_into(from as *const u8, &mut title) { return 0; }
         t.unarm(index);
         let saved = t.saved(index);
-        if !read || (was_dirty && saved.is_none()) { return 0; }
+        if was_dirty && saved.is_none() { return 0; }
         let mut written = 0;
         let mut masks = Vec::new();
         let mut snapshot = self.before.lock().unwrap_or_else(|e| e.into_inner());
@@ -1002,13 +1003,16 @@ impl Shadow {
                     &mut mask[offset / 16..(offset + block.len()).div_ceil(16)],
                 );
             }
+            // An unread page stays armed with the bytes it saved: a CPU
+            // store during this pass made it dirty, and a retry needs them.
+            if !read {
+                continue;
+            }
             t.unarm(p);
             let saved = t.saved(p);
-            if !read || (was_dirty && saved.is_none()) {
+            if was_dirty && saved.is_none() {
                 #[cfg(feature = "diagnostics")]
-                if read {
-                    crate::copystat::add(crate::copystat::C::MarkedKept, 1);
-                }
+                crate::copystat::add(crate::copystat::C::MarkedKept, 1);
                 continue;
             }
             synced.push((a, b));
@@ -2446,6 +2450,50 @@ pub(crate) mod tests {
         assert_eq!(copy.copy_back_marked(p, 1), PAGE);
         assert!(crate::host::read_into((boundary - 2) as *const u8, &mut bytes));
         assert_eq!(bytes, [0, 0xa1, 0xa2, 0]);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
+
+    /// A CPU store after the first half of a marked page was read saves the
+    /// page's earlier bytes, and then the second half cannot be read. The
+    /// retry still has those bytes: it publishes the shader's changes on both
+    /// sides of the boundary and keeps the CPU's byte.
+    #[test]
+    fn marked_retry_after_a_failed_half_keeps_the_bytes_saved_mid_read() {
+        let h = host().expect("D3D12 for marked write-back");
+        let p = crate::watch::tests::pool(1);
+        let (resource, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(resource, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p, PAGE, true);
+        let boundary = p + PAGE / 2;
+        copy.write_host((p + 9) as u64, &[0xa3]);
+        copy.write_host((boundary - 1) as u64, &[0xa1, 0xa2]);
+        let mut raced = false;
+        let written = copy.copy_back_marked_with(p, 1, |address, out| {
+            if address != p {
+                return false;
+            }
+            assert!(crate::host::read_into(address as *const u8, out));
+            // SAFETY: a byte of the live allocation, already read.
+            std::thread::spawn(move || unsafe { ((p + 10) as *mut u8).write_volatile(0xc1) })
+                .join()
+                .unwrap();
+            raced = true;
+            true
+        });
+        assert!(raced);
+        assert_eq!(written, 0);
+        let title = |at: usize| {
+            let mut bytes = [0; 2];
+            assert!(crate::host::read_into(at as *const u8, &mut bytes));
+            bytes
+        };
+        assert_eq!(title(p + 9), [0, 0xc1]);
+        assert_eq!(title(boundary - 1), [0, 0]);
+        assert_eq!(copy.copy_back_marked(p, 1), PAGE);
+        assert_eq!(title(p + 9), [0xa3, 0xc1]);
+        assert_eq!(title(boundary - 1), [0xa1, 0xa2]);
         drop(copy);
         crate::watch::tests::free(p);
     }
