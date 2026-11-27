@@ -194,7 +194,8 @@ export BUILD_QUEUE_HELD=1
     # A desktop service restored by gpu-quiet must not inherit the slot locks.
     for fd in "${held[@]}"; do exec {fd}>&-; done
     exec 3>&-
-    exec gpu-quiet run -- build-queue "${driver[@]}" "$sample_mode" "${args[@]}"
+    # VICTORY_GPU_QUIET selects a gpu-quiet other than the one on PATH.
+    exec "${VICTORY_GPU_QUIET:-gpu-quiet}" run -- build-queue "${driver[@]}" "$sample_mode" "${args[@]}"
 ) 2>&1 |
     redact |
     tee -a /dev/fd/3

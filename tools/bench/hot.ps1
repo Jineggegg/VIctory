@@ -227,18 +227,22 @@ function Get-Target($dir) {
 function Read-QuietWindow {
     # gpu-quiet emits its accepted idle snapshot before starting this driver.
     # The WSL tee may still be flushing that line across the Windows mount.
-    $snapshot = [ordered]@{status_line=$null; tolerated_background=$null}
+    # Newer gpu-quiet versions also print the admitted samples and the desktop
+    # background they allowed on an "Idle window:" line; keep it when present.
+    $snapshot = [ordered]@{status_line=$null; tolerated_background=$null; admission=$null}
     for ($i=0; $i -lt 10; $i++) {
         # The Linux writer holds this file open. Windows ReadAllLines opens
         # with FileShare.Read, which denies that writer on a drive mount.
-        $line = wsl.exe --distribution $Distro --cd $OutDir --exec head -n 50 window.txt |
-            Where-Object { $_ -match '\| 3D/Compute=' } | Select-Object -Last 1
+        $lines = @(wsl.exe --distribution $Distro --cd $OutDir --exec head -n 50 window.txt)
         if ($LASTEXITCODE) { throw 'Cannot read gpu-quiet window log' }
+        $line = $lines | Where-Object { $_ -match '\| 3D/Compute=' } | Select-Object -Last 1
         if ($line) {
             $snapshot.status_line = Protect-Log $line.Trim()
             if ($snapshot.status_line -match '\| tolerated background=([^|]*)') {
                 $snapshot.tolerated_background = $Matches[1].Trim()
             }
+            $admitted = $lines | Where-Object { $_ -match '^Idle window: ' } | Select-Object -Last 1
+            if ($admitted) { $snapshot.admission = Protect-Log $admitted.Trim() }
             break
         }
         Start-Sleep -Milliseconds 100
