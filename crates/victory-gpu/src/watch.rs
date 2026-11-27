@@ -1130,6 +1130,28 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn a_new_tracker_rearms_a_recommitted_page_with_a_live_predecessor() {
+        use windows_sys::Win32::System::Memory::MEM_DECOMMIT;
+        let p = pool(1);
+        let old = track(p, PAGE, true).unwrap();
+        assert_eq!(old.take(p, p + PAGE), [(p, p + PAGE)]);
+        // SAFETY: the reservation stays ours while its only page is replaced.
+        unsafe {
+            assert_ne!(VirtualFree(p as _, PAGE, MEM_DECOMMIT), 0);
+            assert_eq!(VirtualAlloc(p as _, PAGE, MEM_COMMIT, PAGE_READWRITE) as usize, p);
+        }
+        let new = track(p, PAGE, true).unwrap();
+        assert_eq!(new.take(p, p + PAGE), [(p, p + PAGE)]);
+        assert!(new.clean());
+        // SAFETY: a live writable title page; its guard reports the first write.
+        unsafe { (p as *mut u8).write_volatile(0x7b) };
+        assert_eq!(new.take(p, p + PAGE), [(p, p + PAGE)]);
+        assert_eq!(old.take(p, p + PAGE), [(p, p + PAGE)]);
+        drop((new, old));
+        free(p);
+    }
+
+    #[test]
     fn a_stale_query_does_not_open_a_guard_reinstalled_before_registration() {
         let p = pool(1);
         let page = p / PAGE;
