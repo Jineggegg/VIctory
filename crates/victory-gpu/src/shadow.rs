@@ -188,7 +188,7 @@ fn private_write_watch(start: usize, len: usize) -> bool {
 
 /// Writes only bytes changed by the shader. Title mappings may disappear on
 /// another thread. The guest stores in the x64 leaf have known fault PCs:
-/// if either fails, resume at the failure return and retry the exact runs in
+/// if either fails, return the remaining byte count and retry only the unfinished runs in
 /// the kernel. Host reads and unrelated faults use normal exception handling.
 #[cfg(target_arch = "x86_64")]
 mod delta_store {
@@ -206,7 +206,7 @@ mod delta_store {
         r#"
         .text
         .p2align 4
-        .globl victory_store_delta, victory_store_vector, victory_store_byte, victory_store_failed
+        .globl victory_store_delta, victory_store_vector, victory_store_byte, victory_store_return
     victory_store_delta:
         test r9, r9
         jz 5f
@@ -216,6 +216,12 @@ mod delta_store {
         jz 3f
         cmp eax, 65535
         jne 6f
+        // A store spanning two OS pages must have a precise restart byte
+        // even if the second page has different protection.
+        mov r10d, ecx
+        and r10d, 4095
+        cmp r10d, 4080
+        ja 6f
         movdqu xmm0, [rdx]
     victory_store_vector:
         movdqu [rcx], xmm0
@@ -235,19 +241,17 @@ mod delta_store {
         sub r9, 16
         ja 1b
     5:
-        mov eax, 1
-        ret
-    victory_store_failed:
         xor eax, eax
+    victory_store_return:
         ret
     "#
     );
 
     unsafe extern "system" {
-        fn victory_store_delta(dst: usize, gpu: *const u8, masks: *const u16, len: usize) -> u32;
+        fn victory_store_delta(dst: usize, gpu: *const u8, masks: *const u16, len: usize) -> usize;
         fn victory_store_vector();
         fn victory_store_byte();
-        fn victory_store_failed();
+        fn victory_store_return();
     }
 
     unsafe extern "system" fn on_store_fault(info: *mut EXCEPTION_POINTERS) -> i32 {
@@ -261,21 +265,22 @@ mod delta_store {
             return EXCEPTION_CONTINUE_SEARCH;
         }
         let pc = record.ExceptionAddress as usize;
-        if [
-            victory_store_vector as *const () as usize,
-            victory_store_byte as *const () as usize,
-        ]
-        .contains(&pc)
-        {
-            // SAFETY: both stores are in a leaf with the original stack
-            // and nonvolatile registers, so its failure return is valid here.
-            unsafe { (*(*info).ContextRecord).Rip = victory_store_failed as *const () as u64 };
-            return EXCEPTION_CONTINUE_EXECUTION;
-        }
-        EXCEPTION_CONTINUE_SEARCH
+        // SAFETY: this is the context of the faulting leaf. R9 counts bytes
+        // remaining from RCX; at the scalar store R10 indexes the failed byte.
+        let ctx = unsafe { &mut *(*info).ContextRecord };
+        let remaining = if pc == victory_store_vector as *const () as usize {
+            ctx.R9
+        } else if pc == victory_store_byte as *const () as usize {
+            ctx.R9 - ctx.R10
+        } else {
+            return EXCEPTION_CONTINUE_SEARCH;
+        };
+        ctx.Rax = remaining;
+        ctx.Rip = victory_store_return as *const () as u64;
+        EXCEPTION_CONTINUE_EXECUTION
     }
 
-    pub(super) fn try_write(at: usize, host: &[u8], masks: &[u16]) -> bool {
+    pub(super) fn remaining_after_store(at: usize, host: &[u8], masks: &[u16]) -> usize {
         static INSTALLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
         // SAFETY: the handler lives as long as the process.
         let installed = INSTALLED.get_or_init(|| unsafe {
@@ -283,8 +288,11 @@ mod delta_store {
         });
         // SAFETY: both host slices cover the entire run, and both
         // destination store PCs are handled if the title removed its mapping.
-        *installed
-            && unsafe { victory_store_delta(at, host.as_ptr(), masks.as_ptr(), host.len()) != 0 }
+        if *installed {
+            unsafe { victory_store_delta(at, host.as_ptr(), masks.as_ptr(), host.len()) }
+        } else {
+            host.len()
+        }
     }
 }
 
@@ -324,10 +332,13 @@ fn write_masked(at: usize, host: &[u8], masks: &[u16]) {
         assert_eq!(masks.last().unwrap() >> tail, 0);
     }
     #[cfg(target_arch = "x86_64")]
-    if delta_store::try_write(at, host, masks) {
-        return;
-    }
+    let mut i = host.len() - delta_store::remaining_after_store(at, host, masks);
+    #[cfg(not(target_arch = "x86_64"))]
     let mut i = 0;
+    #[cfg(test)]
+    if i < host.len() && let Some(callback) = BEFORE_KERNEL_RETRY.take() {
+        callback();
+    }
     while i < host.len() {
         let from = i;
         while i < host.len() && masks[i / 16] & (1 << (i % 16)) != 0 {
@@ -350,6 +361,7 @@ fn write_changed(at: usize, host: &[u8], old: &[u8]) {
 
 #[cfg(test)]
 thread_local! {
+    static BEFORE_KERNEL_RETRY: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
     static AFTER_MARK_READ: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
 }
 
@@ -2398,6 +2410,48 @@ pub(crate) mod tests {
             assert_eq!(actual, gpu);
         }
         crate::watch::tests::free(at);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn failed_store_retries_only_bytes_after_the_completed_prefix() {
+        use windows_sys::Win32::System::Memory::{PAGE_READONLY, PAGE_READWRITE, VirtualProtect};
+
+        const BLOCK: usize = 4096;
+        let pool = crate::watch::tests::pool(1);
+        // Aligned full vector fault; sparse vector fault with a completed byte
+        // in the same mask; full unaligned vector straddling the page boundary.
+        for (prefix, sparse) in [(16, false), (24, true), (24, false)] {
+            let start = pool + BLOCK - prefix;
+            let len = prefix + BLOCK + 1;
+            let mut gpu = vec![0xab; len];
+            if sparse { gpu[17] = 0; }
+            // SAFETY: our pool includes all three pages; restore after each case.
+            unsafe { (start as *mut u8).write_bytes(0, len) };
+            let mut previous = 0;
+            assert_ne!(unsafe { VirtualProtect((pool + BLOCK) as *const _, BLOCK, PAGE_READONLY, &mut previous) }, 0);
+            BEFORE_KERNEL_RETRY.set(Some(Box::new(move || {
+                std::thread::spawn(move || {
+                    // SAFETY: the kernel retry waits for this thread. The last
+                    // byte on the first page has already received the GPU value.
+                    let last = (pool + BLOCK - 1) as *mut u8;
+                    unsafe {
+                        assert_eq!(last.read_volatile(), 0xab);
+                        last.write_volatile(0xcd);
+                    }
+                }).join().unwrap();
+            })));
+            write_changed(start, &gpu, &vec![0; len]);
+            assert!(BEFORE_KERNEL_RETRY.take().is_none(), "no kernel retry");
+            let mut actual = vec![0; len];
+            assert!(crate::host::read_into(start as *const u8, &mut actual));
+            gpu[prefix - 1] = 0xcd;
+            gpu[prefix..prefix + BLOCK].fill(0);
+            assert_eq!(actual, gpu);
+            // SAFETY: the same page of our still-live reservation.
+            assert_ne!(unsafe { VirtualProtect((pool + BLOCK) as *const _, BLOCK, PAGE_READWRITE, &mut previous) }, 0);
+        }
+        crate::watch::tests::free(pool);
     }
 
     #[test]
