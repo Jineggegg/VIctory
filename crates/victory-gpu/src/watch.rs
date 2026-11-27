@@ -897,6 +897,69 @@ pub(crate) fn frame_done() {
 pub struct Writing {
     first: usize,
     last: usize,
+    /// Made by [`Writing::before_remap`]: holds a [`Remapping`] until the
+    /// release or commit and its report are done.
+    _remap: Option<Remapping>,
+}
+
+/// Remaps under way and parallel write-backs holding mappings:
+/// (remaps, holders).
+static REMAPS: Mutex<(usize, usize)> = Mutex::new((0, 0));
+static REMAPS_DONE: std::sync::Condvar = std::sync::Condvar::new();
+
+fn remaps() -> std::sync::MutexGuard<'static, (usize, usize)> {
+    REMAPS.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// A release, commit in place or view mapping of title memory the runtime
+/// is making: it waits for every parallel write-back holding its mappings
+/// ([`hold_mappings`]) and keeps new ones from starting until dropped.
+/// Remaps do not wait for each other.
+#[must_use = "the remap must happen while this lives"]
+pub struct Remapping(());
+
+/// Before the runtime releases memory or maps a view: see [`Remapping`].
+pub fn remapping() -> Remapping {
+    let mut state = remaps();
+    state.0 += 1;
+    while state.1 != 0 {
+        state = REMAPS_DONE.wait(state).unwrap_or_else(|e| e.into_inner());
+    }
+    Remapping(())
+}
+
+impl Drop for Remapping {
+    fn drop(&mut self) {
+        remaps().0 -= 1;
+    }
+}
+
+/// Held while several threads store into one private allocation at once
+/// (`crate::shadow`'s parallel snapshot write-back): no release or mapping
+/// the runtime makes completes meanwhile, so the allocation that a
+/// write-watch query found stays the memory at those addresses, and no two of
+/// them come to show one physical page. None while a remap is under way: the
+/// caller writes in address order instead of waiting.
+pub(crate) fn hold_mappings() -> Option<MappingsHeld> {
+    let mut state = remaps();
+    if state.0 != 0 {
+        return None;
+    }
+    state.1 += 1;
+    Some(MappingsHeld(()))
+}
+
+/// See [`hold_mappings`].
+pub(crate) struct MappingsHeld(());
+
+impl Drop for MappingsHeld {
+    fn drop(&mut self) {
+        let mut state = remaps();
+        state.1 -= 1;
+        if state.1 == 0 {
+            REMAPS_DONE.notify_all();
+        }
+    }
 }
 
 impl Writing {
@@ -909,15 +972,18 @@ impl Writing {
     /// partial decommit left are opened alone ([`guards_for_mapping`]). On
     /// success the caller reports [`title_memory_remapped`] while this
     /// lives; on failure the alias links and the bytes saved before the
-    /// write stay.
+    /// write stay. Waits for parallel write-backs into the memory to finish
+    /// first, and holds off new ones while it lives ([`Remapping`]).
     pub fn before_remap(at: usize, len: usize) -> Self {
+        // Before the guard lock: a write-back holding mappings takes it.
+        let remap = remapping();
         let (first, last) = (at / PAGE, at.saturating_add(len).div_ceil(PAGE));
         let g = guards();
         let inherited = g.protected.range(first..last).map(|(&p, &generation)| (p, generation)).collect();
         let mut g = check_inherited(g, inherited);
         g.busy.push((first, last));
         changed(&mut g, first, last, true);
-        Self { first, last }
+        Self { first, last, _remap: Some(remap) }
     }
 }
 
@@ -943,7 +1009,7 @@ pub fn writing(at: usize, len: usize) -> Writing {
     let mut g = guards();
     g.busy.push((first, last));
     changed(&mut g, first, last, true);
-    Writing { first, last }
+    Writing { first, last, _remap: None }
 }
 
 /// The runtime mapped or unmapped title memory `[at, at + len)`: what it

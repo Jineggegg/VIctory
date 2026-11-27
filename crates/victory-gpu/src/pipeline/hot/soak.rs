@@ -159,6 +159,85 @@ fn mixed() {
     println!("BENCH verified=1");
 }
 
+/// One byte per 64 KiB page: sixteen pages that each differ from their
+/// snapshot by a single byte, the smallest write-back that is split into
+/// parallel groups.
+const SPARSE: &str = r#"
+    RWByteAddressBuffer dst : register(u0);
+    [RootSignature("UAV(u0)")] [numthreads(16,1,1)]
+    void main(uint3 id : SV_DispatchThreadID) {
+        uint at = 65536*id.x + 4096 + 4*id.x;
+        dst.Store(at, dst.Load(at) ^ (0x41 + id.x));
+    }
+"#;
+
+/// [`mixed`] with [`SPARSE`] in place of the megabyte XOR: per-round
+/// latency of a sparse write-back over the same 1 MiB pool.
+#[test]
+#[ignore = "sparse write-back workload, default 60 seconds"]
+fn sparse() {
+    let seconds = std::env::var("VICTORY_BENCH_SECONDS")
+        .map(|s| s.parse::<u64>().unwrap())
+        .unwrap_or(60);
+    assert!(seconds > 0);
+    let host = crate::host::host().expect("D3D12");
+    let (root, pso) = crate::draw::tests::compile_cs(SPARSE);
+    let bytes = 16 * PAGE;
+    let addr = pool(16);
+    crate::shadow::register(addr, addr as u64, bytes as u64);
+    let copy = crate::shadow::find(addr as u64, bytes as u64).unwrap();
+    let started = Instant::now();
+    let mut round = 0u32;
+    let mut latencies = Vec::new();
+    let mut failures = 0u64;
+    while started.elapsed() < Duration::from_secs(seconds) {
+        let begin = Instant::now();
+        // SAFETY: The writable pool spans the full byte range, and no submission is in flight.
+        unsafe { std::ptr::write_bytes(addr as *mut u8, round as u8, bytes) };
+        let list = Arc::new(host.new_list().unwrap());
+        copy.refresh(&list, addr as u64, bytes as u64);
+        copy.gpu_writes(&list, addr as u64, bytes as u64, false);
+        // SAFETY: The matching root and PSO bind the live shadow UAV spanning the dispatch.
+        unsafe {
+            list.list.SetComputeRootSignature(&root);
+            list.list.SetPipelineState(&pso);
+            list.list
+                .SetComputeRootUnorderedAccessView(0, copy.gpu(addr as u64));
+            list.list.Dispatch(1, 1, 1);
+        }
+        list.close();
+        crate::queue::bench_submit(list);
+        // SAFETY: bench_submit completed copy-back to this still-allocated pool.
+        let result = unsafe { std::slice::from_raw_parts(addr as *const u8, bytes) };
+        failures += u64::from(!result.iter().enumerate().all(|(i, &v)| {
+            let (page, at) = (i / PAGE, i % PAGE);
+            let gpu = at == 4096 + 4 * page;
+            v == if gpu { round as u8 ^ (0x41 + page as u8) } else { round as u8 }
+        }));
+        latencies.push(begin.elapsed().as_nanos() as u64);
+        round += 1;
+    }
+    latencies.sort_unstable();
+    let percentile = |p: usize| latencies[(latencies.len() * p).div_ceil(100) - 1] as f64 / 1000.;
+    // SAFETY: The device is live for this status query.
+    let removed = unsafe { host.device.GetDeviceRemovedReason() }
+        .err()
+        .map_or(0, |e| e.code().0);
+    println!("BENCH sparse_elapsed_s={:.3}", started.elapsed().as_secs_f64());
+    println!("BENCH sparse_rounds={}", latencies.len());
+    for p in [50, 95, 99] {
+        println!("BENCH sparse_p{p}_us={:.3}", percentile(p));
+    }
+    println!("BENCH sparse_failures={failures}");
+    println!("BENCH sparse_removed_hresult={removed}");
+    assert_eq!(failures, 0);
+    assert_eq!(removed, 0);
+    drop(copy);
+    crate::shadow::unregister(addr, addr as u64);
+    crate::watch::tests::free(addr);
+    println!("BENCH verified=1");
+}
+
 #[test]
 #[ignore = "warm shader clocks before collecting samples"]
 fn warm() {

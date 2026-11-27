@@ -1,0 +1,30 @@
+Binaries used for the second review round (Windows x64 native, toolchain/env.ps1, rustc 1.98.1).
+Test builds: cargo test --locked -p victory-gpu --lib --no-run (debug).
+Benchmark build: cargo test --locked --profile diag -p victory-gpu --lib --features diagnostics --no-run.
+
+c1.exe      b8b2e8bb...  test build of 93f38d8 (alias test cleanup)
+c2.exe      f873406a...  test build, working tree of 044a462 before a type alias Clippy asked
+            for (`ChunkHook`, no behaviour change)
+nogate.exe  e6913a28...  c2.exe source with remapping() not waiting (patch below)
+nohold.exe  ef2b64de...  c2.exe source with the marked entry's hold removed, i.e. the
+            marked path of 679826a (patch below)
+c3.exe      175c25c3...  test build of 4c8ce3f (clean tree)
+final.exe   ab91eaeb...  diag build of 4c8ce3f (clean tree)
+mark.exe    1b21ccf6...  diag build of feb14ed; 679826a only adds docs
+A           888ed490...  integ-base hot-bench manifest, 6b1e408
+B           2e614d27...  accept-r1 hot-bench manifest, b5c06a7 (warm-up program only)
+
+nogate.exe, crates/victory-gpu/src/watch.rs remapping():
+-    while state.1 != 0 {
+-        state = REMAPS_DONE.wait(state).unwrap_or_else(|e| e.into_inner());
+-    }
++    // NEGATIVE CONTROL: no wait
+
+nohold.exe, crates/victory-gpu/src/shadow.rs copy_back_marks():
+-        let held = (!sequential && count >= 128)
+-            .then(crate::watch::hold_mappings)
+-            .flatten()
+-            .filter(|_| private_write_watch(first.page, end - first.page));
+-        if let Some(_held) = held {
++        // NEGATIVE CONTROL: no hold on the marked entry
++        if !sequential && count >= 128 && private_write_watch(first.page, end - first.page) {

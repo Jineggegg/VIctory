@@ -1,0 +1,53 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 12:30:03Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=4% | VRAM=5027/32607 MiB | power=66.04 W | temp=35.02 C | graphics=1245 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%
+Idle window: 12.0s, 10 samples, max GPU=4%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+manifest_commit=6b1e408b9161b062f75ad10f2b06913f81ed6dee
+ARM A sha256=888ED490721961CFA2128E4343F91998D47625995A284B6EB2720EC60F21E4A6
+GPU gate samples=3,3,3,3,3,3,3,3,3,3 busy=1
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=40815
+BENCH soak_1_p50_us=1419.700
+BENCH soak_1_p95_us=1667.900
+BENCH soak_1_p99_us=2070.400
+BENCH soak_1_ws_bytes=186753024
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=40815
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 60.33s
+
+ARM final sha256=84119C0D412914154BB9FF8A644CC82194980FC96887639FAF79694EFB79F51E
+GPU gate samples=2,2,3,2,2,2,2,2,2,2 busy=10
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.002
+BENCH soak_1_rounds=40608
+BENCH soak_1_p50_us=1430.800
+BENCH soak_1_p95_us=1690.400
+BENCH soak_1_p99_us=2146.000
+BENCH soak_1_ws_bytes=187281408
+BENCH soak_1_handles=376
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=40608
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 349 filtered out; finished in 60.30s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

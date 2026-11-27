@@ -227,12 +227,15 @@ mod delta_store {
         movdqu [rcx], xmm0
         jmp 3f
     6:
+        // Find the lane and clear its bit independently. The next scan
+        // need not wait for the index of this store.
+        xor r10d, r10d
         bsf r10d, eax
         mov r11b, [rdx + r10]
     victory_store_byte:
         mov [rcx + r10], r11b
-        btr eax, r10d
-        test eax, eax
+        lea r11d, [rax - 1]
+        and eax, r11d
         jnz 6b
     3:
         add rcx, 16
@@ -363,6 +366,59 @@ fn write_changed(at: usize, host: &[u8], old: &[u8]) {
 thread_local! {
     static BEFORE_KERNEL_RETRY: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
     static AFTER_MARK_READ: std::cell::Cell<Option<Box<dyn FnOnce()>>> = const { std::cell::Cell::new(None) };
+    /// The calling thread's snapshot and marked write-backs keep address order.
+    static FORCE_SEQUENTIAL: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Where the parallel write-backs under way start.
+#[cfg(test)]
+static PARALLEL: Mutex<Vec<usize>> = Mutex::new(Vec::new());
+
+/// A parallel write-back starting at its address, while it lives.
+#[cfg(test)]
+struct Parallel(usize);
+
+#[cfg(test)]
+impl Parallel {
+    fn at(at: usize) -> Self {
+        PARALLEL.lock().unwrap_or_else(|e| e.into_inner()).push(at);
+        Self(at)
+    }
+}
+
+#[cfg(test)]
+impl Drop for Parallel {
+    fn drop(&mut self) {
+        let mut all = PARALLEL.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(i) = all.iter().position(|&a| a == self.0) {
+            all.swap_remove(i);
+        }
+    }
+}
+
+/// Whether a parallel write-back starting at `at` is under way.
+#[cfg(test)]
+fn parallel_at(at: usize) -> bool {
+    PARALLEL.lock().unwrap_or_else(|e| e.into_inner()).contains(&at)
+}
+
+/// Called on whichever thread copies back the marked run starting at its
+/// title page, once, before the run is read.
+#[cfg(test)]
+static MARKED_CHUNK_HOOK: Mutex<Option<(usize, ChunkHook)>> = Mutex::new(None);
+
+#[cfg(test)]
+type ChunkHook = Box<dyn FnOnce() + Send>;
+
+#[cfg(test)]
+fn marked_chunk_hook(page: usize) {
+    let hook = {
+        let mut slot = MARKED_CHUNK_HOOK.lock().unwrap_or_else(|e| e.into_inner());
+        if slot.as_ref().is_some_and(|(at, _)| *at == page) { slot.take() } else { None }
+    };
+    if let Some((_, f)) = hook {
+        f();
+    }
 }
 
 /// Write contiguous shader changes without replaying adjacent CPU bytes.
@@ -744,12 +800,23 @@ impl Shadow {
     }
 
     fn copy_back_or_not(&self, address: usize, len: usize, back: bool) -> usize {
-        self.copy_back_or_not_with(address, len, back, crate::host::read_into)
+        self.snapshot_copy(address, len, back, crate::host::read_into)
     }
 
+    #[cfg(test)]
     fn copy_back_or_not_with(
         &self, address: usize, len: usize, back: bool,
-        mut read_title: impl FnMut(*const u8, &mut [u8]) -> bool,
+        read_title: impl FnMut(*const u8, &mut [u8]) -> bool + Send,
+    ) -> usize {
+        let read = Mutex::new(read_title);
+        self.snapshot_copy(address, len, back, |at, bytes| {
+            read.lock().unwrap_or_else(|e| e.into_inner())(at, bytes)
+        })
+    }
+
+    fn snapshot_copy(
+        &self, address: usize, len: usize, back: bool,
+        read_title: impl Fn(*const u8, &mut [u8]) -> bool + Sync,
     ) -> usize {
         let mut snapshot = self.before.lock().unwrap_or_else(|e| e.into_inner());
         let (segments, compared) = &mut *snapshot;
@@ -766,38 +833,91 @@ impl Shadow {
             // By 64 KiB piece: the copy compared with its bytes before the
             // submission, title memory read only where the GPU wrote.
             const PIECE: usize = 64 << 10;
-            let mut title = vec![0u8; PIECE];
-            let mut masks = Vec::new();
-            let mut synced = Vec::new();
+            // Host bytes and the baseline are stable until the final resync.
+            // Find the work before scheduling: a large unchanged or sparse
+            // declaration needs neither workers nor a page-sized read buffer.
+            let host = |at: usize, n: usize| {
+                // SAFETY: each piece is inside the shadow, and the GPU is
+                // finished. All reads join before the shadow is updated.
+                unsafe { std::slice::from_raw_parts(self.data.add(at), n) }
+            };
+            let mut changed = Vec::new();
             let mut at = from;
             while at < to {
                 let n = (PIECE - (start + at) % PIECE).min(to - at);
-                // SAFETY: inside the mapping; only the submitting thread
-                // writes it.
-                let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(at), n) };
-                let old = &before[at - from..at - from + n];
-                let title = &mut title[..n];
-                // A smaller declaration must not replay a completed full page.
                 let page = (start + at) & !(PIECE - 1);
-                if compared.contains(&page) {
-                    at += n;
-                    continue;
-                }
-                #[cfg(feature = "diagnostics")]
-                crate::copystat::add(crate::copystat::C::CompareBytes, n as u64);
-                if host != old && read_title((start + at) as *const u8, title) {
-                    // A title writer can run after this read, even in the gap
-                    // between two shader writes. Never include a gap in a store.
-                    if store_snapshot_changes(start + at, host, old, title, &mut masks) {
-                        written += n;
+                if !compared.contains(&page) {
+                    #[cfg(feature = "diagnostics")]
+                    crate::copystat::add(crate::copystat::C::CompareBytes, n as u64);
+                    if host(at, n) != &before[at - from..at - from + n] {
+                        changed.push((at, n));
                     }
-                    if n == PIECE {
-                        // A failed full read leaves readable subranges eligible for retry.
-                        compared.insert(page);
-                    }
-                    synced.push((at, n));
                 }
                 at += n;
+            }
+            let publish = |pieces: &[(usize, usize)]| {
+                let mut title = vec![0; pieces.iter().map(|&(_, n)| n).max().unwrap_or(0)];
+                let mut masks = Vec::new();
+                let mut synced = Vec::with_capacity(pieces.len());
+                for &(at, n) in pieces {
+                    let title = &mut title[..n];
+                    if read_title((start + at) as *const u8, title) {
+                        let old = &before[at - from..at - from + n];
+                        let wrote = store_snapshot_changes(start + at, host(at, n), old, title, &mut masks);
+                        synced.push((at, n, wrote));
+                    }
+                }
+                synced
+            };
+            // A successful write-watch query covers one private allocation.
+            // Its disjoint pages cannot be aliases of each other while it
+            // lives: the hold, taken before the query and kept until every
+            // group joins, makes the runtime's releases and view mappings
+            // wait. Preserve address order for section views and mixed
+            // mappings, and while a remap is under way.
+            const MIN_GROUP: usize = 4;
+            #[cfg(test)]
+            let sequential = FORCE_SEQUENTIAL.get();
+            #[cfg(not(test))]
+            let sequential = false;
+            let held = (!sequential && changed.len() >= 4 * MIN_GROUP)
+                .then(crate::watch::hold_mappings)
+                .flatten()
+                .filter(|_| private_write_watch(start + from, to - from));
+            let synced = if let Some(_held) = held {
+                #[cfg(test)]
+                let _parallel = Parallel::at(start + from);
+                // Bound scratch allocations even for large declarations.
+                let group_size = MIN_GROUP.max(changed.len().div_ceil(16));
+                let groups: Vec<_> = changed.chunks(group_size)
+                    .map(|pieces| (pieces, std::sync::OnceLock::new()))
+                    .collect();
+                #[cfg(test)]
+                let calls = std::sync::atomic::AtomicUsize::new(0);
+                parallel_items(groups.len(), |i| {
+                    let (pieces, result) = &groups[i];
+                    #[cfg(test)]
+                    let initial = crate::host::MAPPED_WRITE_CALLS.get();
+                    let rows = publish(pieces);
+                    #[cfg(test)]
+                    {
+                        // Keep the calling test's kernel-write counter valid
+                        // across callbacks, including work it does itself.
+                        let count = crate::host::MAPPED_WRITE_CALLS.replace(initial) - initial;
+                        calls.fetch_add(count, std::sync::atomic::Ordering::Relaxed);
+                    }
+                    result.set(rows).expect("each group is claimed once");
+                });
+                #[cfg(test)]
+                crate::host::MAPPED_WRITE_CALLS.set(crate::host::MAPPED_WRITE_CALLS.get() + calls.into_inner());
+                groups.into_iter().flat_map(|(_, rows)| rows.into_inner().expect("joined group")).collect()
+            } else {
+                publish(&changed)
+            };
+            for &(at, n, wrote) in &synced {
+                if wrote { written += n; }
+                // Leave failed reads and partial pages eligible for later declarations.
+                if n == PIECE { compared.insert(start + at); }
             }
             // Pages made equal to title memory are current in the copy, so
             // our own write is not taken for the title's; others keep what
@@ -805,11 +925,11 @@ impl Shadow {
             let (first, last) = ((start + from).div_ceil(PAGE), (start + to) / PAGE);
             if let Some(t) = &self.tracked {
                 let whole: Vec<usize> = synced.iter()
-                    .map(|&(at, _)| (start + at) / PAGE)
+                    .map(|&(at, _, _)| (start + at) / PAGE)
                     .filter(|p| (first..last).contains(p)).collect();
                 t.taken(&whole);
             }
-            for (at, n) in synced {
+            for (at, n, _) in synced {
                 // Rearm first. A later CPU write will mark the copy dirty again.
                 // SAFETY: this piece lies inside the mapped shadow.
                 let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(at), n) };
@@ -864,10 +984,11 @@ impl Shadow {
         t.arm(from, end);
         let was_dirty = t.changed(index);
         let mut title = vec![0; end - from];
-        let read = crate::host::read_into(from as *const u8, &mut title);
+        // As in `copy_back_marked_with`, an unread page keeps what it saved.
+        if !crate::host::read_into(from as *const u8, &mut title) { return 0; }
         t.unarm(index);
         let saved = t.saved(index);
-        if !read || (was_dirty && saved.is_none()) { return 0; }
+        if was_dirty && saved.is_none() { return 0; }
         let mut written = 0;
         let mut masks = Vec::new();
         let mut snapshot = self.before.lock().unwrap_or_else(|e| e.into_inner());
@@ -906,7 +1027,9 @@ impl Shadow {
         // Keep one bit per byte rather than a second copy of every page.
         // One small read buffer is reused for the full run.
         let mut masks = Vec::with_capacity((to - from).div_ceil(16) + count);
-        let mut title = [0u8; 8192];
+        // Batch the kernel reads, leaving the submitting thread's stack small.
+        // A failed block still skips the whole page before any publication.
+        let mut title = vec![0u8; (to - from).min(PAGE / 2)];
         let mut changed = Vec::new();
         let mut taken = Vec::new();
         let mut synced = Vec::new();
@@ -933,13 +1056,16 @@ impl Shadow {
                     &mut mask[offset / 16..(offset + block.len()).div_ceil(16)],
                 );
             }
+            // An unread page stays armed with the bytes it saved: a CPU
+            // store during this pass made it dirty, and a retry needs them.
+            if !read {
+                continue;
+            }
             t.unarm(p);
             let saved = t.saved(p);
-            if !read || (was_dirty && saved.is_none()) {
+            if was_dirty && saved.is_none() {
                 #[cfg(feature = "diagnostics")]
-                if read {
-                    crate::copystat::add(crate::copystat::C::MarkedKept, 1);
-                }
+                crate::copystat::add(crate::copystat::C::MarkedKept, 1);
                 continue;
             }
             synced.push((a, b));
@@ -1572,6 +1698,8 @@ pub(crate) fn copy_back_marks(declared: &[(Arc<Shadow>, usize, usize, bool)], me
         let end = last.page + last.pages * PAGE;
         let copy_chunk = |i: usize| {
             let run = &chunks[i];
+            #[cfg(test)]
+            marked_chunk_hook(run.page);
             let written = if run.valid.is_empty() {
                 copy.copy_back_marked(run.page, run.pages)
             } else {
@@ -1585,7 +1713,21 @@ pub(crate) fn copy_back_marks(declared: &[(Arc<Shadow>, usize, usize, bool)], me
             #[cfg(not(feature = "diagnostics"))]
             let _ = written;
         };
-        if count >= 128 && private_write_watch(first.page, end - first.page) {
+        // As in `Shadow::snapshot_copy`: the hold, taken before the query
+        // and kept until every chunk joins, keeps the private allocation the
+        // query found at these addresses, so no two chunks come to store into
+        // one physical page. A remap under way keeps address order.
+        #[cfg(test)]
+        let sequential = FORCE_SEQUENTIAL.get();
+        #[cfg(not(test))]
+        let sequential = false;
+        let held = (!sequential && count >= 128)
+            .then(crate::watch::hold_mappings)
+            .flatten()
+            .filter(|_| private_write_watch(first.page, end - first.page));
+        if let Some(_held) = held {
+            #[cfg(test)]
+            let _parallel = Parallel::at(first.page);
             parallel_items(chunks.len(), copy_chunk);
         } else {
             (0..chunks.len()).for_each(copy_chunk);
@@ -2355,6 +2497,77 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn marked_read_failure_skips_both_sides_of_the_block_boundary() {
+        let h = host().expect("D3D12 for marked write-back");
+        let p = crate::watch::tests::pool(1);
+        let (resource, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(resource, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p, PAGE, true);
+        let boundary = p + PAGE / 2;
+        copy.write_host((boundary - 1) as u64, &[0xa1, 0xa2]);
+        let mut calls = Vec::new();
+        let written = copy.copy_back_marked_with(p, 1, |address, out| {
+            calls.push((address, out.len()));
+            address < boundary && crate::host::read_into(address as *const u8, out)
+        });
+        assert_eq!(calls, [(p, PAGE / 2), (boundary, PAGE / 2)]);
+        assert_eq!(written, 0);
+        let mut bytes = [0; 4];
+        assert!(crate::host::read_into((boundary - 2) as *const u8, &mut bytes));
+        assert_eq!(bytes, [0; 4]);
+        assert_eq!(copy.copy_back_marked(p, 1), PAGE);
+        assert!(crate::host::read_into((boundary - 2) as *const u8, &mut bytes));
+        assert_eq!(bytes, [0, 0xa1, 0xa2, 0]);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
+
+    /// A CPU store after the first half of a marked page was read saves the
+    /// page's earlier bytes, and then the second half cannot be read. The
+    /// retry still has those bytes: it publishes the shader's changes on both
+    /// sides of the boundary and keeps the CPU's byte.
+    #[test]
+    fn marked_retry_after_a_failed_half_keeps_the_bytes_saved_mid_read() {
+        let h = host().expect("D3D12 for marked write-back");
+        let p = crate::watch::tests::pool(1);
+        let (resource, data) = h.shared_buffer(PAGE as u64).unwrap();
+        let copy = Shadow::new(resource, data, 0, p as u64, PAGE as u64);
+        copy.update(p, PAGE);
+        copy.writing(p, PAGE, true);
+        let boundary = p + PAGE / 2;
+        copy.write_host((p + 9) as u64, &[0xa3]);
+        copy.write_host((boundary - 1) as u64, &[0xa1, 0xa2]);
+        let mut raced = false;
+        let written = copy.copy_back_marked_with(p, 1, |address, out| {
+            if address != p {
+                return false;
+            }
+            assert!(crate::host::read_into(address as *const u8, out));
+            // SAFETY: a byte of the live allocation, already read.
+            std::thread::spawn(move || unsafe { ((p + 10) as *mut u8).write_volatile(0xc1) })
+                .join()
+                .unwrap();
+            raced = true;
+            true
+        });
+        assert!(raced);
+        assert_eq!(written, 0);
+        let title = |at: usize| {
+            let mut bytes = [0; 2];
+            assert!(crate::host::read_into(at as *const u8, &mut bytes));
+            bytes
+        };
+        assert_eq!(title(p + 9), [0, 0xc1]);
+        assert_eq!(title(boundary - 1), [0, 0]);
+        assert_eq!(copy.copy_back_marked(p, 1), PAGE);
+        assert_eq!(title(p + 9), [0xa3, 0xc1]);
+        assert_eq!(title(boundary - 1), [0xa1, 0xa2]);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
+
+    #[test]
     fn title_write_mid_scan_uses_the_pre_write_snapshot() {
         let Some(h) = host() else { return };
         let p = crate::watch::tests::pool(1);
@@ -2529,6 +2742,64 @@ pub(crate) mod tests {
         unregister(p, p as u64);
         drop(copy);
         crate::watch::tests::free(p);
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn masked_stores_match_every_vector_mask_and_partial_tail() {
+        // Every mask sees late CPU data in its gaps. Skew the destination
+        // so some vectors straddle 4 KiB, and put sentinels beyond both ends.
+        let masks: Vec<u16> = (0..=u16::MAX).collect();
+        let gpu: Vec<u8> = (0..16 * masks.len()).map(|i| (i % 127) as u8).collect();
+        let mut dst = vec![0xee; gpu.len() + 2];
+        write_masked(dst.as_mut_ptr() as usize + 1, &gpu, &masks);
+        for (i, &byte) in gpu.iter().enumerate() {
+            let selected = masks[i / 16] & (1 << (i % 16)) != 0;
+            assert_eq!(dst[1 + i], if selected { byte } else { 0xee });
+        }
+        assert_eq!((dst[0], dst[dst.len() - 1]), (0xee, 0xee));
+
+        for len in 1..16 {
+            for pattern in 0..16 {
+                let mask = (0x1111 * pattern) & ((1 << len) - 1);
+                let mut dst = [0xee; 18];
+                write_masked(dst.as_mut_ptr() as usize + 1, &gpu[..len], &[mask]);
+                for (i, &got) in dst[1..].iter().enumerate() {
+                    let selected = i < len && mask & (1 << i) != 0;
+                    assert_eq!(got, if selected { gpu[i] } else { 0xee });
+                }
+                assert_eq!(dst[0], 0xee);
+            }
+        }
+    }
+
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn patterned_stores_report_the_first_unfinished_byte_on_a_guard() {
+        use windows_sys::Win32::System::Memory::{PAGE_GUARD, PAGE_READWRITE, VirtualProtect};
+
+        const BLOCK: usize = 4096;
+        let pool = crate::watch::tests::pool(1);
+        let at = pool + BLOCK - 16;
+        let gpu = [0xab; 32];
+        for pattern in 1u16..16 {
+            let mask = pattern * 0x1111;
+            // SAFETY: both vectors are inside this live allocation. The
+            // preceding iteration consumed its one-shot guard, if any.
+            unsafe { (at as *mut u8).write_bytes(0xee, gpu.len()) };
+            let mut previous = 0;
+            // SAFETY: the second vector begins a private OS page of this pool.
+            assert_ne!(unsafe { VirtualProtect((pool + BLOCK) as *const _, BLOCK, PAGE_READWRITE | PAGE_GUARD, &mut previous) }, 0);
+            let left = delta_store::remaining_after_store(at, &gpu, &[mask, mask]);
+            assert_eq!(left, 16 - mask.trailing_zeros() as usize);
+            let mut actual = [0; 32];
+            assert!(crate::host::read_into(at as *const _, &mut actual));
+            for (i, &byte) in actual.iter().enumerate() {
+                let completed = i < 16 && mask & (1 << i) != 0;
+                assert_eq!(byte, if completed { 0xab } else { 0xee });
+            }
+        }
+        crate::watch::tests::free(pool);
     }
 
     #[test]
@@ -2813,6 +3084,466 @@ pub(crate) mod tests {
         assert!(actual == gpu);
         drop(copy);
         crate::watch::tests::free(pool);
+    }
+
+    #[test]
+    fn private_snapshot_groups_keep_cpu_gaps_and_retry_a_failed_piece() {
+        const PAGES: usize = 18;
+        const SKIP: usize = 7;
+        let h = host().expect("D3D12 for snapshot copy-back");
+        let pool = crate::watch::tests::pool(PAGES);
+        let len = PAGES * PAGE;
+        let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+        copy.update(pool, len);
+        // Clip the first and last page. A second declaration can retry a
+        // readable subrange of the piece whose full read fails.
+        copy.writing(pool + 1, len - 2, false);
+        let retry = pool + SKIP * PAGE + 10;
+        copy.writing(retry, 3, false);
+        for page in 0..PAGES {
+            let at = pool + page * PAGE + 10;
+            copy.write_host(at as u64, &[0xa1, 0, 0xa3]);
+            // SAFETY: preexisting CPU data in the gap selects the kernel
+            // run fallback. Each successful piece issues two writes.
+            unsafe { ((at + 1) as *mut u8).write_volatile(0xc1) };
+        }
+        assert!(private_write_watch(pool + 1, len - 2));
+        crate::host::MAPPED_WRITE_CALLS.set(0);
+        let written = copy.snapshot_copy(pool + 1, len - 2, true, |at, title| {
+            let base = at as usize & !(PAGE - 1);
+            if base == pool + SKIP * PAGE { return false; }
+            assert!(crate::host::read_into(at, title));
+            // SAFETY: each callback owns a distinct, live title page. Model
+            // a CPU store in the gap after sampling but before publication.
+            unsafe { ((base + 11) as *mut u8).write_volatile(0xc2) };
+            true
+        });
+        assert_eq!(written, len - 2 - PAGE);
+        assert_eq!(crate::host::MAPPED_WRITE_CALLS.get(), 2 * (PAGES - 1));
+        assert_eq!(copy.copy_back(retry, 3), 3);
+        for page in 0..PAGES {
+            let at = pool + page * PAGE + 10;
+            let cpu = if page == SKIP { 0xc1 } else { 0xc2 };
+            let mut title = [0; 3];
+            assert!(crate::host::read_into(at as *const u8, &mut title));
+            assert_eq!(title, [0xa1, cpu, 0xa3]);
+            // The joined resync copied the CPU's byte into the shadow too.
+            let word = copy.read_host((at - 2) as u64, 1)[0].to_le_bytes();
+            assert_eq!(word[3], cpu);
+        }
+        drop(copy);
+        crate::watch::tests::free(pool);
+    }
+
+    /// Sixteen pages that each differ from the snapshot by one byte: the
+    /// smallest write-back split into parallel groups, timed on both paths
+    /// in blocks of 50 rounds alternating parallel, sequential, sequential,
+    /// parallel.
+    #[test]
+    #[ignore = "timing of a sparse snapshot write-back on both paths"]
+    fn sparse_write_back_timing() {
+        const PAGES: usize = 16;
+        let h = host().expect("D3D12 for snapshot copy-back");
+        let rounds = std::env::var("VICTORY_BENCH_ROUNDS").map_or(20_000, |s| s.parse::<usize>().unwrap());
+        let pool = crate::watch::tests::pool(PAGES);
+        let len = PAGES * PAGE;
+        let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+        copy.update(pool, len);
+        let mut times = [Vec::new(), Vec::new()];
+        let mut blocks: [Vec<u64>; 2] = [Vec::new(), Vec::new()];
+        for round in 0..rounds {
+            let sequential = matches!((round / 50) % 4, 1 | 2);
+            copy.writing(pool, len, false);
+            let value = round as u8 ^ 0x5a;
+            for page in 0..PAGES {
+                copy.write_host((pool + page * PAGE + 4096 + 4 * page) as u64, &[value]);
+            }
+            FORCE_SEQUENTIAL.set(sequential);
+            let begin = std::time::Instant::now();
+            let written = copy.copy_back(pool, len);
+            let took = begin.elapsed().as_nanos() as u64;
+            FORCE_SEQUENTIAL.set(false);
+            assert_eq!(written, len);
+            times[usize::from(sequential)].push(took);
+            if round % 50 == 49 {
+                let path = &mut times[usize::from(sequential)];
+                let mut block = path[path.len() - 50..].to_vec();
+                block.sort_unstable();
+                blocks[usize::from(sequential)].push(block[25]);
+            }
+        }
+        for page in 0..PAGES {
+            let mut byte = [0];
+            assert!(crate::host::read_into((pool + page * PAGE + 4096 + 4 * page) as *const u8, &mut byte));
+            assert_eq!(byte[0], (rounds - 1) as u8 ^ 0x5a);
+        }
+        for (name, mut path) in ["parallel", "sequential"].into_iter().zip(times) {
+            path.sort_unstable();
+            let at = |p: usize| path[(path.len() * p).div_ceil(100) - 1] as f64 / 1000.;
+            println!("BENCH sparse_writeback_{name}_rounds={}", path.len());
+            for p in [50, 95, 99] {
+                println!("BENCH sparse_writeback_{name}_p{p}_us={:.3}", at(p));
+            }
+        }
+        // Block medians in their ABBA order: parallel blocks 2k, 2k+1 pair
+        // with sequential blocks 2k, 2k+1.
+        let mut ratios: Vec<f64> = blocks[0].iter().zip(&blocks[1]).map(|(&p, &s)| p as f64 / s as f64).collect();
+        ratios.sort_unstable_by(f64::total_cmp);
+        let slower = ratios.iter().filter(|&&r| r > 1.).count();
+        println!("BENCH sparse_writeback_block_pairs={}", ratios.len());
+        println!("BENCH sparse_writeback_parallel_slower_pairs={slower}");
+        println!("BENCH sparse_writeback_paired_ratio_median={:.4}", ratios[ratios.len() / 2]);
+        println!("BENCH sparse_writeback_paired_ratio_q1={:.4}", ratios[ratios.len() / 4]);
+        println!("BENCH sparse_writeback_paired_ratio_q3={:.4}", ratios[3 * ratios.len() / 4]);
+        drop(copy);
+        crate::watch::tests::free(pool);
+        println!("BENCH verified=1");
+    }
+
+    /// Two groups of one parallel write-back at once: a guard installed
+    /// after one group read its title page sends its masked store to the
+    /// kernel, while the other group stores normally. Both publish the
+    /// shader's bytes and keep the CPU's on either side of them.
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn a_guarded_group_retries_in_the_kernel_while_another_group_completes() {
+        use std::sync::atomic::{AtomicBool, Ordering::SeqCst};
+        use windows_sys::Win32::System::Memory::{PAGE_GUARD, PAGE_READWRITE, VirtualProtect};
+        const PAGES: usize = 16;
+        // In the second and the third group of four pages.
+        const GUARDED: usize = 5;
+        const NORMAL: usize = 9;
+        const RUN: usize = 4096 + 32;
+        let h = host().expect("D3D12 for snapshot copy-back");
+        let _one = parallel_tests();
+        // Both groups can run at once only with a second executor
+        // (`parallel_items`: the caller and up to seven pool threads).
+        let concurrent = std::thread::available_parallelism().map_or(1, usize::from).min(8) > 1;
+        let pool = crate::watch::tests::pool(PAGES);
+        let len = PAGES * PAGE;
+        let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+        copy.update(pool, len);
+        copy.writing(pool, len, false);
+        for page in 0..PAGES {
+            copy.write_host((pool + page * PAGE + RUN) as u64, &[0x40 + page as u8; 16]);
+        }
+        let parallel = AtomicBool::new(true);
+        let guard_ready = AtomicBool::new(false);
+        let normal_done = AtomicBool::new(false);
+        let (saw_guard, saw_normal) = (AtomicBool::new(false), AtomicBool::new(false));
+        let wait = |flag: &AtomicBool| {
+            let waited = std::time::Instant::now();
+            while !flag.load(SeqCst) && waited.elapsed() < std::time::Duration::from_secs(5) {
+                std::thread::yield_now();
+            }
+            flag.load(SeqCst)
+        };
+        crate::host::MAPPED_WRITE_CALLS.set(0);
+        let written = copy.snapshot_copy(pool, len, true, |at, title| {
+            let page = (at as usize - pool) / PAGE;
+            let base = pool + page * PAGE;
+            if !parallel_at(pool) {
+                parallel.store(false, SeqCst);
+            }
+            assert!(crate::host::read_into(at, title));
+            if page == GUARDED || page == NORMAL {
+                // SAFETY: bytes beside the shader's run in this live page,
+                // written by the CPU after the title was read.
+                unsafe {
+                    ((base + RUN - 1) as *mut u8).write_volatile(0xc0 + page as u8);
+                    ((base + RUN + 16) as *mut u8).write_volatile(0xd0 + page as u8);
+                }
+            }
+            if page == GUARDED {
+                let mut previous = 0;
+                // SAFETY: one 4 KiB block of this live page; the store's fault clears it.
+                let guarded = unsafe {
+                    VirtualProtect((base + 4096) as *const _, 4096, PAGE_READWRITE | PAGE_GUARD, &mut previous)
+                };
+                assert_ne!(guarded, 0);
+                guard_ready.store(true, SeqCst);
+                // Its store waits until the other group stored its page and
+                // read the next one.
+                if concurrent {
+                    saw_normal.store(wait(&normal_done), SeqCst);
+                }
+            }
+            // The other group stores its page only once the guard is in place.
+            if page == NORMAL && concurrent {
+                saw_guard.store(wait(&guard_ready), SeqCst);
+            }
+            if page == NORMAL + 1 {
+                normal_done.store(true, SeqCst);
+            }
+            true
+        });
+        assert!(parallel.into_inner(), "the write-back kept address order");
+        // One executor runs the groups one after another: nothing overlaps.
+        if concurrent {
+            assert!(saw_guard.into_inner(), "the other group stored before the guard was installed");
+            assert!(saw_normal.into_inner(), "the other group did not complete meanwhile");
+        }
+        assert_eq!(written, len);
+        // Only the guarded run went through the kernel.
+        assert_eq!(crate::host::MAPPED_WRITE_CALLS.get(), 1);
+        for page in 0..PAGES {
+            let base = pool + page * PAGE;
+            let mut actual = [0; 18];
+            assert!(crate::host::read_into((base + RUN - 1) as *const u8, &mut actual));
+            let cpu = [GUARDED, NORMAL].contains(&page);
+            let mut expected = [0x40 + page as u8; 18];
+            expected[0] = if cpu { 0xc0 + page as u8 } else { 0 };
+            expected[17] = if cpu { 0xd0 + page as u8 } else { 0 };
+            assert_eq!(actual, expected, "title page {page}");
+            // The joined resync took the CPU's bytes into the shadow.
+            assert_eq!(copy.read_host((base + RUN - 4) as u64, 1)[0].to_le_bytes()[3], expected[0]);
+            assert_eq!(copy.read_host((base + RUN + 16) as u64, 1)[0].to_le_bytes()[0], expected[17]);
+        }
+        drop(copy);
+        crate::watch::tests::free(pool);
+    }
+
+    /// Tests that need a write-back to run in parallel, one at a time: the
+    /// alias races' remaps send other write-backs into address order.
+    fn parallel_tests() -> std::sync::MutexGuard<'static, ()> {
+        static ONE: Mutex<()> = Mutex::new(());
+        ONE.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// One parallel write-back racing a remap of its pool: the title
+    /// releases the pool and then the runtime maps one physical page of a
+    /// section at two addresses that belong to different groups. `seen`:
+    /// the release goes through `XMemFreeDefault`'s [`crate::watch::Writing::before_remap`];
+    /// otherwise the title releases through the host behind the runtime's
+    /// back, and only the mapping's own wait ([`crate::watch::remapping`],
+    /// what the runtime's `map()` takes) holds the alias off. Each mapping
+    /// is a separate remap, as `map()` makes it.
+    ///
+    /// `write_back(pool, sequential, hook)` registers a copy of the pool,
+    /// lets the GPU change it, and copies it back, calling `hook` on the
+    /// thread of the group holding the first alias before that group reads.
+    /// Run in address order, then racing: the section, never written by a
+    /// group, must be the same, and with a seen release so must the result.
+    fn alias_race(
+        pages: usize, aliases: [usize; 2], seen: bool,
+        write_back: &dyn Fn(usize, bool, Arc<dyn Fn() + Send + Sync>) -> usize,
+    ) {
+        use std::sync::atomic::{AtomicBool, Ordering::SeqCst};
+        use windows_sys::Win32::System::Memory::{
+            CreateFileMappingW, FILE_MAP_WRITE, MEM_RELEASE, MEMORY_MAPPED_VIEW_ADDRESS,
+            MapViewOfFile, MapViewOfFileEx, PAGE_READWRITE, UnmapViewOfFile, VirtualFree,
+        };
+        let _one = parallel_tests();
+        let len = pages * PAGE;
+        // SAFETY: a pagefile section of one page, filled through a temporary view.
+        let section = unsafe {
+            let section = CreateFileMappingW(
+                -1isize as _, std::ptr::null(), PAGE_READWRITE, 0, PAGE as u32, std::ptr::null(),
+            );
+            assert!(!section.is_null());
+            let view = MapViewOfFile(section, FILE_MAP_WRITE, 0, 0, PAGE);
+            assert!(!view.Value.is_null());
+            view.Value.cast::<u8>().write_bytes(0x5a, PAGE);
+            UnmapViewOfFile(view);
+            section as usize
+        };
+        let section_bytes = || {
+            // SAFETY: a temporary view of the live section, read only once mapped.
+            let view = unsafe { MapViewOfFile(section as _, FILE_MAP_WRITE, 0, 0, PAGE) };
+            assert!(!view.Value.is_null(), "the section could not be mapped");
+            // SAFETY: the view maps PAGE bytes until it is unmapped below.
+            let bytes = unsafe { std::slice::from_raw_parts(view.Value.cast::<u8>(), PAGE) }.to_vec();
+            // SAFETY: the view just mapped.
+            unsafe { UnmapViewOfFile(view) };
+            bytes
+        };
+        // Returns the views this call mapped: fewer than the aliases if
+        // another thread took part of the freed range.
+        let remap = move |pool: usize| {
+            if seen {
+                let _remapping = crate::watch::Writing::before_remap(pool, len);
+                // SAFETY: the test's pool; the shadow tolerates unmapped title memory.
+                assert_ne!(unsafe { VirtualFree(pool as *mut _, 0, MEM_RELEASE) }, 0);
+                crate::watch::title_memory_remapped(pool, len);
+            } else {
+                // SAFETY: as above, with nothing reported.
+                assert_ne!(unsafe { VirtualFree(pool as *mut _, 0, MEM_RELEASE) }, 0);
+            }
+            let mut views = Vec::new();
+            for page in aliases {
+                let at = pool + page * PAGE;
+                let _remapping = crate::watch::remapping();
+                // SAFETY: a view of the live section in the address range just released.
+                let view = unsafe { MapViewOfFileEx(section as _, FILE_MAP_WRITE, 0, 0, PAGE, at as _) };
+                if view.Value.is_null() {
+                    break;
+                }
+                crate::watch::title_memory_remapped(at, PAGE);
+                views.push(at);
+            }
+            views
+        };
+        struct Race {
+            on: bool,
+            fired: AtomicBool,
+            parallel: AtomicBool,
+            remapped_early: AtomicBool,
+            remapper: Mutex<Option<std::thread::JoinHandle<Vec<usize>>>>,
+        }
+        let run = |race: bool| {
+            for _ in 0..5 {
+                let pool = crate::watch::tests::pool(pages);
+                let state = Arc::new(Race {
+                    on: race,
+                    fired: AtomicBool::new(false),
+                    parallel: AtomicBool::new(false),
+                    remapped_early: AtomicBool::new(false),
+                    remapper: Mutex::new(None),
+                });
+                let s = state.clone();
+                let hook: Arc<dyn Fn() + Send + Sync> = Arc::new(move || {
+                    if !s.on || s.fired.swap(true, SeqCst) {
+                        return;
+                    }
+                    s.parallel.store(parallel_at(pool), SeqCst);
+                    let done = Arc::new(AtomicBool::new(false));
+                    let finished = done.clone();
+                    *s.remapper.lock().unwrap() = Some(std::thread::spawn(move || {
+                        let views = remap(pool);
+                        finished.store(true, SeqCst);
+                        views
+                    }));
+                    let waited = std::time::Instant::now();
+                    while !done.load(SeqCst) && waited.elapsed() < std::time::Duration::from_millis(300) {
+                        std::thread::yield_now();
+                    }
+                    s.remapped_early.store(done.load(SeqCst), SeqCst);
+                });
+                let result = write_back(pool, !race, hook);
+                let thread = state.remapper.lock().unwrap().take();
+                let views = match thread {
+                    Some(thread) => thread.join().unwrap(),
+                    None => remap(pool),
+                };
+                // Read the section before giving back the views.
+                let bytes = section_bytes();
+                // Only the views this run mapped: an address it failed to map
+                // may be another test's memory by now.
+                for &view in &views {
+                    crate::watch::title_memory_remapped(view, PAGE);
+                    // SAFETY: a view `remap` mapped; the copy is gone.
+                    unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: view as _ }) };
+                }
+                crate::watch::title_memory_remapped(pool, len);
+                // Another test's remap kept this one in address order, or took
+                // the released range: neither is the case under test.
+                if views.len() == aliases.len()
+                    && (!race || state.fired.load(SeqCst) && state.parallel.load(SeqCst))
+                {
+                    return (result, state.remapped_early.load(SeqCst), bytes);
+                }
+            }
+            panic!("no undisturbed attempt");
+        };
+        let (expected, _, untouched) = run(false);
+        assert!(untouched.iter().all(|&b| b == 0x5a));
+        let (result, remapped_early, aliased) = run(true);
+        assert!(aliased == untouched, "a group stored into the remapped physical page");
+        if seen {
+            assert_eq!(result, expected);
+        }
+        assert!(!remapped_early, "the remap completed while groups were storing");
+        // SAFETY: the section handle of this run, no views left.
+        unsafe { windows_sys::Win32::Foundation::CloseHandle(section as _) };
+    }
+
+    /// [`alias_race`] for a snapshot write-back of 16 pages (groups of four:
+    /// the aliases are in the first and the third).
+    fn snapshot_alias_race(seen: bool) {
+        const PAGES: usize = 16;
+        let h = host().expect("D3D12 for snapshot copy-back");
+        alias_race(PAGES, [1, 9], seen, &|pool, sequential, hook| {
+            let len = PAGES * PAGE;
+            let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+            let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+            copy.update(pool, len);
+            copy.writing(pool, len, false);
+            for page in 0..PAGES {
+                copy.write_host((pool + page * PAGE + 10) as u64, &[0xa0 + page as u8, 0, 0xb0]);
+            }
+            FORCE_SEQUENTIAL.set(sequential);
+            let written = copy.snapshot_copy(pool, len, true, |at, title| {
+                if at as usize == pool {
+                    hook();
+                }
+                crate::host::read_into(at, title)
+            });
+            FORCE_SEQUENTIAL.set(false);
+            written
+        });
+    }
+
+    /// [`alias_race`] for the marks of 128 pages of one copy, the fewest
+    /// copied back in parallel (runs of eight: the aliases are in the first
+    /// and the ninth).
+    fn marked_alias_race(seen: bool) {
+        const PAGES: usize = 128;
+        let h = host().expect("D3D12 for marked write-back");
+        alias_race(PAGES, [1, 65], seen, &|pool, sequential, hook| {
+            let len = PAGES * PAGE;
+            let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+            let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+            // Host::execute owns the process-wide bitmaps from refresh through drain.
+            crate::host::tests::without_submissions(|| {
+                copy.update(pool, len);
+                copy.writing(pool, len, true);
+                for page in 0..PAGES {
+                    copy.write_host((pool + page * PAGE + 10) as u64, &[0x80 | page as u8, 0, 0xb0]);
+                }
+                let base = copy.marks.expect("tracked memory gets mark bits") as usize;
+                let bits = bitmap(false).expect("a host GPU").data as *mut u32;
+                for bit in base..base + PAGES {
+                    // SAFETY: a dword of the mapped bitmap, under the submission lock.
+                    unsafe { *bits.add(bit / 32) |= 1 << (bit % 32) };
+                }
+                *MARKED_CHUNK_HOOK.lock().unwrap() = Some((pool, Box::new(move || hook())));
+                FORCE_SEQUENTIAL.set(sequential);
+                copy_back_marks(&[], false);
+                FORCE_SEQUENTIAL.set(false);
+                MARKED_CHUNK_HOOK.lock().unwrap().take();
+            });
+            drop(copy);
+            0
+        });
+    }
+
+    /// The release waits for every group of a parallel snapshot write-back.
+    #[test]
+    fn a_release_and_alias_during_parallel_groups_waits_for_them() {
+        snapshot_alias_race(true);
+    }
+
+    /// With the pool released behind the runtime's back, mapping the alias
+    /// waits for every group of a parallel snapshot write-back.
+    #[test]
+    fn an_alias_after_an_unseen_release_waits_for_snapshot_groups() {
+        snapshot_alias_race(false);
+    }
+
+    /// The release waits for every run of a parallel marked write-back.
+    #[test]
+    fn a_release_and_alias_during_parallel_marked_runs_waits_for_them() {
+        marked_alias_race(true);
+    }
+
+    /// With the pool released behind the runtime's back, mapping the alias
+    /// waits for every run of a parallel marked write-back.
+    #[test]
+    fn an_alias_after_an_unseen_release_waits_for_marked_runs() {
+        marked_alias_race(false);
     }
 
     #[test]

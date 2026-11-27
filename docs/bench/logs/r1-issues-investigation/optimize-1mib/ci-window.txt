@@ -1,0 +1,56 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 12:57:05Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=3% | VRAM=5000/32607 MiB | power=64.37 W | temp=37.79 C | graphics=1140 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%
+Idle window: 12.1s, 10 samples, max GPU=3%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+START workspace
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src\main.rs (target\debug\deps\victory-0ec53295fffbff09.exe)
+     Running tests\census.rs (target\debug\deps\census-c16a3181d222c2a2.exe)
+     Running tests\census_unreadable.rs (target\debug\deps\census_unreadable-cce3b6bb1982d5e7.exe)
+     Running tests\translate.rs (target\debug\deps\translate-650d78cf4efc04e6.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_core-51f8c46a2f8449d8.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_formats-0c7e51b8272807f7.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_game-4013e62613415e43.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-5c23fc70966601d0.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_hle-b1c1588dbded77e8.exe)
+     Running tests\fidelityfx.rs (target\debug\deps\fidelityfx-ee9b6aed44c5a3a2.exe)
+     Running tests\no_dll_planting.rs (target\debug\deps\no_dll_planting-8f2eeec3e7fd6809.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_loader-200470b272292ca3.exe)
+     Running tests\crash_log.rs (target\debug\deps\crash_log-0a309a53e68e2388.exe)
+     Running tests\load_probe.rs (target\debug\deps\load_probe-bf0578a10d3d4466.exe)
+     Running tests\title_dlls.rs (target\debug\deps\title_dlls-1976a5926922e13e.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_pe-90f95e0f3fdfbfc4.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_pipeline-bbc4a0ec49b567c1.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-7e0c9d64298db58b.exe)
+     Running tests\resource_tracking.rs (target\debug\deps\resource_tracking-f2f843dca0b2c0db.exe)
+     Running unittests src\main.rs (target\debug\deps\xtask-50b5976488d47005.exe)
+   Doc-tests victory_core
+   Doc-tests victory_formats
+   Doc-tests victory_game
+   Doc-tests victory_gpu
+   Doc-tests victory_hle
+   Doc-tests victory_loader
+   Doc-tests victory_pe
+   Doc-tests victory_pipeline
+   Doc-tests victory_shader
+PASS workspace
+START gpu1
+   Compiling victory-gpu v0.1.0 (<worktree>\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.07s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-4ddd15aa5426e911.exe)
+   Doc-tests victory_gpu
+PASS gpu1
+START gpu2
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-4ddd15aa5426e911.exe)
+   Doc-tests victory_gpu
+PASS gpu2
+START gpu3
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-4ddd15aa5426e911.exe)
+   Doc-tests victory_gpu
+PASS gpu3
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active
