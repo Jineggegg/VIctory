@@ -31,8 +31,9 @@
 //! the addresses showing them as written.
 //!
 //! shortcut: a system call writing into a guarded block fails; the known
-//! ones (file reads, DirectStorage) open their blocks first. Memory freed
-//! and allocated again while a tracker holds it is not seen.
+//! ones (file reads, DirectStorage) open their blocks first. An existing
+//! clean tracker needs a mapping notification to see an address reused in
+//! place. New trackers and alias registrations check inherited guards.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -353,7 +354,11 @@ fn track_as(start: usize, len: usize, views: bool, copy: bool) -> Option<Tracked
     set_dirty(bit, true);
     let changed = Arc::new(Changed(Mutex::new(pages.iter().copied().collect()), Mutex::default(), bit, copy));
     let mut g = guards();
+    let mut checked_until = 0;
     for &page in &pages {
+        if page >= checked_until && g.protected.contains(&page) {
+            checked_until = check_inherited_guard(&mut g, page);
+        }
         g.holders.entry(page).or_default().push(changed.clone());
     }
     drop(g);
@@ -363,6 +368,52 @@ fn track_as(start: usize, len: usize, views: bool, copy: bool) -> Option<Tracked
         changed,
         untracked,
     })
+}
+
+/// A completed list's page table can retain the last tracker of a released
+/// buffer. When a new tracker joins, check that an inherited guard still
+/// belongs to the current mapping before trusting it at the first take.
+fn check_inherited_guard(g: &mut Guards, page: usize) -> usize {
+    use windows_sys::Win32::System::Memory::{
+        MEM_COMMIT, MEMORY_BASIC_INFORMATION, PAGE_READONLY, PAGE_READWRITE, VirtualProtect, VirtualQuery,
+    };
+    let start = page * PAGE;
+    let end = start + PAGE;
+    let mut at = start;
+    let mut readonly = Vec::new();
+    let mut readonly_bytes = 0;
+    while at < end {
+        let mut info = MEMORY_BASIC_INFORMATION::default();
+        // SAFETY: queries mapping metadata into the sized output, without reading the page.
+        if unsafe { VirtualQuery(at as _, &mut info, size_of_val(&info)) } == 0 {
+            break;
+        }
+        let region_end = info.BaseAddress as usize + info.RegionSize;
+        let next = region_end.min(end);
+        if info.State == MEM_COMMIT && info.Protect == PAGE_READONLY {
+            if at == start && region_end >= end {
+                return region_end / PAGE;
+            }
+            readonly.push((at, next - at));
+            readonly_bytes += next - at;
+        }
+        at = next;
+    }
+    if readonly_bytes != PAGE {
+        // A partial decommit can leave some of our old guard in place. Open
+        // only those fragments. A newly reserved or inaccessible part keeps
+        // the protection chosen by its owner.
+        for (at, len) in readonly {
+            let mut old = 0;
+            // SAFETY: these are committed, read-only fragments of our recorded guard.
+            unsafe { VirtualProtect(at as _, len, PAGE_READWRITE, &mut old) };
+        }
+        g.protected.remove(&page);
+        // The OS tells us about protections. Mapping notifications own the
+        // alias links, including links already reported for the replacement.
+        changed(g, page, page + 1, false);
+    }
+    page + 1
 }
 
 /// The pages of `[start, end)` that are the runtime's GPU memory: a
@@ -866,6 +917,13 @@ fn mark(g: &Guards, first: usize, last: usize) {
 pub fn title_memory_aliased(at: usize, others: &[usize]) {
     let mut g = guards();
     let page = at / PAGE;
+    // Both addresses can have inherited a previous allocation's guard.
+    for address in std::iter::once(&at).chain(others) {
+        let mapped = address / PAGE;
+        if g.protected.contains(&mapped) {
+            check_inherited_guard(&mut g, mapped);
+        }
+    }
     for &other in others {
         for (x, y) in [(other / PAGE, page), (page, other / PAGE)] {
             let links = g.alias_of.entry(x).or_default();
@@ -978,6 +1036,33 @@ pub(crate) mod tests {
     pub(crate) fn free(p: usize) {
         // SAFETY: an allocation of ours.
         unsafe { VirtualFree(p as *mut _, 0, MEM_RELEASE) };
+    }
+
+    #[test]
+    fn a_new_tracker_recognizes_a_hole_in_an_inherited_guard() {
+        use windows_sys::Win32::System::Memory::{MEM_DECOMMIT, MEMORY_BASIC_INFORMATION, VirtualQuery};
+        const BLOCK: usize = 4096;
+        let p = pool(1);
+        let old = track(p, PAGE, true).unwrap();
+        old.take(p, p + PAGE);
+        let overlapping = track(p, PAGE, true).unwrap();
+        overlapping.take(p, p + PAGE);
+        assert!(old.clean(), "joining an intact guard preserves the first copy");
+        drop(overlapping);
+
+        // SAFETY: the fixture retains the reservation and both surrounding blocks.
+        assert_ne!(unsafe { VirtualFree((p + BLOCK) as _, BLOCK, MEM_DECOMMIT) }, 0);
+        let new = track(p, PAGE, true).unwrap();
+        new.take(p, p + PAGE);
+        assert!(!new.clean() && !old.clean(), "a partially committed page cannot be taken whole");
+        for at in [p, p + 2 * BLOCK] {
+            let mut info = MEMORY_BASIC_INFORMATION::default();
+            // SAFETY: VirtualQuery fills the supplied output without reading the test memory.
+            assert_ne!(unsafe { VirtualQuery(at as _, &mut info, size_of_val(&info)) }, 0);
+            assert_eq!(info.Protect, PAGE_READWRITE, "a surviving fragment of the old guard");
+        }
+        drop((new, old));
+        free(p);
     }
 
     /// Everything is changed at first; after taking, only what is written
@@ -1300,6 +1385,31 @@ pub(crate) mod tests {
             title_memory_aliased(b + k, &[a + k]);
         }
         (a, b)
+    }
+
+    #[test]
+    fn a_reported_alias_with_an_inherited_guard_observes_the_next_write() {
+        use windows_sys::Win32::System::Memory::{MEMORY_MAPPED_VIEW_ADDRESS, UnmapViewOfFile, VirtualProtect};
+        let (a, b) = twin_views(1);
+        let t = track(a, PAGE, true).unwrap();
+        t.take(a, a + PAGE);
+        for replaced in [a, b] {
+            let mut old = 0;
+            // SAFETY: emulate the read-write protection of a replacement view
+            // at either address, while retaining a real pair of aliased mappings.
+            assert_ne!(unsafe { VirtualProtect(replaced as _, PAGE, PAGE_READWRITE, &mut old) }, 0);
+            title_memory_aliased(b, &[a]);
+            t.take(a, a + PAGE);
+            // SAFETY: the two live views show the same physical page.
+            unsafe { (replaced as *mut u8).write_volatile(42) };
+            assert_eq!(t.take(a, a + PAGE), [(a, a + PAGE)]);
+        }
+        drop(t);
+        for at in [a, b] {
+            title_memory_remapped(at, PAGE);
+            // SAFETY: this test is finished with its pagefile view.
+            assert_ne!(unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: at as _ }) }, 0);
+        }
     }
 
     /// A write through another mapping of the same pages marks the tracker

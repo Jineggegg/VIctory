@@ -1964,6 +1964,52 @@ pub(crate) mod tests {
         unsafe { *(b.data as *mut u32).add((bit / 32) as usize) |= 1 << (bit % 32) };
     }
 
+    /// A title can release a buffer after its list completes, then recommit
+    /// the same virtual address for another buffer. The shared page table
+    /// can still hold the old shadow until the next table rebuild.
+    #[test]
+    fn a_replacement_buffer_tracks_cpu_writes_at_its_predecessors_address() {
+        use windows_sys::Win32::System::Memory::{
+            MEM_COMMIT, MEM_DECOMMIT, PAGE_READWRITE, VirtualAlloc, VirtualFree,
+        };
+        let Some(host) = host() else { return };
+        let p = crate::watch::tests::pool(1);
+        let make = |id| {
+            register(id, p as u64, PAGE as u64);
+            find(p as u64, PAGE as u64).unwrap()
+        };
+        let submit = |copy: &Arc<Shadow>, use_table| {
+            let list = host.new_list().unwrap();
+            copy.refresh(&list, p as u64, PAGE as u64);
+            if use_table {
+                crate::memory::bind(&list, crate::memory::OURS).unwrap();
+            }
+            list.close();
+            host.execute(&[&list]);
+        };
+        let old = make(1);
+        submit(&old, true);
+        let replacement = crate::host::tests::without_submissions(|| {
+            unregister(1, p as u64);
+            drop(old);
+            // SAFETY: the old list has completed and the reservation remains
+            // ours. Windows gives the recommitted page fresh contents and protection.
+            unsafe {
+                assert_ne!(VirtualFree(p as _, PAGE, MEM_DECOMMIT), 0);
+                assert_eq!(VirtualAlloc(p as _, PAGE, MEM_COMMIT, PAGE_READWRITE) as usize, p);
+            }
+            make(2)
+        });
+        submit(&replacement, false);
+        // SAFETY: a byte of the replacement allocation, after the first submission.
+        unsafe { (p as *mut u8).write_volatile(0x7b) };
+        submit(&replacement, false);
+        assert_eq!(replacement.read_host(p as u64, 1), [0x7b]);
+        unregister(2, p as u64);
+        drop(replacement);
+        crate::watch::tests::free(p);
+    }
+
     /// The title writes a constant under a range an earlier list of the
     /// submission declared as written by shaders: the refresh before the
     /// submission runs still brings it to the copy, a shader's write still
