@@ -286,9 +286,9 @@ mod delta_store {
         let installed = INSTALLED.get_or_init(|| unsafe {
             !AddVectoredExceptionHandler(1, Some(on_store_fault)).is_null()
         });
-        // SAFETY: both host slices cover the entire run, and both
-        // destination store PCs are handled if the title removed its mapping.
         if *installed {
+            // SAFETY: both host slices cover the entire run, and both
+            // destination store PCs are handled if the title removed its mapping.
             unsafe { victory_store_delta(at, host.as_ptr(), masks.as_ptr(), host.len()) }
         } else {
             host.len()
@@ -2429,12 +2429,13 @@ pub(crate) mod tests {
             // SAFETY: our pool includes all three pages; restore after each case.
             unsafe { (start as *mut u8).write_bytes(0, len) };
             let mut previous = 0;
+            // SAFETY: the second 4 KiB page belongs to this test allocation.
             assert_ne!(unsafe { VirtualProtect((pool + BLOCK) as *const _, BLOCK, PAGE_READONLY, &mut previous) }, 0);
             BEFORE_KERNEL_RETRY.set(Some(Box::new(move || {
                 std::thread::spawn(move || {
+                    let last = (pool + BLOCK - 1) as *mut u8;
                     // SAFETY: the kernel retry waits for this thread. The last
                     // byte on the first page has already received the GPU value.
-                    let last = (pool + BLOCK - 1) as *mut u8;
                     unsafe {
                         assert_eq!(last.read_volatile(), 0xab);
                         last.write_volatile(0xcd);
