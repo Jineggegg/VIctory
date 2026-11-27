@@ -185,9 +185,23 @@ pub(crate) fn view_pages() -> bool {
             return true;
         }
         let Some(host) = host() else { return false };
+        let slots = victory_shader::emit::HEAP_VIEWS + DYNAMIC;
+        let mut limits = D3D12_FEATURE_DATA_D3D12_OPTIONS19::default();
+        // SAFETY: the query writes the matching feature structure. Older
+        // runtimes can reject the query; keep the allocation probe there.
+        if unsafe {
+            host.device.CheckFeatureSupport(
+                D3D12_FEATURE_D3D12_OPTIONS19,
+                (&raw mut limits).cast(),
+                size_of_val(&limits) as u32,
+            )
+        }.is_ok() && limits.MaxViewDescriptorHeapSize < slots {
+            tracing::info!(paged = true, limit = limits.MaxViewDescriptorHeapSize, "host view heaps");
+            return true;
+        }
         let desc = D3D12_DESCRIPTOR_HEAP_DESC {
             Type: D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            NumDescriptors: victory_shader::emit::HEAP_VIEWS + DYNAMIC,
+            NumDescriptors: slots,
             Flags: D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
             NodeMask: 0,
         };
