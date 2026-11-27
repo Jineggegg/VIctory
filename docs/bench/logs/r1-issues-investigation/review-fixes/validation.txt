@@ -1,0 +1,45 @@
+tools/bench/run.ps1 -CheckOnly -MaxGpuUtilization 3
+> <worktree>/target\diag\deps\victory_gpu-c324b3e76f1e7291.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=54.157312
+BENCH compute_working_set_bytes=154968064
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154701824
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 0.34s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5298, 41.88
+
+
+exit 0
+> <worktree>/target\diag\deps\victory_gpu-c324b3e76f1e7291.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=60.145664
+BENCH compute_working_set_bytes=475574272
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH depth_local_mb=27.99616
+BENCH depth_working_set_bytes=327458816
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+BENCH validation_errors=0
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 0.93s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
