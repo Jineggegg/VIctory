@@ -747,12 +747,23 @@ impl Shadow {
     }
 
     fn copy_back_or_not(&self, address: usize, len: usize, back: bool) -> usize {
-        self.copy_back_or_not_with(address, len, back, crate::host::read_into)
+        self.snapshot_copy(address, len, back, crate::host::read_into)
     }
 
+    #[cfg(test)]
     fn copy_back_or_not_with(
         &self, address: usize, len: usize, back: bool,
-        mut read_title: impl FnMut(*const u8, &mut [u8]) -> bool,
+        read_title: impl FnMut(*const u8, &mut [u8]) -> bool + Send,
+    ) -> usize {
+        let read = Mutex::new(read_title);
+        self.snapshot_copy(address, len, back, |at, bytes| {
+            read.lock().unwrap_or_else(|e| e.into_inner())(at, bytes)
+        })
+    }
+
+    fn snapshot_copy(
+        &self, address: usize, len: usize, back: bool,
+        read_title: impl Fn(*const u8, &mut [u8]) -> bool + Sync,
     ) -> usize {
         let mut snapshot = self.before.lock().unwrap_or_else(|e| e.into_inner());
         let (segments, compared) = &mut *snapshot;
@@ -769,38 +780,80 @@ impl Shadow {
             // By 64 KiB piece: the copy compared with its bytes before the
             // submission, title memory read only where the GPU wrote.
             const PIECE: usize = 64 << 10;
-            let mut title = vec![0u8; PIECE];
-            let mut masks = Vec::new();
-            let mut synced = Vec::new();
+            // Host bytes and the baseline are stable until the final resync.
+            // Find the work before scheduling: a large unchanged or sparse
+            // declaration needs neither workers nor a page-sized read buffer.
+            let host = |at: usize, n: usize| {
+                // SAFETY: each piece is inside the shadow, and the GPU is
+                // finished. All reads join before the shadow is updated.
+                unsafe { std::slice::from_raw_parts(self.data.add(at), n) }
+            };
+            let mut changed = Vec::new();
             let mut at = from;
             while at < to {
                 let n = (PIECE - (start + at) % PIECE).min(to - at);
-                // SAFETY: inside the mapping; only the submitting thread
-                // writes it.
-                let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(at), n) };
-                let old = &before[at - from..at - from + n];
-                let title = &mut title[..n];
-                // A smaller declaration must not replay a completed full page.
                 let page = (start + at) & !(PIECE - 1);
-                if compared.contains(&page) {
-                    at += n;
-                    continue;
-                }
-                #[cfg(feature = "diagnostics")]
-                crate::copystat::add(crate::copystat::C::CompareBytes, n as u64);
-                if host != old && read_title((start + at) as *const u8, title) {
-                    // A title writer can run after this read, even in the gap
-                    // between two shader writes. Never include a gap in a store.
-                    if store_snapshot_changes(start + at, host, old, title, &mut masks) {
-                        written += n;
+                if !compared.contains(&page) {
+                    #[cfg(feature = "diagnostics")]
+                    crate::copystat::add(crate::copystat::C::CompareBytes, n as u64);
+                    if host(at, n) != &before[at - from..at - from + n] {
+                        changed.push((at, n));
                     }
-                    if n == PIECE {
-                        // A failed full read leaves readable subranges eligible for retry.
-                        compared.insert(page);
-                    }
-                    synced.push((at, n));
                 }
                 at += n;
+            }
+            let publish = |pieces: &[(usize, usize)]| {
+                let mut title = vec![0; pieces.iter().map(|&(_, n)| n).max().unwrap_or(0)];
+                let mut masks = Vec::new();
+                let mut synced = Vec::with_capacity(pieces.len());
+                for &(at, n) in pieces {
+                    let title = &mut title[..n];
+                    if read_title((start + at) as *const u8, title) {
+                        let old = &before[at - from..at - from + n];
+                        let wrote = store_snapshot_changes(start + at, host(at, n), old, title, &mut masks);
+                        synced.push((at, n, wrote));
+                    }
+                }
+                synced
+            };
+            // A successful write-watch query covers one private allocation.
+            // Its disjoint pages cannot be aliases of each other. Preserve
+            // address order for section views and mixed mappings.
+            const MIN_GROUP: usize = 4;
+            let synced = if changed.len() >= 4 * MIN_GROUP
+                && private_write_watch(start + from, to - from)
+            {
+                // Bound scratch allocations even for large declarations.
+                let group_size = MIN_GROUP.max(changed.len().div_ceil(16));
+                let groups: Vec<_> = changed.chunks(group_size)
+                    .map(|pieces| (pieces, std::sync::OnceLock::new()))
+                    .collect();
+                #[cfg(test)]
+                let calls = std::sync::atomic::AtomicUsize::new(0);
+                parallel_items(groups.len(), |i| {
+                    let (pieces, result) = &groups[i];
+                    #[cfg(test)]
+                    let initial = crate::host::MAPPED_WRITE_CALLS.get();
+                    let rows = publish(pieces);
+                    #[cfg(test)]
+                    {
+                        // Keep the calling test's kernel-write counter valid
+                        // across callbacks, including work it does itself.
+                        let count = crate::host::MAPPED_WRITE_CALLS.replace(initial) - initial;
+                        calls.fetch_add(count, std::sync::atomic::Ordering::Relaxed);
+                    }
+                    result.set(rows).expect("each group is claimed once");
+                });
+                #[cfg(test)]
+                crate::host::MAPPED_WRITE_CALLS.set(crate::host::MAPPED_WRITE_CALLS.get() + calls.into_inner());
+                groups.into_iter().flat_map(|(_, rows)| rows.into_inner().expect("joined group")).collect()
+            } else {
+                publish(&changed)
+            };
+            for &(at, n, wrote) in &synced {
+                if wrote { written += n; }
+                // Leave failed reads and partial pages eligible for later declarations.
+                if n == PIECE { compared.insert(start + at); }
             }
             // Pages made equal to title memory are current in the copy, so
             // our own write is not taken for the title's; others keep what
@@ -808,11 +861,11 @@ impl Shadow {
             let (first, last) = ((start + from).div_ceil(PAGE), (start + to) / PAGE);
             if let Some(t) = &self.tracked {
                 let whole: Vec<usize> = synced.iter()
-                    .map(|&(at, _)| (start + at) / PAGE)
+                    .map(|&(at, _, _)| (start + at) / PAGE)
                     .filter(|p| (first..last).contains(p)).collect();
                 t.taken(&whole);
             }
-            for (at, n) in synced {
+            for (at, n, _) in synced {
                 // Rearm first. A later CPU write will mark the copy dirty again.
                 // SAFETY: this piece lies inside the mapped shadow.
                 let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(at), n) };
@@ -2872,6 +2925,56 @@ pub(crate) mod tests {
         let mut actual = vec![0; BYTES];
         assert!(crate::host::read_into(pool as *const u8, &mut actual));
         assert!(actual == gpu);
+        drop(copy);
+        crate::watch::tests::free(pool);
+    }
+
+    #[test]
+    fn private_snapshot_groups_keep_cpu_gaps_and_retry_a_failed_piece() {
+        const PAGES: usize = 18;
+        const SKIP: usize = 7;
+        let h = host().expect("D3D12 for snapshot copy-back");
+        let pool = crate::watch::tests::pool(PAGES);
+        let len = PAGES * PAGE;
+        let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+        copy.update(pool, len);
+        // Clip the first and last page. A second declaration can retry a
+        // readable subrange of the piece whose full read fails.
+        copy.writing(pool + 1, len - 2, false);
+        let retry = pool + SKIP * PAGE + 10;
+        copy.writing(retry, 3, false);
+        for page in 0..PAGES {
+            let at = pool + page * PAGE + 10;
+            copy.write_host(at as u64, &[0xa1, 0, 0xa3]);
+            // SAFETY: preexisting CPU data in the gap selects the kernel
+            // run fallback. Each successful piece issues two writes.
+            unsafe { ((at + 1) as *mut u8).write_volatile(0xc1) };
+        }
+        assert!(private_write_watch(pool + 1, len - 2));
+        crate::host::MAPPED_WRITE_CALLS.set(0);
+        let written = copy.snapshot_copy(pool + 1, len - 2, true, |at, title| {
+            let base = at as usize & !(PAGE - 1);
+            if base == pool + SKIP * PAGE { return false; }
+            assert!(crate::host::read_into(at, title));
+            // SAFETY: each callback owns a distinct, live title page. Model
+            // a CPU store in the gap after sampling but before publication.
+            unsafe { ((base + 11) as *mut u8).write_volatile(0xc2) };
+            true
+        });
+        assert_eq!(written, len - 2 - PAGE);
+        assert_eq!(crate::host::MAPPED_WRITE_CALLS.get(), 2 * (PAGES - 1));
+        assert_eq!(copy.copy_back(retry, 3), 3);
+        for page in 0..PAGES {
+            let at = pool + page * PAGE + 10;
+            let cpu = if page == SKIP { 0xc1 } else { 0xc2 };
+            let mut title = [0; 3];
+            assert!(crate::host::read_into(at as *const u8, &mut title));
+            assert_eq!(title, [0xa1, cpu, 0xa3]);
+            // The joined resync copied the CPU's byte into the shadow too.
+            let word = copy.read_host((at - 2) as u64, 1)[0].to_le_bytes();
+            assert_eq!(word[3], cpu);
+        }
         drop(copy);
         crate::watch::tests::free(pool);
     }
