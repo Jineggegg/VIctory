@@ -3245,33 +3245,42 @@ pub(crate) mod tests {
             section as usize
         };
         let section_bytes = || {
-            // SAFETY: a fresh read-only use of the live section.
-            unsafe {
-                let view = MapViewOfFile(section as _, FILE_MAP_WRITE, 0, 0, PAGE);
-                let bytes = std::slice::from_raw_parts(view.Value.cast::<u8>(), PAGE).to_vec();
-                UnmapViewOfFile(view);
-                bytes
-            }
+            // SAFETY: a temporary view of the live section, read only once mapped.
+            let view = unsafe { MapViewOfFile(section as _, FILE_MAP_WRITE, 0, 0, PAGE) };
+            assert!(!view.Value.is_null(), "the section could not be mapped");
+            // SAFETY: the view maps PAGE bytes until it is unmapped below.
+            let bytes = unsafe { std::slice::from_raw_parts(view.Value.cast::<u8>(), PAGE) }.to_vec();
+            // SAFETY: the view just mapped.
+            unsafe { UnmapViewOfFile(view) };
+            bytes
         };
         // What the runtime does in `XMemFreeDefault` and then mapping
-        // physical pages. False if another thread took the freed range.
+        // physical pages. Returns the views this call mapped: fewer than
+        // the aliases if another thread took part of the freed range.
         let remap = move |pool: usize| {
             let _remapping = crate::watch::Writing::before_remap(pool, PAGES * PAGE);
             // SAFETY: the test's pool; the shadow tolerates unmapped title memory.
             assert_ne!(unsafe { VirtualFree(pool as *mut _, 0, MEM_RELEASE) }, 0);
-            let mapped = ALIASES.iter().all(|page| {
+            let mut views = Vec::new();
+            for page in ALIASES {
                 let at = pool + page * PAGE;
                 // SAFETY: a view of the live section in the address range just released.
                 let view = unsafe { MapViewOfFileEx(section as _, FILE_MAP_WRITE, 0, 0, PAGE, at as _) };
-                view.Value as usize == at
-            });
+                if view.Value.is_null() {
+                    break;
+                }
+                views.push(view.Value as usize);
+            }
             crate::watch::title_memory_remapped(pool, PAGES * PAGE);
-            mapped
+            views
         };
-        let unmap = |pool: usize| {
-            for page in ALIASES {
-                // SAFETY: the views mapped by `remap`, if any; the shadow is gone.
-                unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: (pool + page * PAGE) as _ }) };
+        // Only the views this test mapped: an address it failed to map may
+        // be another test's memory by now.
+        let unmap = |views: &[usize]| {
+            for &view in views {
+                crate::watch::title_memory_remapped(view, PAGE);
+                // SAFETY: a view `remap` mapped; the shadow is gone.
+                unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: view as _ }) };
             }
         };
         let run = |race: bool| {
@@ -3311,18 +3320,21 @@ pub(crate) mod tests {
                     crate::host::read_into(at, title)
                 });
                 FORCE_SEQUENTIAL.set(false);
-                let mapped = match remapper.into_inner().unwrap() {
+                let views = match remapper.into_inner().unwrap() {
                     Some(thread) => thread.join().unwrap(),
                     None => remap(pool),
                 };
                 drop(copy);
-                unmap(pool);
+                let mapped = views.len() == ALIASES.len();
+                // Read the section before giving the views back.
+                let bytes = section_bytes();
+                unmap(&views);
                 // Another test's remap kept this one in address order, or took
                 // the released range: neither is the case under test.
                 if !mapped || race && !held.into_inner() {
                     continue;
                 }
-                break (written, remapped_early.into_inner(), section_bytes());
+                break (written, remapped_early.into_inner(), bytes);
             }
         };
         let (expected, _, untouched) = run(false);
