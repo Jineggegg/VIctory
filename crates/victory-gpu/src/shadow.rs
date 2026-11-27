@@ -3217,6 +3217,10 @@ pub(crate) mod tests {
         const NORMAL: usize = 9;
         const RUN: usize = 4096 + 32;
         let h = host().expect("D3D12 for snapshot copy-back");
+        let _one = parallel_tests();
+        // Both groups can run at once only with a second executor
+        // (`parallel_items`: the caller and up to seven pool threads).
+        let concurrent = std::thread::available_parallelism().map_or(1, usize::from).min(8) > 1;
         let pool = crate::watch::tests::pool(PAGES);
         let len = PAGES * PAGE;
         let (buffer, data) = h.shared_buffer(len as u64).unwrap();
@@ -3227,8 +3231,16 @@ pub(crate) mod tests {
             copy.write_host((pool + page * PAGE + RUN) as u64, &[0x40 + page as u8; 16]);
         }
         let parallel = AtomicBool::new(true);
+        let guard_ready = AtomicBool::new(false);
         let normal_done = AtomicBool::new(false);
-        let overlapped = AtomicBool::new(false);
+        let (saw_guard, saw_normal) = (AtomicBool::new(false), AtomicBool::new(false));
+        let wait = |flag: &AtomicBool| {
+            let waited = std::time::Instant::now();
+            while !flag.load(SeqCst) && waited.elapsed() < std::time::Duration::from_secs(5) {
+                std::thread::yield_now();
+            }
+            flag.load(SeqCst)
+        };
         crate::host::MAPPED_WRITE_CALLS.set(0);
         let written = copy.snapshot_copy(pool, len, true, |at, title| {
             let page = (at as usize - pool) / PAGE;
@@ -3252,12 +3264,16 @@ pub(crate) mod tests {
                     VirtualProtect((base + 4096) as *const _, 4096, PAGE_READWRITE | PAGE_GUARD, &mut previous)
                 };
                 assert_ne!(guarded, 0);
-                // The next piece of the other group is read once it stored.
-                let waited = std::time::Instant::now();
-                while !normal_done.load(SeqCst) && waited.elapsed() < std::time::Duration::from_secs(2) {
-                    std::thread::yield_now();
+                guard_ready.store(true, SeqCst);
+                // Its store waits until the other group stored its page and
+                // read the next one.
+                if concurrent {
+                    saw_normal.store(wait(&normal_done), SeqCst);
                 }
-                overlapped.store(normal_done.load(SeqCst), SeqCst);
+            }
+            // The other group stores its page only once the guard is in place.
+            if page == NORMAL && concurrent {
+                saw_guard.store(wait(&guard_ready), SeqCst);
             }
             if page == NORMAL + 1 {
                 normal_done.store(true, SeqCst);
@@ -3265,7 +3281,11 @@ pub(crate) mod tests {
             true
         });
         assert!(parallel.into_inner(), "the write-back kept address order");
-        assert!(overlapped.into_inner(), "the other group did not complete meanwhile");
+        // One executor runs the groups one after another: nothing overlaps.
+        if concurrent {
+            assert!(saw_guard.into_inner(), "the other group stored before the guard was installed");
+            assert!(saw_normal.into_inner(), "the other group did not complete meanwhile");
+        }
         assert_eq!(written, len);
         // Only the guarded run went through the kernel.
         assert_eq!(crate::host::MAPPED_WRITE_CALLS.get(), 1);
@@ -3284,6 +3304,13 @@ pub(crate) mod tests {
         }
         drop(copy);
         crate::watch::tests::free(pool);
+    }
+
+    /// Tests that need a write-back to run in parallel, one at a time: the
+    /// alias races' remaps send other write-backs into address order.
+    fn parallel_tests() -> std::sync::MutexGuard<'static, ()> {
+        static ONE: Mutex<()> = Mutex::new(());
+        ONE.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     /// One parallel write-back racing a remap of its pool: the title
@@ -3309,10 +3336,7 @@ pub(crate) mod tests {
             CreateFileMappingW, FILE_MAP_WRITE, MEM_RELEASE, MEMORY_MAPPED_VIEW_ADDRESS,
             MapViewOfFile, MapViewOfFileEx, PAGE_READWRITE, UnmapViewOfFile, VirtualFree,
         };
-        // One race at a time: each one's remaps send the others' write-backs
-        // into address order.
-        static ONE: Mutex<()> = Mutex::new(());
-        let _one = ONE.lock().unwrap_or_else(|e| e.into_inner());
+        let _one = parallel_tests();
         let len = pages * PAGE;
         // SAFETY: a pagefile section of one page, filled through a temporary view.
         let section = unsafe {
