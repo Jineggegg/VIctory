@@ -1,0 +1,18 @@
+commit=b5c06a7fda78636f5b9eb5d4e40e3a449e87e7ab
+target=x86_64-pc-windows-msvc
+toolchain=../toolchain/env.ps1
+clippy_default_warnings_errors=0
+clippy_all_features_warnings_errors=0
+workspace: passed=966 failed=0 ignored=12 (top-level harnesses)
+gpu: passed=311 failed=0 ignored=3 (top-level harnesses)
+diag_command=cargo test --locked --profile diag -p victory-gpu --lib --features diagnostics --no-run --message-format=json
+executable=target/diag/deps/victory_gpu-c324b3e76f1e7291.exe
+sha256=2e614d27b4beb5c44b7848cdebee67e34509cae89939f0cb3d37ab2633dd0411
+source_delta_sha256=null
+rustc 1.98.1 (48a229cea 2026-09-01)
+binary: rustc
+commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985
+commit-date: 2026-09-01
+host: x86_64-pc-windows-msvc
+release: 1.98.1
+LLVM version: 22.1.8
