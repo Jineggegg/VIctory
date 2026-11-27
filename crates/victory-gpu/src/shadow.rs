@@ -3306,8 +3306,9 @@ pub(crate) mod tests {
         crate::watch::tests::free(pool);
     }
 
-    /// Tests that need a write-back to run in parallel, one at a time: the
-    /// alias races' remaps send other write-backs into address order.
+    /// Tests that need a write-back to run in parallel, one at a time: a
+    /// remap sends other write-backs into address order. The alias races run
+    /// in child processes ([`alias_race_alone`]) and take it there too.
     fn parallel_tests() -> std::sync::MutexGuard<'static, ()> {
         static ONE: Mutex<()> = Mutex::new(());
         ONE.lock().unwrap_or_else(|e| e.into_inner())
@@ -3430,14 +3431,15 @@ pub(crate) mod tests {
                 };
                 // Read the section before giving back the views.
                 let bytes = section_bytes();
-                // Only the views this run mapped: an address it failed to map
-                // may be another test's memory by now.
+                // Only the views this run mapped, while it still maps them: the
+                // rest of the released pool, and an address it failed to map,
+                // may be other memory by now. Reporting them would dirty, guard
+                // and unlink pages someone else holds.
                 for &view in &views {
                     crate::watch::title_memory_remapped(view, PAGE);
                     // SAFETY: a view `remap` mapped; the copy is gone.
                     unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: view as _ }) };
                 }
-                crate::watch::title_memory_remapped(pool, len);
                 // Another test's remap kept this one in address order, or took
                 // the released range: neither is the case under test.
                 if views.len() == aliases.len()
@@ -3520,30 +3522,65 @@ pub(crate) mod tests {
         });
     }
 
+    /// Runs `race`, the body of test `name` of this module, alone in a child
+    /// process of this test binary. An alias race releases and remaps title
+    /// memory and reports it process-wide: freed addresses another test
+    /// reuses, and the guard state of their pages, must not be shared with
+    /// tests running beside it. The child's output is kept unless it fails,
+    /// so this binary's results count each race once.
+    fn alias_race_alone(name: &str, race: impl FnOnce()) {
+        const CHILD: &str = "VICTORY_TEST_ALIAS_RACE_CHILD";
+        if std::env::var_os(CHILD).is_some() {
+            race();
+            return;
+        }
+        let test = format!("shadow::tests::{name}");
+        let out = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", &test, "--test-threads=1", "--nocapture"])
+            .env(CHILD, "1")
+            .output()
+            .unwrap();
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            out.status.success() && stdout.contains("test result: ok. 1 passed"),
+            "{test} in a child process: {}\n{stdout}\n{}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
     /// The release waits for every group of a parallel snapshot write-back.
     #[test]
     fn a_release_and_alias_during_parallel_groups_waits_for_them() {
-        snapshot_alias_race(true);
+        alias_race_alone("a_release_and_alias_during_parallel_groups_waits_for_them", || {
+            snapshot_alias_race(true);
+        });
     }
 
     /// With the pool released behind the runtime's back, mapping the alias
     /// waits for every group of a parallel snapshot write-back.
     #[test]
     fn an_alias_after_an_unseen_release_waits_for_snapshot_groups() {
-        snapshot_alias_race(false);
+        alias_race_alone("an_alias_after_an_unseen_release_waits_for_snapshot_groups", || {
+            snapshot_alias_race(false);
+        });
     }
 
     /// The release waits for every run of a parallel marked write-back.
     #[test]
     fn a_release_and_alias_during_parallel_marked_runs_waits_for_them() {
-        marked_alias_race(true);
+        alias_race_alone("a_release_and_alias_during_parallel_marked_runs_waits_for_them", || {
+            marked_alias_race(true);
+        });
     }
 
     /// With the pool released behind the runtime's back, mapping the alias
     /// waits for every run of a parallel marked write-back.
     #[test]
     fn an_alias_after_an_unseen_release_waits_for_marked_runs() {
-        marked_alias_race(false);
+        alias_race_alone("an_alias_after_an_unseen_release_waits_for_marked_runs", || {
+            marked_alias_race(false);
+        });
     }
 
     #[test]
