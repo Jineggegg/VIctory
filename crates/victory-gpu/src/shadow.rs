@@ -2474,38 +2474,41 @@ pub(crate) mod tests {
             unregister(p, p as u64);
             return; // no host GPU here
         };
-        let base = copy.marks.expect("tracked memory gets mark bits") as usize;
-        assert_eq!(copy.mark_entry(p as u64 + PAGE as u64 + 8), Some((base as u32 + 1, 8)));
-        copy.update(p, len);
-        copy.writing(p, len, true);
-        assert!(copy.before.lock().unwrap().0.is_empty(), "no snapshot");
-        // The shaders write a byte in each page; the title writes pages 1
-        // and 2 meanwhile.
-        copy.write_host((p + 10) as u64, &[0xaa]);
-        copy.write_host((p + PAGE + 20) as u64, &[0xbb]);
-        copy.write_host((p + 2 * PAGE + 30) as u64, &[0xcc]);
-        let title = |at: usize| (p + at) as *mut u8;
-        // SAFETY: (title writes and reads below) bytes of our pool.
-        unsafe {
-            title(PAGE + 40).write_volatile(0x11);
-            title(2 * PAGE + 50).write_volatile(0x22);
-        }
-        // The shaders marked pages 0 and 1.
-        let bits = b.data as *mut u32;
-        for n in [base, base + 1] {
-            // SAFETY: a dword of the mapped bitmap.
-            unsafe { *bits.add(n / 32) |= 1 << (n % 32) };
-        }
-        copy_back_marks(&[], false);
-        // SAFETY: bytes of our pool.
-        let read = |at: usize| unsafe { title(at).read_volatile() };
-        assert_eq!(read(10), 0xaa, "the shader's byte, page 0");
-        assert_eq!((read(PAGE + 20), read(PAGE + 40)), (0xbb, 0x11), "both writers' bytes, page 1");
-        assert_eq!((read(2 * PAGE + 30), read(2 * PAGE + 50)), (0, 0x22), "page 2 not marked");
-        // SAFETY: dwords of the mapped bitmap.
-        let left: u32 = (base / 32..=(base + 1) / 32).map(|w| unsafe { *bits.add(w) }).fold(0, |a, w| a | w);
-        assert_eq!(left, 0, "bits cleared");
-        assert_eq!(copy.copy_back(p, len), 0, "nothing kept to compare");
+        // Host::execute owns these process-wide bitmaps from refresh through drain.
+        crate::host::tests::without_submissions(|| {
+            let base = copy.marks.expect("tracked memory gets mark bits") as usize;
+            assert_eq!(copy.mark_entry(p as u64 + PAGE as u64 + 8), Some((base as u32 + 1, 8)));
+            copy.update(p, len);
+            copy.writing(p, len, true);
+            assert!(copy.before.lock().unwrap().0.is_empty(), "no snapshot");
+            // The shaders write a byte in each page; the title writes pages 1
+            // and 2 meanwhile.
+            copy.write_host((p + 10) as u64, &[0xaa]);
+            copy.write_host((p + PAGE + 20) as u64, &[0xbb]);
+            copy.write_host((p + 2 * PAGE + 30) as u64, &[0xcc]);
+            let title = |at: usize| (p + at) as *mut u8;
+            // SAFETY: (title writes and reads below) bytes of our pool.
+            unsafe {
+                title(PAGE + 40).write_volatile(0x11);
+                title(2 * PAGE + 50).write_volatile(0x22);
+            }
+            // The shaders marked pages 0 and 1.
+            let bits = b.data as *mut u32;
+            for n in [base, base + 1] {
+                // SAFETY: a dword of the mapped bitmap.
+                unsafe { *bits.add(n / 32) |= 1 << (n % 32) };
+            }
+            copy_back_marks(&[], false);
+            // SAFETY: bytes of our pool.
+            let read = |at: usize| unsafe { title(at).read_volatile() };
+            assert_eq!(read(10), 0xaa, "the shader's byte, page 0");
+            assert_eq!((read(PAGE + 20), read(PAGE + 40)), (0xbb, 0x11), "both writers' bytes, page 1");
+            assert_eq!((read(2 * PAGE + 30), read(2 * PAGE + 50)), (0, 0x22), "page 2 not marked");
+            // SAFETY: dwords of the mapped bitmap.
+            let left: u32 = (base / 32..=(base + 1) / 32).map(|w| unsafe { *bits.add(w) }).fold(0, |a, w| a | w);
+            assert_eq!(left, 0, "bits cleared");
+            assert_eq!(copy.copy_back(p, len), 0, "nothing kept to compare");
+        });
         unregister(p, p as u64);
     }
 
@@ -2521,22 +2524,25 @@ pub(crate) mod tests {
             unregister(p, p as u64);
             return; // no host GPU here
         };
-        let base = copy.marks.expect("tracked memory gets mark bits") as usize;
-        copy.update(p, len);
-        copy.writing(p, len, true);
-        copy.write_host((p + 10) as u64, &[0xaa]);
-        copy.write_host((p + PAGE + 10) as u64, &[0xbb]);
-        // Page 0 marked by another shader, page 1 by one using title memory.
-        for (b, n) in [(others, base), (memory, base + 1)] {
+        // Host::execute owns these process-wide bitmaps from refresh through drain.
+        crate::host::tests::without_submissions(|| {
+            let base = copy.marks.expect("tracked memory gets mark bits") as usize;
+            copy.update(p, len);
+            copy.writing(p, len, true);
+            copy.write_host((p + 10) as u64, &[0xaa]);
+            copy.write_host((p + PAGE + 10) as u64, &[0xbb]);
+            // Page 0 marked by another shader, page 1 by one using title memory.
+            for (b, n) in [(others, base), (memory, base + 1)] {
+                // SAFETY: a dword of the mapped bitmap.
+                unsafe { *(b.data as *mut u32).add(n / 32) |= 1 << (n % 32) };
+            }
+            copy_back_marks(&[], true);
+            // SAFETY: bytes of our pool.
+            let read = |at: usize| unsafe { ((p + at) as *const u8).read_volatile() };
+            assert_eq!((read(10), read(PAGE + 10)), (0xaa, 0), "page 1 held back");
             // SAFETY: a dword of the mapped bitmap.
-            unsafe { *(b.data as *mut u32).add(n / 32) |= 1 << (n % 32) };
-        }
-        copy_back_marks(&[], true);
-        // SAFETY: bytes of our pool.
-        let read = |at: usize| unsafe { ((p + at) as *const u8).read_volatile() };
-        assert_eq!((read(10), read(PAGE + 10)), (0xaa, 0), "page 1 held back");
-        // SAFETY: a dword of the mapped bitmap.
-        assert_eq!(unsafe { *(memory.data as *const u32).add((base + 1) / 32) } & 1 << ((base + 1) % 32), 0, "cleared");
+            assert_eq!(unsafe { *(memory.data as *const u32).add((base + 1) / 32) } & 1 << ((base + 1) % 32), 0, "cleared");
+        });
         unregister(p, p as u64);
     }
 
@@ -2589,13 +2595,13 @@ pub(crate) mod tests {
     /// back to the pre-fault value.
     #[test]
     fn partial_refresh_under_marked_range_updates_saved_bytes() {
+        let Some(host) = host() else { return };
         let p = crate::watch::tests::pool(2);
         let len = 2 * PAGE;
-        register(p, p as u64, len as u64);
-        let Some(copy) = find(p as u64, len as u64) else {
-            unregister(p, p as u64);
-            return; // no host GPU here
-        };
+        // Other submissions refresh every registered shadow. This fixture
+        // controls both writers and the exact point at which its page is taken.
+        let (buffer, data) = host.shared_buffer(len as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, p as u64, len as u64);
         let write = |at: usize, v: u8| {
             // SAFETY: a byte of our pool.
             unsafe { ((p + at) as *mut u8).write_volatile(v) };
@@ -2612,6 +2618,11 @@ pub(crate) mod tests {
         copy.write_host((p + PAGE + 10) as u64, &[0xbb]);
         write(20, 0x66);
         write(PAGE + 20, 0x77);
+        // A separate title submission walks the registered shadows.
+        let other = host.new_list().unwrap();
+        crate::memory::bind(&other, crate::memory::OURS).unwrap();
+        other.close();
+        host.execute(&[&other]);
         copy.copy_back_marked(p, 1);
         copy.copy_back_marked(p + PAGE, 1);
         // SAFETY: bytes of our pool.
@@ -2622,7 +2633,8 @@ pub(crate) mod tests {
         );
         assert_eq!([read(PAGE + 10), read(PAGE + 20)], [0xbb, 0x77]);
         copy.copy_back(p, PAGE + 16);
-        unregister(p, p as u64);
+        drop(copy);
+        crate::watch::tests::free(p);
     }
 
     #[test]
