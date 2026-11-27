@@ -1,0 +1,138 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 11:42:55Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5532/32607 MiB | power=45.50 W | temp=37.09 C | graphics=270 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.9s, 10 samples, max GPU=1%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+manifest_commit=b5c06a7fda78636f5b9eb5d4e40e3a449e87e7ab
+ARM B sha256=2E614D27B4BEB5C44B7848CDEBEE67E34509CAE89939F0CB3D37AB2633DD0411
+GPU gate samples=2,1,1,1,1,1,1,1,1,1 busy=5
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.002
+BENCH soak_1_rounds=26348
+BENCH soak_1_p50_us=2189.900
+BENCH soak_1_p95_us=2579.200
+BENCH soak_1_p99_us=3489.800
+BENCH soak_1_ws_bytes=185503744
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=26348
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 60.30s
+
+ARM maskmov sha256=950B5FE50D81D0A966074483877580E016AAFA7C7BB3DB77BD8DAA814D9AB983
+GPU gate samples=1,0,1,0,0,0,0,0,0,1 busy=7
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=32535
+BENCH soak_1_p50_us=1719.400
+BENCH soak_1_p95_us=2336.800
+BENCH soak_1_p99_us=3486.500
+BENCH soak_1_ws_bytes=224231424
+BENCH soak_1_handles=388
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=32535
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 60.33s
+
+ARM table sha256=30AE360797D7F22B87FBAB8A37374073EBD8DE2B7D8606F66FE672A1C43F5FDC
+GPU gate samples=0,0,0,0,0,0,1,1,1,0 busy=4
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=37240
+BENCH soak_1_p50_us=1454.200
+BENCH soak_1_p95_us=2316.800
+BENCH soak_1_p99_us=4805.300
+BENCH soak_1_ws_bytes=224591872
+BENCH soak_1_handles=388
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=37240
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 60.34s
+
+manifest_commit=6b1e408b9161b062f75ad10f2b06913f81ed6dee
+ARM A sha256=888ED490721961CFA2128E4343F91998D47625995A284B6EB2720EC60F21E4A6
+GPU gate samples=3,3,3,3,3,3,3,3,3,3 busy=3
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=41454
+BENCH soak_1_p50_us=1403.500
+BENCH soak_1_p95_us=1655.000
+BENCH soak_1_p99_us=1928.300
+BENCH soak_1_ws_bytes=186564608
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=41454
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 60.32s
+
+ARM aprobe2 sha256=1CFE82D7C0D4A1E15FC6A3362F8385BD60C5FBF923B2FE8754DA466FE5ACB5F7
+GPU gate samples=0,0,0,0,0,0,0,0,1,1 busy=16
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.002
+BENCH soak_1_rounds=42941
+BENCH soak_1_p50_us=1353.100
+BENCH soak_1_p95_us=1635.000
+BENCH soak_1_p99_us=1884.900
+BENCH soak_1_ws_bytes=225009664
+BENCH soak_1_handles=388
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE cpu_us_per_round=197.3966
+PROBE record_us_per_round=126.7530
+PROBE submit_us_per_round=1023.3699
+PROBE verify_us_per_round=49.6611
+PROBE title_eq_us_per_round=0.0000
+PROBE gen_mask_us_per_round=88.2709
+PROBE writing_guard_us_per_round=23.9256
+PROBE masked_store_us_per_round=149.6227
+PROBE read_title_us_per_round=62.5222
+PROBE resync_us_per_round=0.0000
+PROBE snapshot_lock_us_per_round=0.0367
+PROBE empty_masks_per_round=0.0000
+PROBE full_masks_per_round=0.0000
+PROBE all_masks_per_round=0.0000
+PROBE kernel_retries_per_round=0.0000
+PROBE pre_dispatch_snapshot_us_per_round=36.3505
+PROBE rearm_us_per_round=15.4484
+PROBE spare_per_round=0.0000
+BENCH soak_total_rounds=42941
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 60.33s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

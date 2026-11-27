@@ -1,0 +1,119 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 12:10:52Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=1% | VRAM=28393/32607 MiB | power=59.49 W | temp=43.51 C | graphics=930 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%
+Idle window: 12.0s, 10 samples, max GPU=5%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+manifest_commit=6b1e408b9161b062f75ad10f2b06913f81ed6dee
+ARM A sha256=888ED490721961CFA2128E4343F91998D47625995A284B6EB2720EC60F21E4A6
+GPU gate samples=3,1,1,0,0,0,0,1,0,0 busy=4
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.002
+BENCH soak_1_rounds=43657
+BENCH soak_1_p50_us=1348.000
+BENCH soak_1_p95_us=1544.200
+BENCH soak_1_p99_us=1724.800
+BENCH soak_1_ws_bytes=186576896
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=31003.32032
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=43657
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 60.31s
+
+ARM four sha256=8BA0D1D1464617B8EC32F588E4B626E6CEBA8A982645F6A22BB26FFE52C2841D
+GPU gate samples=1,0,0,0,0,0,0,0,0,0 busy=1
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.002
+BENCH soak_1_rounds=36746
+BENCH soak_1_p50_us=1607.500
+BENCH soak_1_p95_us=1835.900
+BENCH soak_1_p99_us=2028.600
+BENCH soak_1_ws_bytes=224858112
+BENCH soak_1_handles=388
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=31025.8688
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=36746
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 348 filtered out; finished in 60.34s
+
+ARM four_fused sha256=F1D0DF0DF5769D96F2A8A48879B0E0436B6CCC25D8DFADDF6FD9740DC052F5F1
+GPU gate samples=1,0,0,0,1,1,0,0,0,0 busy=1
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=37609
+BENCH soak_1_p50_us=1571.100
+BENCH soak_1_p95_us=1790.800
+BENCH soak_1_p99_us=1987.000
+BENCH soak_1_ws_bytes=224673792
+BENCH soak_1_handles=388
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=31442.944
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=37609
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 349 filtered out; finished in 60.33s
+
+ARM parallel sha256=7197A307DD6F8938D6A22135E29C9E9E449F4D30D0E319D096E7382BB00A6480
+GPU gate samples=1,0,0,0,0,0,0,0,0,0 busy=1
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=45732
+BENCH soak_1_p50_us=1268.200
+BENCH soak_1_p95_us=1532.000
+BENCH soak_1_p99_us=1706.300
+BENCH soak_1_ws_bytes=225673216
+BENCH soak_1_handles=394
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=45732
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 60.35s
+
+ARM clear sha256=7F8B99AD2E8C55B64E6762FC0B0139F279532918E28B981201F77607EF08B6A1
+GPU gate samples=2,0,0,0,0,1,0,0,0,0 busy=0
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.002
+BENCH soak_1_rounds=35908
+BENCH soak_1_p50_us=1629.800
+BENCH soak_1_p95_us=1893.100
+BENCH soak_1_p99_us=2147.700
+BENCH soak_1_ws_bytes=185556992
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=35908
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 60.30s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active
