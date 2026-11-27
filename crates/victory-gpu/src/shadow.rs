@@ -2712,6 +2712,63 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn unmarked_snapshot_preserves_late_cpu_bytes_across_a_page_boundary() {
+        let h = host().expect("D3D12 for shadow copy-back");
+        let pool = crate::watch::tests::pool(2);
+        let (buffer, data) = h.shared_buffer((2 * PAGE) as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, pool as u64, (2 * PAGE) as u64);
+        let start = pool + PAGE - 35;
+        let len = 35 + 37;
+        copy.update(pool, 2 * PAGE);
+        copy.writing(start, len, false);
+
+        // Offsets are local to each piece: both have two full masks and a tail.
+        // The GPU owns both segment ends and both sides of the page split.
+        for (at, size) in [(start, 35), (pool + PAGE, 37)] {
+            for offset in [0, 14, 16, 31, size - 1] {
+                copy.write_host((at + offset) as u64, &[0xa1]);
+            }
+        }
+        let mut expected = vec![0; len + 2];
+        let mut reads = Vec::new();
+        let written = copy.copy_back_or_not_with(start, len, true, |at, snapshot| {
+            assert!(crate::host::read_into(at, snapshot));
+            assert!(snapshot.iter().all(|&b| b == 0));
+            let at = at as usize;
+            let size = snapshot.len();
+            reads.push((at, size));
+            let base = at - start + 1;
+            for offset in [0, 14, 16, 31, size - 1] {
+                expected[base + offset] = 0xa1;
+            }
+            for offset in [1, 15, 17, 32, size - 2] {
+                expected[base + offset] = 0xc2;
+            }
+            std::thread::spawn(move || {
+                // SAFETY: all stores are in the live two-page title allocation.
+                // The worker finishes after the read and before the masked store.
+                unsafe {
+                    for offset in [1, 15, 17, 32, size - 2] {
+                        ((at + offset) as *mut u8).write_volatile(0xc2);
+                    }
+                    let outside = if at == start { start - 1 } else { start + len };
+                    (outside as *mut u8).write_volatile(0xce);
+                }
+            }).join().unwrap();
+            true
+        });
+        assert_eq!(reads, [(start, 35), (pool + PAGE, 37)]);
+        assert_eq!(written, len);
+        expected[0] = 0xce;
+        expected[len + 1] = 0xce;
+        let mut actual = vec![0; len + 2];
+        assert!(crate::host::read_into((start - 1) as *const u8, &mut actual));
+        assert_eq!(actual, expected);
+        drop(copy);
+        crate::watch::tests::free(pool);
+    }
+
+    #[test]
     fn overlapping_snapshots_keep_late_cpu_stores() {
         let Some(h) = host() else { return };
         let p = crate::watch::tests::pool(1);
