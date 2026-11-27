@@ -1,0 +1,488 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 15:45:45Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5417/32607 MiB | power=24.91 W | temp=36.13 C | graphics=247 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.9s, 10 samples, max GPU=1%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+RUN c2 sha256=F873406A9F0FA33ADF293567016721EC9352A485C69FE6C53C51F8475A6CA8B1 filter=alias round=1
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... ok
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 316 filtered out; finished in 1.90s
+
+EXIT c2 round=1 code=0
+RUN c2 sha256=F873406A9F0FA33ADF293567016721EC9352A485C69FE6C53C51F8475A6CA8B1 filter=alias round=2
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 316 filtered out; finished in 1.54s
+
+EXIT c2 round=2 code=0
+RUN c2 sha256=F873406A9F0FA33ADF293567016721EC9352A485C69FE6C53C51F8475A6CA8B1 filter=alias round=3
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... ok
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 316 filtered out; finished in 1.55s
+
+EXIT c2 round=3 code=0
+RUN c2 sha256=F873406A9F0FA33ADF293567016721EC9352A485C69FE6C53C51F8475A6CA8B1 filter=alias round=4
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... ok
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 316 filtered out; finished in 1.82s
+
+EXIT c2 round=4 code=0
+RUN c2 sha256=F873406A9F0FA33ADF293567016721EC9352A485C69FE6C53C51F8475A6CA8B1 filter=alias round=5
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 316 filtered out; finished in 1.54s
+
+EXIT c2 round=5 code=0
+RUN nogate sha256=E6913A28F432FD7D8E593090CA3448B92D09454ADC107A063EB3643458F341E1 filter=alias round=1
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... FAILED
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups' (48696) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (62372) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (57444) panicked at crates\victory-gpu\src\shadow.rs:3431:9:
+the remap completed while groups were storing
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (26232) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups
+
+test result: FAILED. 5 passed; 4 failed; 0 ignored; 0 measured; 316 filtered out; finished in 0.33s
+
+EXIT nogate round=1 code=101
+RUN nogate sha256=E6913A28F432FD7D8E593090CA3448B92D09454ADC107A063EB3643458F341E1 filter=alias round=2
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... FAILED
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups' (46508) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (12772) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (21920) panicked at crates\victory-gpu\src\shadow.rs:3431:9:
+the remap completed while groups were storing
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (31972) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups
+
+test result: FAILED. 5 passed; 4 failed; 0 ignored; 0 measured; 316 filtered out; finished in 0.33s
+
+EXIT nogate round=2 code=101
+RUN nogate sha256=E6913A28F432FD7D8E593090CA3448B92D09454ADC107A063EB3643458F341E1 filter=alias round=3
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... FAILED
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (40312) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups' (18640) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (45132) panicked at crates\victory-gpu\src\shadow.rs:3431:9:
+the remap completed while groups were storing
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (11276) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups
+
+test result: FAILED. 5 passed; 4 failed; 0 ignored; 0 measured; 316 filtered out; finished in 0.36s
+
+EXIT nogate round=3 code=101
+RUN nogate sha256=E6913A28F432FD7D8E593090CA3448B92D09454ADC107A063EB3643458F341E1 filter=alias round=4
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... FAILED
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (44764) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (34496) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups' (36440) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (67096) panicked at crates\victory-gpu\src\shadow.rs:3431:9:
+the remap completed while groups were storing
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups
+
+test result: FAILED. 5 passed; 4 failed; 0 ignored; 0 measured; 316 filtered out; finished in 0.34s
+
+EXIT nogate round=4 code=101
+RUN nogate sha256=E6913A28F432FD7D8E593090CA3448B92D09454ADC107A063EB3643458F341E1 filter=alias round=5
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... FAILED
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (58076) panicked at crates\victory-gpu\src\shadow.rs:3431:9:
+the remap completed while groups were storing
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (28924) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups' (41212) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (59516) panicked at crates\victory-gpu\src\shadow.rs:3427:9:
+a group stored into the remapped physical page
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups
+
+test result: FAILED. 5 passed; 4 failed; 0 ignored; 0 measured; 316 filtered out; finished in 0.35s
+
+EXIT nogate round=5 code=101
+RUN nohold sha256=EF2B64DE658AC6B33A8E22F98C64FECEA63CD30E61440538B513ED2FEFD749AA filter=alias round=1
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (18572) panicked at crates\victory-gpu\src\shadow.rs:3424:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (9692) panicked at crates\victory-gpu\src\shadow.rs:3428:9:
+the remap completed while groups were storing
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+
+test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 316 filtered out; finished in 0.95s
+
+EXIT nohold round=1 code=101
+RUN nohold sha256=EF2B64DE658AC6B33A8E22F98C64FECEA63CD30E61440538B513ED2FEFD749AA filter=alias round=2
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (51812) panicked at crates\victory-gpu\src\shadow.rs:3424:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (67360) panicked at crates\victory-gpu\src\shadow.rs:3428:9:
+the remap completed while groups were storing
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+
+test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 316 filtered out; finished in 1.24s
+
+EXIT nohold round=2 code=101
+RUN nohold sha256=EF2B64DE658AC6B33A8E22F98C64FECEA63CD30E61440538B513ED2FEFD749AA filter=alias round=3
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+
+failures:
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (69260) panicked at crates\victory-gpu\src\shadow.rs:3428:9:
+the remap completed while groups were storing
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (2652) panicked at crates\victory-gpu\src\shadow.rs:3424:9:
+a group stored into the remapped physical page
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+
+test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 316 filtered out; finished in 1.24s
+
+EXIT nohold round=3 code=101
+RUN nohold sha256=EF2B64DE658AC6B33A8E22F98C64FECEA63CD30E61440538B513ED2FEFD749AA filter=alias round=4
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (53908) panicked at crates\victory-gpu\src\shadow.rs:3424:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (41600) panicked at crates\victory-gpu\src\shadow.rs:3428:9:
+the remap completed while groups were storing
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+
+test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 316 filtered out; finished in 0.94s
+
+EXIT nohold round=4 code=101
+RUN nohold sha256=EF2B64DE658AC6B33A8E22F98C64FECEA63CD30E61440538B513ED2FEFD749AA filter=alias round=5
+
+running 9 tests
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... ok
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (31140) panicked at crates\victory-gpu\src\shadow.rs:3424:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (56624) panicked at crates\victory-gpu\src\shadow.rs:3428:9:
+the remap completed while groups were storing
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+
+test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 316 filtered out; finished in 1.23s
+
+EXIT nohold round=5 code=101
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

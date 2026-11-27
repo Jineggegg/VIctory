@@ -299,3 +299,101 @@ B 每轮恰有 65,536 个 16 字节掩码，全部是混合块。空块、整向
 - 锁顺序是“门 → 守卫锁”：`before_remap` 在取守卫锁之前等门；回写持门期间会取守卫锁和副本快照锁，但从不等门。新代码若在持有守卫锁或 `physical()` 锁时进入并行回写，就会破坏这个顺序。
 - 读取失败后页面保持已武装，直到下一次成功读取或 `disarm`。在这期间，这一页的首次 CPU 写入会多保存一份 64 KiB 快照，与读取成功前的行为一致。
 - 小档副本刷新合并点估计 +3.2%，区间上界 +7.4%，代码路径没有改动，建议在正式浸泡中顺带观察。
+
+## 复审修改（并行回写）
+
+复审仍未通过，剩两项必须修改、一项建议修改，三项各自单独提交在 `investigate/r1-issues`，最后一个代码提交是 `4c8ce3f`。日志在 [parallel-review-fixes-2](logs/r1-issues-investigation/parallel-review-fixes-2/)，二进制来源、哈希和两个对照补丁见 [builds.txt](logs/r1-issues-investigation/parallel-review-fixes-2/builds.txt)。
+
+**显卡空闲门槛在本节中途改过。** 从「三项修改」到「默认热点与三档规模」的数据，以及本文此前所有章节，都按旧门槛测：每次开跑前整卡占用连续 ≤3%。桌面空闲时整卡本来就在 3%–6% 之间（35 °C、约 62 W，没有程序跑显卡计算），旧门槛下本轮的 CI 和 Validation 窗口被连续拒绝 21 次，一直没有跑成。按用户要求放宽后，从「按新显卡门槛复测」一小节起全部按新门槛测：10 次采样均值 ≤8%、单次 ≤10%，dwm、浏览器、Edge WebView、Teams 等桌面后台放行并记进日志。新门槛下的数据都放在 [new-gate](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/) 子目录。
+
+### 三项修改
+
+1. **标记页入口的并行回写也持门，`044a462`（必须修）。** `copy_back_marks` 在同一副本有至少 128 个有效标记页时，直接做写变更查询并按 8 页一段并行写回，没有持重映射门。这条路径在 `679826a` 就有。通过正常的 `XMemFreeDefault` 释放私有池，再把两段的地址映射到同一物理页，就会出现与快照入口相同的数据错误。现在它与快照入口一样，在查询前取得持有，直到所有段结束才放开；遇到已登记的重映射就按地址顺序写回。门本身没有改动。竞争测试改写为一个公共辅助函数，覆盖快照入口（16 页）和标记页入口（128 页）两种入口，以及两种释放：一种经 `before_remap`，与 `XMemFreeDefault` 相同；另一种绕过运行时直接释放，这时只有映射自己的等待能挡住别名。每个别名地址都在各自的 `crate::watch::remapping()` 下映射，这就是运行时 `map()` 调用的等门函数，不再与释放包在同一个持有期里。测试判断“这次回写确实并行”的依据改为按回写起点登记，不再问“是否有人持门”。四个竞争用例互相串行，因为一个用例的重映射会让其他用例退回顺序路径。同一 gpu-quiet 窗口里每个版本各跑 5 轮：带门版四个用例 20/20 通过；`remapping()` 不等待的对照版 20/20 失败；只去掉标记页入口持门的对照版（即 `679826a` 的标记页行为），标记页两个用例 10/10 失败、快照两个用例 10/10 通过。失败原因都是“有组写进了重映射后的物理页”或“重映射在组写入期间完成”。[带门版与两个对照](logs/r1-issues-investigation/parallel-review-fixes-2/alias-tests-gate-and-controls.txt)
+2. **别名测试只清理自己映射的视图，`93f38d8`（必须修）。** 原测试在某个别名地址映射失败（地址已被别的测试占用）时，清理仍对两个预期地址都调用 `UnmapViewOfFile`，可能解除别的测试建立的视图，让整个测试进程崩溃。现在映射逐个记下本次真正取得的视图，遇到第一次失败就停止，清理只上报并解除这些视图。读取 section 前先读完再解除视图，读取用的临时视图先检查映射成功再从指针构造切片。修改后该用例 3 轮通过。[修改后的运行](logs/r1-issues-investigation/parallel-review-fixes-2/alias-test-after-cleanup-fix.txt)
+3. **故障组测试确实证明两组同时在场，`4c8ce3f`（建议修）。** 原先正常组可能在故障组装上保护之前就置好完成标志，“发生重叠”的断言证明不了两组同时在场；只有一个执行线程时，故障组会空等两秒后失败。现在故障组装好保护后先发出“已就绪”，正常组收到后才写自己的页；故障组仍等正常组写完该页、开始读下一页再继续。两边各自记录看到的信号，分别断言。`parallel_items` 只有一个执行线程（`available_parallelism` 为 1）时，两组只能先后运行，不等待、不断言重叠，只检查结果。这个用例同样依赖并行路径，现与别名竞争用例共用串行锁。`shadow::` 全部 38 项连续 3 轮通过，该用例单独 10 轮通过。单执行线程分支没有在本机实际触发过。[shadow 全部用例](logs/r1-issues-investigation/parallel-review-fixes-2/shadow-tests.txt) · [故障组用例 10 轮](logs/r1-issues-investigation/parallel-review-fixes-2/guarded-group-test.txt)
+
+### 1 MiB 同窗短测
+
+做法与上一节相同，本次是干净的 `4c8ce3f`。[正序](logs/r1-issues-investigation/parallel-review-fixes-2/mib-forward.txt) · [反序](logs/r1-issues-investigation/parallel-review-fixes-2/mib-reverse.txt)
+
+| 窗口 / 顺序 | 版本 | 轮数 | p50，ms | p95，ms | p99，ms |
+|---|---|---:|---:|---:|---:|
+| 正序 1 | 原 A `6b1e408` | 43,960 | 1.3134 | 1.6012 | 1.7672 |
+| 正序 2 | 本次 `4c8ce3f` | 43,248 | **1.3347** | 1.6433 | 1.8378 |
+| 正序 3 | `679826a` | 42,871 | 1.3482 | 1.6606 | 1.8935 |
+| 反序 1 | `679826a` | 42,884 | 1.3461 | 1.6440 | 1.8187 |
+| 反序 2 | 本次 `4c8ce3f` | 43,527 | **1.3212** | 1.6360 | 1.8378 |
+| 反序 3 | 原 A `6b1e408` | 42,212 | 1.3819 | 1.6282 | 1.7746 |
+
+本次 p50 是 A 的 **101.6% 和 95.6%**，在 110% 目标以内；对 `679826a` 为 −1.0% 和 −1.8%。p99 相对 A 为 +4.0% 和 +3.6%，相对 `679826a` 为 −2.9% 和 +1.1%。六臂共 258,702 轮，逐轮校验失败和设备移除均为零。
+
+### 默认热点与三档规模
+
+做法与上一节相同（同路径、预热到频率稳定、逐对交换顺序），两臂为 `679826a` 和 `4c8ce3f`。默认项 10 对，小档 12 对，中档 8 对，大档 6 对，每次都通过仓库的工作量和读回断言。[默认 19 项](logs/r1-issues-investigation/parallel-review-fixes-2/default-hotspots.txt) · [小档](logs/r1-issues-investigation/parallel-review-fixes-2/scale-small.txt) · [中档](logs/r1-issues-investigation/parallel-review-fixes-2/scale-medium.txt) · [大档](logs/r1-issues-investigation/parallel-review-fixes-2/scale-large.txt) · [全部配对统计](logs/r1-issues-investigation/parallel-review-fixes-2/paired-stats.txt)
+
+| 指标 | 配对变化 | 逐项 95% 区间 | 本次较慢对数 |
+|---|---:|---:|---:|
+| 默认 `marked_writeback_frame` | +0.9% | −2.5% 至 +3.3% | 6/10 |
+| 默认 `shadow_refresh` | +2.0% | −5.4% 至 +9.5% | 5/10 |
+| 小档 `marked_writeback_frame` | −4.5% | −8.3% 至 +7.4% | 5/12 |
+| 小档 `shadow_refresh` | −0.9% | −4.3% 至 +9.4% | 5/12 |
+| 中档 `marked_writeback_frame` | −1.8% | −13.7% 至 +3.0% | 3/8 |
+| 中档 `shadow_refresh` | −2.1% | −6.6% 至 +19.3% | 3/8 |
+| 大档 `marked_writeback_frame` | +2.9% | −2.3% 至 +5.1% | 4/6 |
+| 大档 `shadow_refresh` | +1.1% | −4.7% 至 +16.8% | 3/6 |
+
+默认 19 项的逐项区间全部跨零，完整表格见配对统计文件。中、大档的标记回写有 4,096 和 16,384 页，走的正是本次加门的标记页并行入口；每次调用只多一次无竞争的加锁，没有测出差异。上一节关注的小档副本刷新这次为 −0.9%。
+
+### 按新显卡门槛复测
+
+以下全部按新门槛测，代码仍是 `4c8ce3f`，基准二进制与上文相同（`final.exe` `ab91eaeb…`、`679826a` 臂 `1b21ccf6…`、原 A `888ed490…`）。测试和 Validation 在 `dc725af` 的工作树上编译，它在 `4c8ce3f` 之上只改了 `tools/bench`。
+
+**新门槛。** 判断写在一份共用的 PowerShell 门槛库里，gpu-quiet 开窗和窗口内每次开跑前的检查都调用它。放行条件：最近 10 次采样（跨度至少 10 秒）整卡均值 ≤8%、单次 ≤10%；没有桌面后台以外的进程使用 3D/Compute/CUDA 引擎；没有挖矿进程。桌面后台指 dwm、Windows 外壳组件、Chrome/Edge/Firefox 等浏览器、Edge WebView、Teams 和网易云音乐，放行时逐个记下进程和窗口内的引擎峰值。不满足条件时只等待，从不结束或通知任何进程。改动的文件、旧新规则对照和门槛库全文见 [gate-change.txt](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gate-change.txt)。仓库内只有一个提交 `dc725af`：`hot.ps1` 把 gpu-quiet 的放行摘要记为 `quiet_window.admission`，`hot.sh` 可用 `VICTORY_GPU_QUIET` 指定 gpu-quiet。`run.ps1` 默认单次 ≤10%，本来就是这个值，没有改；窗口脚本不再传 `-MaxGpuUtilization 3`。全局的 `~/.local/bin/gpu-quiet` 没有改动。
+
+**放行情况。** 本轮 10 个 gpu-quiet 窗口、129 次放行，放行窗口内整卡均值的中位数为 3.6%（最高 6.2%），单次最高 10%。每次检查的中位耗时 12.1 秒，其中约 11 秒是 10 次采样本身。记录到的桌面后台只有 chrome、dwm、explorer、网易云音乐和 Edge WebView，全程没有出现桌面以外的显卡用户，没有结束过任何进程。大档反序补测中有一次等了 18 分钟：那段时间整卡一直在 9%–10%，只有上述桌面进程各占 2%–3%。[全部放行记录](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gate-admissions.txt)
+
+#### 1 MiB 同窗短测
+
+做法与上文相同。[正序](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/mib-forward.txt) · [反序](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/mib-reverse.txt)
+
+| 窗口 / 顺序 | 版本 | 轮数 | p50，ms | p95，ms | p99，ms |
+|---|---|---:|---:|---:|---:|
+| 正序 1 | 原 A `6b1e408` | 43,299 | 1.3607 | 1.6320 | 1.9319 |
+| 正序 2 | 本次 `4c8ce3f` | 41,993 | **1.4066** | 1.7585 | 2.0341 |
+| 正序 3 | `679826a` | 40,723 | 1.4285 | 1.8816 | 2.5836 |
+| 反序 1 | `679826a` | 41,492 | 1.4044 | 1.8260 | 2.3488 |
+| 反序 2 | 本次 `4c8ce3f` | 43,918 | **1.3292** | 1.6932 | 1.9728 |
+| 反序 3 | 原 A `6b1e408` | 43,826 | 1.3380 | 1.6128 | 1.9881 |
+
+本次 p50 是同窗 A 的 **103.4% 和 99.3%**，在 110% 目标以内；3% 门槛下是 101.6% 和 95.6%。对 `679826a` 为 −1.5% 和 −5.4%。p99 相对 A 为 +5.3% 和 −0.8%（3% 门槛下 +4.0% 和 +3.6%）。六臂共 255,251 轮，逐轮校验失败和设备移除均为零。三臂的 p95、p99 都比 3% 门槛时高一些，桌面后台的占用会进入尾延迟。
+
+#### 默认热点与三档规模
+
+做法与上文相同，两臂仍为 `679826a` 和 `4c8ce3f`，默认项 10 对，小档 12 对，中档 8 对，大档 6 对，每次都通过仓库的工作量和读回断言。小档的标记回写在正序窗出现逐项区间不跨零的变慢，大档的副本刷新也接近，所以小档和大档各补了一个先跑另一臂的窗口（12 对和 6 对），下表的小档、大档是两窗合计。[默认 19 项](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/default-hotspots.txt) · [小档](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/scale-small.txt) · [小档反序](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/scale-small-reverse.txt) · [中档](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/scale-medium.txt) · [大档](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/scale-large.txt) · [大档反序](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/scale-large-reverse.txt) · [全部配对统计](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/paired-stats.txt)
+
+| 指标 | 配对变化 | 逐项 95% 区间 | 校正区间 | 本次较慢对数 | 3% 门槛下 |
+|---|---:|---:|---:|---:|---:|
+| 默认 `marked_writeback_frame` | −2.3% | −4.2% 至 +2.0% | −5.1% 至 +3.5% | 4/10 | +0.9% |
+| 默认 `shadow_refresh` | +1.4% | −1.7% 至 +2.9% | −2.6% 至 +3.5% | 7/10 | +2.0% |
+| 小档 `marked_writeback_frame` | +1.8% | −3.8% 至 +4.7% | −4.5% 至 +6.1% | 13/24 | −4.5% |
+| 小档 `shadow_refresh` | +3.9% | −0.2% 至 +6.1% | −2.8% 至 +8.1% | 16/24 | −0.9% |
+| 中档 `marked_writeback_frame` | −3.7% | −7.1% 至 +2.7% | −7.8% 至 +3.7% | 3/8 | −1.8% |
+| 中档 `shadow_refresh` | −1.9% | −5.2% 至 +0.4% | −6.7% 至 +2.5% | 2/8 | −2.1% |
+| 大档 `marked_writeback_frame` | +0.3% | −1.6% 至 +1.4% | −1.8% 至 +1.8% | 8/12 | +2.9% |
+| 大档 `shadow_refresh` | **+2.1%** | **+0.9% 至 +3.2%** | −0.3% 至 +5.3% | 10/12 | +1.1% |
+
+默认项的校正区间按 19 项计，三档按 6 项计。默认 19 项的逐项区间全部跨零；提交与围栏等待类（`submit_*`）的区间比 3% 门槛时宽得多，例如 `submit_fence_wait` 为 −13.0% 至 +38.8%，这几项不经过回写代码，宽度来自桌面后台。小档标记回写正序窗为 +4.7%（+1.8% 至 +8.6%，10/12 对较慢），反序窗为 −3.1%（−5.7% 至 +1.3%，3/12），合计 +1.8% 且区间跨零，正序窗的变慢没有复现。更早的「分组版」一节也见过同样的现象：首轮 +4.8%，交换起跑顺序后 +2.9%。大档副本刷新两窗分别为 +2.3% 和 +1.8%，合计逐项区间不跨零，校正后跨零。副本刷新走 `Shadow::update`，这两臂之间没有改动它，也不经过本轮加门的函数；3% 门槛下这项为 +1.1%。
+
+#### 测试与 Validation
+
+- `cargo test --workspace --locked`：33 个测试程序，980 项通过，0 失败，13 项忽略。[日志](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/workspace.txt)
+- `cargo test --locked -p victory-gpu` 连跑 3 轮：每轮 324 项通过，0 失败，4 项忽略。[第 1 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu1.txt) · [第 2 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu2.txt) · [第 3 轮](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/gpu3.txt) · [窗口](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/ci-window.txt)
+- `tools/bench/run.ps1 -CheckOnly`，开启 D3D12 Debug Layer 和 GPU-based validation：`validation_status` 为 passed，`validation_errors` = 0，失败和崩溃均为 0。颜色读回 `[[1, 0.5, -0.25, 2], [0, 0, 0, 0]]`，深度 `[0.25, 0.5, 0.25, 0.25]`，普通检查与验证场景一致。[窗口](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/validation-window.txt) · [结果](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/validation.json)
+- 两套 Clippy 已在三个代码提交上跑过（见上文），之后代码没有改动，没有重跑。
+
+#### 审核关注
+
+- 新门槛允许桌面后台占用最多到 8% 均值，1 MiB 尾延迟和提交类指标的离散度都比 3% 门槛时大。跨门槛的数据不宜直接比较，本节只比同窗、同门槛的两臂。
+- 大档副本刷新 +2.1% 落在本轮没有改动的路径上，上文已建议在正式浸泡中观察小档副本刷新，这项也一并观察。
+- 放行名单比用户点名的多了 Windows 外壳组件（explorer、SearchHost 等）、登录代理 `Microsoft.AAD.BrokerPlugin` 和网易云音乐，它们都只绘制桌面界面。名单之外的进程只会让门槛等待。整卡均值和单次上限对名单内的进程同样有效。
+- 桌面占用持续在 8%–10% 时门槛会一直等，本轮最长等了 18 分钟。gpu-quiet 默认等 180 秒后放弃，由调用方重试；本轮的窗口脚本设为 1800 秒。

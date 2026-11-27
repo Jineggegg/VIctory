@@ -1,0 +1,1086 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+GPU gate waiting (4s): GPU=11% > single-sample limit 10% | 2026-11-27 19:42:40Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=11% | VRAM=4082/32607 MiB | power=60.14 W | temp=38.55 C | graphics=2032 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=dwm(pid=2312) 3D=1%, cloudmusic(pid=26500) 3D=1%
+2026-11-27 19:42:58Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=2% | VRAM=4067/32607 MiB | power=42.50 W | temp=36.74 C | graphics=630 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.5s, 10 samples=2,3,1,4,2,2,3,6,1,2, mean GPU=2.6%, max GPU=6%, rule: mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none, waited=22.3s, busy samples=2, desktop background admitted: chrome(pid=18724) 3D max=2% in 3/10, cloudmusic(pid=26500) 3D max=1% in 1/10, dwm(pid=2312) 3D max=1% in 1/10
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+TEST tier=small run=1 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate samples=3,3,1,1,1,7,1,3,2,3 mean=2.5% max=7% busy=0 waited_s=12.1 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=5% in 4/10, cloudmusic(pid=26500) 3D max=8% in 5/10, dwm(pid=2312) 3D max=7% in 6/10
+warm_ready=False stable_ms=0 P=P0 core=1042 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=1042 mem=14001 link=5x16
+warm_ready=True stable_ms=3020 P=P0 core=2632 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1508.400
+BENCH marked_writeback_frame_us=3414.900
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=756.700
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=642
+BENCH descriptors_100_us=149.400
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7489.700
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=239.000
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3194.800
+BENCH shader_batch_cold_us=11841.800
+BENCH shader_batch_hot_us=751.200
+BENCH prebuild_16_cold_us=12607.600
+BENCH prebuild_16_hot_us=104.200
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.37s
+
+TEST tier=small run=1 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=3,1,2,3,3,2,2,4,5,2 mean=2.7% max=5% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=3% in 2/10, cloudmusic(pid=26500) 3D max=5% in 3/10, dwm(pid=2312) 3D max=4% in 4/10
+warm_ready=True stable_ms=3237 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1511.400
+BENCH marked_writeback_frame_us=3996.100
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=853.700
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=709
+BENCH descriptors_100_us=144.600
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7357.000
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=342.000
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3359.700
+BENCH shader_batch_cold_us=11691.000
+BENCH shader_batch_hot_us=2266.600
+BENCH prebuild_16_cold_us=8409.200
+BENCH prebuild_16_hot_us=104.600
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.35s
+
+TEST tier=small run=2 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=2,4,2,1,2,3,5,3,2,4 mean=2.8% max=5% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=3% in 5/10, cloudmusic(pid=26500) 3D max=5% in 4/10, dwm(pid=2312) 3D max=3% in 5/10
+warm_ready=False stable_ms=0 P=P0 core=1365 mem=810 link=5x16
+warm_ready=True stable_ms=3237 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1493.900
+BENCH marked_writeback_frame_us=3295.700
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=1001.600
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=741
+BENCH descriptors_100_us=138.300
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7063.900
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=246.800
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3073.700
+BENCH shader_batch_cold_us=12919.900
+BENCH shader_batch_hot_us=715.200
+BENCH prebuild_16_cold_us=7731.300
+BENCH prebuild_16_hot_us=111.900
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.35s
+
+TEST tier=small run=2 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate samples=5,1,1,3,7,5,3,2,2,6 mean=3.5% max=7% busy=0 waited_s=11.9 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=3% in 3/10, cloudmusic(pid=26500) 3D max=2% in 2/10, dwm(pid=2312) 3D max=2% in 4/10
+warm_ready=False stable_ms=0 P=P0 core=795 mem=14001 link=5x16
+warm_ready=False stable_ms=1752 P=P0 core=2925 mem=14001 link=5x16
+warm_ready=True stable_ms=3052 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1508.200
+BENCH marked_writeback_frame_us=3642.200
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=809.400
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.600
+BENCH submit_prepare_us=4
+BENCH submit_queue_and_fence_us=691
+BENCH descriptors_100_us=145.700
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=6847.200
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=197.900
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3215.600
+BENCH shader_batch_cold_us=11422.700
+BENCH shader_batch_hot_us=1193.000
+BENCH prebuild_16_cold_us=7843.600
+BENCH prebuild_16_hot_us=100.200
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.33s
+
+TEST tier=small run=3 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate samples=1,2,1,2,5,1,1,2,1,1 mean=1.7% max=5% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=1% in 4/10, cloudmusic(pid=26500) 3D max=2% in 2/10, dwm(pid=2312) 3D max=1% in 3/10
+warm_ready=False stable_ms=0 P=P0 core=705 mem=810 link=5x16
+warm_ready=True stable_ms=3049 P=P0 core=2602 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1545.300
+BENCH marked_writeback_frame_us=3453.300
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=700.400
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=582
+BENCH descriptors_100_us=149.100
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7448.900
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=208.200
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3034.600
+BENCH shader_batch_cold_us=11830.300
+BENCH shader_batch_hot_us=737.800
+BENCH prebuild_16_cold_us=7657.400
+BENCH prebuild_16_hot_us=102.700
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.35s
+
+TEST tier=small run=3 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=2,3,2,1,2,3,3,2,4,1 mean=2.3% max=4% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=5% in 3/10, cloudmusic(pid=26500) 3D max=6% in 3/10, dwm(pid=2312) 3D max=5% in 5/10
+warm_ready=False stable_ms=0 P=P0 core=810 mem=405 link=5x16
+warm_ready=True stable_ms=3021 P=P0 core=2887 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1475.000
+BENCH marked_writeback_frame_us=3302.400
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=828.000
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=682
+BENCH descriptors_100_us=123.900
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7131.700
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=342.900
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3165.400
+BENCH shader_batch_cold_us=11921.800
+BENCH shader_batch_hot_us=697.800
+BENCH prebuild_16_cold_us=8104.500
+BENCH prebuild_16_hot_us=111.000
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.34s
+
+TEST tier=small run=4 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=5,2,1,3,2,2,4,2,2,2 mean=2.5% max=5% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=2% in 5/10, cloudmusic(pid=26500) 3D max=7% in 3/10, dwm(pid=2312) 3D max=5% in 4/10
+warm_ready=False stable_ms=0 P=P0 core=1927 mem=810 link=5x16
+warm_ready=True stable_ms=3036 P=P0 core=2685 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1385.300
+BENCH marked_writeback_frame_us=3200.200
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=969.900
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=847
+BENCH descriptors_100_us=113.600
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=6697.000
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=192.900
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=2989.300
+BENCH shader_batch_cold_us=10641.300
+BENCH shader_batch_hot_us=965.500
+BENCH prebuild_16_cold_us=7666.000
+BENCH prebuild_16_hot_us=100.700
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.34s
+
+TEST tier=small run=4 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate samples=2,3,2,2,2,1,2,1,2,2 mean=1.9% max=3% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=1% in 4/10, cloudmusic(pid=26500) 3D max=4% in 3/10, dwm(pid=2312) 3D max=2% in 2/10
+warm_ready=False stable_ms=0 P=P0 core=1950 mem=7001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2467 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2467 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2467 mem=14001 link=5x16
+warm_ready=True stable_ms=3067 P=P0 core=2827 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1450.000
+BENCH marked_writeback_frame_us=3308.700
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=715.600
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=4
+BENCH submit_queue_and_fence_us=608
+BENCH descriptors_100_us=134.600
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7208.000
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=212.600
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3476.200
+BENCH shader_batch_cold_us=12165.400
+BENCH shader_batch_hot_us=918.900
+BENCH prebuild_16_cold_us=8401.200
+BENCH prebuild_16_hot_us=104.100
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.33s
+
+TEST tier=small run=5 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate waiting (6s): GPU=17% > single-sample limit 10% | 2026-11-27 19:47:50Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=17% | VRAM=4079/32607 MiB | power=55.92 W | temp=39.28 C | graphics=825 MHz | memory=810 MHz | 3D/Compute=none | krig-miner=none | other engines=System(pid=4) Copy=1% | tolerated background=chrome(pid=18724) 3D=2%, dwm(pid=2312) 3D=4%, cloudmusic(pid=26500) 3D=5%
+GPU gate samples=1,6,2,2,3,3,5,2,7,4 mean=3.5% max=7% busy=3 waited_s=28.7 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=1% in 4/10, cloudmusic(pid=26500) 3D max=2% in 1/10, dwm(pid=2312) 3D max=1% in 4/10
+warm_ready=False stable_ms=0 P=P0 core=735 mem=405 link=5x16
+warm_ready=True stable_ms=3019 P=P0 core=2797 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1759.300
+BENCH marked_writeback_frame_us=3551.000
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=1022.200
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=6
+BENCH submit_queue_and_fence_us=904
+BENCH descriptors_100_us=119.000
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=8201.700
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=360.300
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3192.200
+BENCH shader_batch_cold_us=12419.600
+BENCH shader_batch_hot_us=718.500
+BENCH prebuild_16_cold_us=7721.900
+BENCH prebuild_16_hot_us=105.700
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.36s
+
+TEST tier=small run=5 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=8,1,1,3,3,2,5,5,5,4 mean=3.7% max=8% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=2% in 4/10, cloudmusic(pid=26500) 3D max=1% in 3/10, dwm(pid=2312) 3D max=1% in 4/10
+warm_ready=False stable_ms=0 P=P0 core=930 mem=405 link=5x16
+warm_ready=True stable_ms=3065 P=P0 core=2895 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1380.100
+BENCH marked_writeback_frame_us=3339.400
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=750.800
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.600
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=626
+BENCH descriptors_100_us=117.700
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=6742.700
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=192.500
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=2945.800
+BENCH shader_batch_cold_us=11876.500
+BENCH shader_batch_hot_us=652.100
+BENCH prebuild_16_cold_us=7425.500
+BENCH prebuild_16_hot_us=116.900
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.33s
+
+TEST tier=small run=6 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=5,7,1,2,2,2,1,7,3,2 mean=3.2% max=7% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=1% in 3/10, cloudmusic(pid=26500) 3D max=1% in 2/10, dwm(pid=2312) 3D max=1% in 4/10
+warm_ready=False stable_ms=0 P=P0 core=1807 mem=7001 link=5x16
+warm_ready=True stable_ms=3019 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1514.900
+BENCH marked_writeback_frame_us=3354.700
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=833.300
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.300
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=707
+BENCH descriptors_100_us=134.600
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7477.400
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=377.100
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3187.900
+BENCH shader_batch_cold_us=13672.600
+BENCH shader_batch_hot_us=737.500
+BENCH prebuild_16_cold_us=7480.600
+BENCH prebuild_16_hot_us=101.600
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.35s
+
+TEST tier=small run=6 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate samples=2,2,1,2,2,2,1,4,3,3 mean=2.2% max=4% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=4% in 5/10, cloudmusic(pid=26500) 3D max=8% in 3/10, dwm(pid=2312) 3D max=6% in 3/10
+warm_ready=False stable_ms=0 P=P0 core=1132 mem=810 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=1132 mem=810 link=5x16
+warm_ready=True stable_ms=3036 P=P0 core=2565 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1385.600
+BENCH marked_writeback_frame_us=2976.800
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=722.600
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=605
+BENCH descriptors_100_us=133.200
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7923.600
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=296.200
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=2975.700
+BENCH shader_batch_cold_us=11947.100
+BENCH shader_batch_hot_us=1963.900
+BENCH prebuild_16_cold_us=8087.900
+BENCH prebuild_16_hot_us=103.600
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.35s
+
+TEST tier=small run=7 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate waiting (7s): GPU=17% > single-sample limit 10% | 2026-11-27 19:50:17Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=17% | VRAM=4069/32607 MiB | power=47.85 W | temp=38.23 C | graphics=1095 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=18724) 3D=1%, dwm(pid=2312) 3D=1%
+GPU gate samples=2,1,2,3,1,2,2,1,3,6 mean=2.3% max=6% busy=1 waited_s=19.7 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=2% in 2/10, cloudmusic(pid=26500) 3D max=11% in 3/10, dwm(pid=2312) 3D max=7% in 3/10
+warm_ready=False stable_ms=0 P=P0 core=1590 mem=810 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=1590 mem=810 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2415 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2415 mem=14001 link=5x16
+warm_ready=True stable_ms=3021 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1278.700
+BENCH marked_writeback_frame_us=5966.200
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=806.000
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.400
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=673
+BENCH descriptors_100_us=127.000
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7226.500
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=298.300
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3239.000
+BENCH shader_batch_cold_us=11052.500
+BENCH shader_batch_hot_us=4012.700
+BENCH prebuild_16_cold_us=7752.300
+BENCH prebuild_16_hot_us=114.400
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.35s
+
+TEST tier=small run=7 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=3,8,3,2,3,4,3,3,3,4 mean=3.6% max=8% busy=0 waited_s=11.9 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=2% in 9/10, cloudmusic(pid=26500) 3D max=4% in 4/10, dwm(pid=2312) 3D max=5% in 5/10, msedgewebview2(pid=35668) 3D max=1% in 1/10
+warm_ready=False stable_ms=0 P=P0 core=2917 mem=14001 link=5x16
+warm_ready=True stable_ms=3022 P=P0 core=2917 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1418.400
+BENCH marked_writeback_frame_us=3189.000
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=1015.800
+BENCH submit_count=1
+BENCH submit_fence_wait_us=19.200
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=892
+BENCH descriptors_100_us=131.700
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7167.400
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=396.600
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=2970.000
+BENCH shader_batch_cold_us=11883.400
+BENCH shader_batch_hot_us=726.700
+BENCH prebuild_16_cold_us=8368.800
+BENCH prebuild_16_hot_us=104.600
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.35s
+
+TEST tier=small run=8 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate waiting (0s): GPU=12% > single-sample limit 10% | 2026-11-27 19:51:57Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=12% | VRAM=3951/32607 MiB | power=129.55 W | temp=40.65 C | graphics=2932 MHz | memory=14001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=18724) 3D=3%, dwm(pid=2312) 3D=4%
+GPU gate samples=5,4,7,10,4,4,3,10,2,8 mean=5.7% max=10% busy=3 waited_s=31.2 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=6% in 10/10, cloudmusic(pid=26500) 3D max=1% in 2/10, dwm(pid=2312) 3D max=7% in 1/10
+warm_ready=False stable_ms=0 P=P0 core=2175 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2175 mem=14001 link=5x16
+warm_ready=True stable_ms=3036 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1280.500
+BENCH marked_writeback_frame_us=3123.700
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=957.000
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=825
+BENCH descriptors_100_us=135.900
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=6881.500
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=213.500
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=2995.900
+BENCH shader_batch_cold_us=11591.600
+BENCH shader_batch_hot_us=728.500
+BENCH prebuild_16_cold_us=7826.600
+BENCH prebuild_16_hot_us=106.900
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.34s
+
+TEST tier=small run=8 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate samples=1,9,1,1,2,5,2,2,2,1 mean=2.6% max=9% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=2% in 4/10, cloudmusic(pid=26500) 3D max=1% in 2/10, dwm(pid=2312) 3D max=1% in 4/10
+warm_ready=False stable_ms=0 P=P0 core=1710 mem=810 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=1710 mem=810 link=5x16
+warm_ready=True stable_ms=3028 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1430.600
+BENCH marked_writeback_frame_us=3270.400
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=827.100
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=697
+BENCH descriptors_100_us=141.500
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7301.700
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=521.500
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3088.300
+BENCH shader_batch_cold_us=10383.900
+BENCH shader_batch_hot_us=715.900
+BENCH prebuild_16_cold_us=7420.900
+BENCH prebuild_16_hot_us=108.200
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.34s
+
+TEST tier=small run=9 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate samples=3,2,1,9,5,5,10,6,3,7 mean=5.1% max=10% busy=0 waited_s=12.2 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=5% in 7/10, cloudmusic(pid=26500) 3D max=7% in 5/10, dwm(pid=2312) 3D max=5% in 8/10
+warm_ready=False stable_ms=0 P=P0 core=930 mem=405 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=930 mem=405 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2467 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2925 mem=14001 link=5x16
+warm_ready=True stable_ms=3106 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1509.200
+BENCH marked_writeback_frame_us=3666.600
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=685.000
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.400
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=556
+BENCH descriptors_100_us=134.900
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=6665.000
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=224.300
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=2981.800
+BENCH shader_batch_cold_us=11408.600
+BENCH shader_batch_hot_us=829.500
+BENCH prebuild_16_cold_us=8015.700
+BENCH prebuild_16_hot_us=103.100
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.34s
+
+TEST tier=small run=9 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate waiting (7s): GPU=11% > single-sample limit 10% | 2026-11-27 19:54:56Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=11% | VRAM=3878/32607 MiB | power=65.80 W | temp=39.54 C | graphics=2197 MHz | memory=810 MHz | 3D/Compute=none | krig-miner=none | other engines=chrome(pid=18724) VideoDecode=1%, chrome(pid=18724) VideoDecode=1% | tolerated background=chrome(pid=18724) 3D=1%, dwm(pid=2312) 3D=2%, cloudmusic(pid=26500) 3D=3%
+GPU gate samples=4,5,6,3,3,2,2,2,3,6 mean=3.6% max=6% busy=1 waited_s=19.9 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=4% in 8/10, cloudmusic(pid=26500) 3D max=6% in 6/10, dwm(pid=2312) 3D max=5% in 8/10
+warm_ready=True stable_ms=3091 P=P0 core=2857 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1446.900
+BENCH marked_writeback_frame_us=3349.800
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=726.400
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=4
+BENCH submit_queue_and_fence_us=613
+BENCH descriptors_100_us=135.000
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=8195.500
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=222.500
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=2980.400
+BENCH shader_batch_cold_us=10449.700
+BENCH shader_batch_hot_us=650.200
+BENCH prebuild_16_cold_us=7284.900
+BENCH prebuild_16_hot_us=103.200
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.34s
+
+TEST tier=small run=10 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate waiting (7s): GPU=32% > single-sample limit 10% | 2026-11-27 19:55:20Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=32% | VRAM=4032/32607 MiB | power=50.53 W | temp=38.88 C | graphics=810 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=chrome(pid=18724) VideoDecode=1%, System(pid=4) Copy=2% | tolerated background=chrome(pid=18724) 3D=2%, dwm(pid=2312) 3D=5%, cloudmusic(pid=26500) 3D=8%
+GPU gate samples=4,4,9,5,2,2,5,10,2,10 mean=5.3% max=10% busy=3 waited_s=25.1 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=4% in 8/10, cloudmusic(pid=26500) 3D max=2% in 6/10, dwm(pid=2312) 3D max=2% in 8/10
+warm_ready=False stable_ms=0 P=P0 core=945 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=945 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2430 mem=14001 link=5x16
+warm_ready=True stable_ms=3047 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1465.400
+BENCH marked_writeback_frame_us=3204.200
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=925.800
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.400
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=801
+BENCH descriptors_100_us=143.000
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7376.500
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=217.200
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=2948.300
+BENCH shader_batch_cold_us=10986.800
+BENCH shader_batch_hot_us=667.700
+BENCH prebuild_16_cold_us=7379.300
+BENCH prebuild_16_hot_us=101.200
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.34s
+
+TEST tier=small run=10 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate waiting (4s): GPU=12% > single-sample limit 10% | 2026-11-27 19:56:25Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=12% | VRAM=4029/32607 MiB | power=63.01 W | temp=39.43 C | graphics=2070 MHz | memory=810 MHz | 3D/Compute=none | krig-miner=none | other engines=chrome(pid=18724) VideoDecode=1% | tolerated background=chrome(pid=18724) 3D=1%, dwm(pid=2312) 3D=1%, cloudmusic(pid=26500) 3D=3%
+GPU gate samples=3,7,5,2,2,2,2,4,5,6 mean=3.8% max=7% busy=2 waited_s=22.5 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=3% in 7/10, cloudmusic(pid=26500) 3D max=4% in 5/10, dwm(pid=2312) 3D max=3% in 6/10
+warm_ready=False stable_ms=0 P=P0 core=2917 mem=14001 link=5x16
+warm_ready=True stable_ms=3041 P=P0 core=2917 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1425.400
+BENCH marked_writeback_frame_us=3211.200
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=689.700
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.600
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=559
+BENCH descriptors_100_us=142.000
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7030.600
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=232.400
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3092.100
+BENCH shader_batch_cold_us=12365.100
+BENCH shader_batch_hot_us=726.500
+BENCH prebuild_16_cold_us=8693.900
+BENCH prebuild_16_hot_us=107.200
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.34s
+
+TEST tier=small run=11 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate waiting (10s): GPU=27% > single-sample limit 10% | 2026-11-27 19:57:10Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=27% | VRAM=3856/32607 MiB | power=49.93 W | temp=38.46 C | graphics=795 MHz | memory=810 MHz | 3D/Compute=none | krig-miner=none | other engines=chrome(pid=18724) VideoDecode=1%, chrome(pid=18724) VideoDecode=1%, System(pid=4) Copy=1% | tolerated background=chrome(pid=18724) 3D=3%, dwm(pid=2312) 3D=5%, cloudmusic(pid=26500) 3D=7%
+GPU gate samples=5,5,6,9,6,3,5,5,7,7 mean=5.8% max=9% busy=4 waited_s=35.6 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=8% in 10/10, cloudmusic(pid=26500) 3D max=10% in 4/10, dwm(pid=2312) 3D max=6% in 10/10
+warm_ready=True stable_ms=3135 P=P0 core=2655 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1403.400
+BENCH marked_writeback_frame_us=3277.900
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=679.600
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.600
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=545
+BENCH descriptors_100_us=126.100
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7047.300
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=221.500
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3010.900
+BENCH shader_batch_cold_us=12186.000
+BENCH shader_batch_hot_us=3697.600
+BENCH prebuild_16_cold_us=7893.400
+BENCH prebuild_16_hot_us=104.200
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.34s
+
+TEST tier=small run=11 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=5,2,1,5,3,5,10,3,2,5 mean=4.1% max=10% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=5% in 7/10, cloudmusic(pid=26500) 3D max=4% in 3/10, dwm(pid=2312) 3D max=2% in 6/10
+warm_ready=True stable_ms=3060 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1322.200
+BENCH marked_writeback_frame_us=3132.300
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=707.600
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=4
+BENCH submit_queue_and_fence_us=597
+BENCH descriptors_100_us=157.200
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=6900.500
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=219.300
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3103.500
+BENCH shader_batch_cold_us=11224.000
+BENCH shader_batch_hot_us=692.400
+BENCH prebuild_16_cold_us=7770.400
+BENCH prebuild_16_hot_us=104.500
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.35s
+
+TEST tier=small run=12 arm=mark sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate samples=5,2,4,3,3,3,4,6,6,9 mean=4.5% max=9% busy=0 waited_s=12.1 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=4% in 9/10, cloudmusic(pid=26500) 3D max=8% in 4/10, dwm(pid=2312) 3D max=5% in 6/10
+warm_ready=False stable_ms=0 P=P0 core=2925 mem=14001 link=5x16
+warm_ready=True stable_ms=3090 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1741.400
+BENCH marked_writeback_frame_us=3204.700
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=727.300
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=4
+BENCH submit_queue_and_fence_us=588
+BENCH descriptors_100_us=115.200
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7130.000
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=208.200
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3223.100
+BENCH shader_batch_cold_us=11313.200
+BENCH shader_batch_hot_us=904.000
+BENCH prebuild_16_cold_us=8426.000
+BENCH prebuild_16_hot_us=107.900
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 0.33s
+
+TEST tier=small run=12 arm=final sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate waiting (7s): GPU=18% > single-sample limit 10% | 2026-11-27 19:58:35Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=18% | VRAM=3955/32607 MiB | power=60.49 W | temp=37.91 C | graphics=2085 MHz | memory=810 MHz | 3D/Compute=none | krig-miner=none | other engines=chrome(pid=18724) VideoDecode=1%, System(pid=4) Copy=2% | tolerated background=chrome(pid=18724) 3D=3%, dwm(pid=2312) 3D=2%, cloudmusic(pid=26500) 3D=4%
+GPU gate samples=3,4,10,8,2,8,6,4,3,7 mean=5.5% max=10% busy=1 waited_s=19.9 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=6% in 9/10, cloudmusic(pid=26500) 3D max=1% in 4/10, dwm(pid=2312) 3D max=2% in 10/10
+warm_ready=False stable_ms=0 P=P0 core=2925 mem=14001 link=5x16
+warm_ready=False stable_ms=0 P=P0 core=2235 mem=14001 link=5x16
+warm_ready=True stable_ms=3060 P=P0 core=2925 mem=14001 link=5x16
+
+running 1 test
+test pipeline::hot::scale::gradient ... BENCH shadow_refresh_us=1410.800
+BENCH marked_writeback_frame_us=3450.200
+BENCH shadow_refresh_bytes=16777216
+BENCH writeback_bytes=15728640
+BENCH writeback_withheld_bytes=1048576
+BENCH submit_1_us=899.400
+BENCH submit_count=1
+BENCH submit_fence_wait_us=0.500
+BENCH submit_prepare_us=5
+BENCH submit_queue_and_fence_us=659
+BENCH descriptors_100_us=124.000
+BENCH descriptors_100_scanned=2048
+BENCH descriptors_100_changed=100
+BENCH texture_full_us=7146.100
+BENCH texture_full_bytes=22282240
+BENCH texture_full_subresources=4
+BENCH texture_full_staging_requested_bytes=22282240
+BENCH texture_full_staging_backing_bytes=33554432
+BENCH texture_partial_us=224.400
+BENCH texture_partial_bytes=131072
+BENCH texture_partial_subresources=1
+BENCH texture_partial_staging_requested_bytes=131072
+BENCH texture_partial_staging_backing_bytes=33554432
+BENCH texture_title_patch_bytes=1024
+BENCH shader_batch_translate_us=3033.900
+BENCH shader_batch_cold_us=12258.200
+BENCH shader_batch_hot_us=3478.000
+BENCH prebuild_16_cold_us=7870.800
+BENCH prebuild_16_hot_us=113.200
+BENCH prebuild_count=16
+BENCH shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2
+BENCH shader_count=20
+BENCH shader_dxil_bytes=94025
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 0.35s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+Restored studio-comfy.service=active studio-swarm.service=active
