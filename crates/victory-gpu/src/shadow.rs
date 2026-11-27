@@ -3391,6 +3391,7 @@ pub(crate) mod tests {
             on: bool,
             fired: AtomicBool,
             parallel: AtomicBool,
+            reached_gate: AtomicBool,
             remapped_early: AtomicBool,
             remapper: Mutex<Option<std::thread::JoinHandle<Vec<usize>>>>,
         }
@@ -3401,6 +3402,7 @@ pub(crate) mod tests {
                     on: race,
                     fired: AtomicBool::new(false),
                     parallel: AtomicBool::new(false),
+                    reached_gate: AtomicBool::new(false),
                     remapped_early: AtomicBool::new(false),
                     remapper: Mutex::new(None),
                 });
@@ -3417,6 +3419,17 @@ pub(crate) mod tests {
                         finished.store(true, SeqCst);
                         views
                     }));
+                    // First the remap reaches the gate (a remap that does not
+                    // wait there may finish first). This group holds the
+                    // mappings, so it is then waiting there...
+                    let waited = std::time::Instant::now();
+                    while crate::watch::tests::remaps_at_gate() == 0 && !done.load(SeqCst)
+                        && waited.elapsed() < std::time::Duration::from_secs(5)
+                    {
+                        std::thread::yield_now();
+                    }
+                    s.reached_gate.store(crate::watch::tests::remaps_at_gate() != 0 || done.load(SeqCst), SeqCst);
+                    // ...and must not complete while the groups store.
                     let waited = std::time::Instant::now();
                     while !done.load(SeqCst) && waited.elapsed() < std::time::Duration::from_millis(300) {
                         std::thread::yield_now();
@@ -3445,6 +3458,9 @@ pub(crate) mod tests {
                 if views.len() == aliases.len()
                     && (!race || state.fired.load(SeqCst) && state.parallel.load(SeqCst))
                 {
+                    if race {
+                        assert!(state.reached_gate.load(SeqCst), "the remap did not reach the gate in 5 s");
+                    }
                     return (result, state.remapped_early.load(SeqCst), bytes);
                 }
             }
