@@ -356,6 +356,18 @@ thread_local! {
 
 /// Write contiguous shader changes without replaying adjacent CPU bytes.
 fn store_snapshot_changes(at: usize, gpu: &[u8], old: &[u8], title: &[u8]) -> bool {
+    // With an unchanged title snapshot every shader delta needs publication.
+    // The masked store leaves intervening CPU-owned bytes untouched.
+    if title == old {
+        let mut masks = vec![0; gpu.len().div_ceil(16)];
+        change_masks(gpu, old, &mut masks);
+        if masks.iter().all(|&bits| bits == 0) {
+            return false;
+        }
+        let _writing = crate::watch::writing(at, gpu.len());
+        write_masked(at, gpu, &masks);
+        return true;
+    }
     let mut guard = None;
     let mut i = 0;
     while i < gpu.len() {
