@@ -2785,6 +2785,31 @@ pub(crate) mod tests {
         assert_eq!(second, [0xa1, 0xc2, 0xa3, 0xa4], "partial snapshot replayed a completed page");
     }
 
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn fragmented_megabyte_snapshot_needs_no_kernel_writes() {
+        const BYTES: usize = 1 << 20;
+        let host = host().expect("D3D12 for snapshot copy-back");
+        let pool = crate::watch::tests::pool(BYTES / PAGE);
+        let (buffer, data) = host.shared_buffer(BYTES as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, pool as u64, BYTES as u64);
+        copy.update(pool, BYTES);
+        copy.writing(pool, BYTES, false);
+        // The soak shader's XOR against an all-zero title. Every high byte
+        // remains zero, fragmenting the megabyte into over 260,000 runs.
+        let gpu: Vec<u8> = (0..(BYTES / 4) as u32)
+            .flat_map(|word| (0xabc123 + word).to_le_bytes()).collect();
+        copy.write_host(pool as u64, &gpu);
+        crate::host::MAPPED_WRITE_CALLS.set(0);
+        assert_eq!(copy.copy_back(pool, BYTES), BYTES);
+        assert_eq!(crate::host::MAPPED_WRITE_CALLS.get(), 0);
+        let mut actual = vec![0; BYTES];
+        assert!(crate::host::read_into(pool as *const u8, &mut actual));
+        assert!(actual == gpu);
+        drop(copy);
+        crate::watch::tests::free(pool);
+    }
+
     #[test]
     fn unmarked_snapshot_preserves_late_cpu_bytes_across_a_page_boundary() {
         let h = host().expect("D3D12 for shadow copy-back");

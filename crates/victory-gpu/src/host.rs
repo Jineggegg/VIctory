@@ -2856,6 +2856,12 @@ fn read(src: *const u8, dst: *mut u8, len: usize) -> bool {
     unsafe { ReadProcessMemory(GetCurrentProcess(), src.cast(), dst.cast(), len, &mut done) != 0 }
 }
 
+#[cfg(test)]
+thread_local! {
+    /// Kernel destination writes attempted by this test thread, including retries.
+    pub(crate) static MAPPED_WRITE_CALLS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
 /// Copies host memory into title memory after a submission (what shaders
 /// wrote), leaving pages that are not mapped alone.
 ///
@@ -2865,7 +2871,11 @@ fn read(src: *const u8, dst: *mut u8, len: usize) -> bool {
 /// [`copy_mapped`]): 0.35 ms for each piece of the world's copy-back, 39 ms
 /// per frame.
 pub(crate) fn write_mapped(dst: *mut u8, src: *const u8, len: usize) {
-    let write = |at: usize, n: usize| read(src.wrapping_add(at - dst as usize), at as *mut u8, n);
+    let write = |at: usize, n: usize| {
+        #[cfg(test)]
+        MAPPED_WRITE_CALLS.set(MAPPED_WRITE_CALLS.get() + 1);
+        read(src.wrapping_add(at - dst as usize), at as *mut u8, n)
+    };
     if len == 0 || write(dst as usize, len) {
         return;
     }
