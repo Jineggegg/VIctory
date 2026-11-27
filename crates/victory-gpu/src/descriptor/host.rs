@@ -583,9 +583,12 @@ pub(crate) fn empty_view_heap() -> Option<&'static ID3D12DescriptorHeap> {
             Flags: D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
             NodeMask: 0,
         })
-    }.ok()?;
-    // Only publish success. Concurrent successful callers share the winner.
-    Some(HEAP.get_or_init(|| heap))
+    };
+    match heap {
+        Ok(heap) => Some(HEAP.get_or_init(|| heap)),
+        // Another caller may have published its heap during our failed allocation.
+        Err(_) => HEAP.get(),
+    }
 }
 
 /// A sampler heap of our own, for the lists that set a root signature whose
