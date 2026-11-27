@@ -366,17 +366,19 @@ thread_local! {
 }
 
 /// Write contiguous shader changes without replaying adjacent CPU bytes.
-fn store_snapshot_changes(at: usize, gpu: &[u8], old: &[u8], title: &[u8]) -> bool {
+fn store_snapshot_changes(
+    at: usize, gpu: &[u8], old: &[u8], title: &[u8], masks: &mut Vec<u16>,
+) -> bool {
     // With an unchanged title snapshot every shader delta needs publication.
     // The masked store leaves intervening CPU-owned bytes untouched.
     if title == old {
-        let mut masks = vec![0; gpu.len().div_ceil(16)];
-        change_masks(gpu, old, &mut masks);
+        masks.resize(gpu.len().div_ceil(16), 0);
+        change_masks(gpu, old, masks);
         if masks.iter().all(|&bits| bits == 0) {
             return false;
         }
         let _writing = crate::watch::writing(at, gpu.len());
-        write_masked(at, gpu, &masks);
+        write_masked(at, gpu, masks);
         return true;
     }
     let mut guard = None;
@@ -765,6 +767,7 @@ impl Shadow {
             // submission, title memory read only where the GPU wrote.
             const PIECE: usize = 64 << 10;
             let mut title = vec![0u8; PIECE];
+            let mut masks = Vec::new();
             let mut synced = Vec::new();
             let mut at = from;
             while at < to {
@@ -785,7 +788,7 @@ impl Shadow {
                 if host != old && read_title((start + at) as *const u8, title) {
                     // A title writer can run after this read, even in the gap
                     // between two shader writes. Never include a gap in a store.
-                    if store_snapshot_changes(start + at, host, old, title) {
+                    if store_snapshot_changes(start + at, host, old, title, &mut masks) {
                         written += n;
                     }
                     if n == PIECE {
@@ -866,6 +869,7 @@ impl Shadow {
         let saved = t.saved(index);
         if !read || (was_dirty && saved.is_none()) { return 0; }
         let mut written = 0;
+        let mut masks = Vec::new();
         let mut snapshot = self.before.lock().unwrap_or_else(|e| e.into_inner());
         for &(a, b) in spans {
             let (a, b) = (a.max(from), b.min(end));
@@ -874,7 +878,7 @@ impl Shadow {
             let host = unsafe { std::slice::from_raw_parts_mut(self.data.add(a - start), b - a) };
             let title = &title[a - from..b - from];
             let old = saved.as_ref().map_or(title, |s| &s[a - page..b - page]);
-            if store_snapshot_changes(a, host, old, title) { written += b - a; }
+            if store_snapshot_changes(a, host, old, title, &mut masks) { written += b - a; }
             if crate::host::read_into(a as *const u8, host) {
                 for (at, bytes) in &mut snapshot.0 {
                     let (s, e) = ((a - start).max(*at), (b - start).min(*at + bytes.len()));
@@ -2404,7 +2408,7 @@ pub(crate) mod tests {
             let mut previous = 0;
             // SAFETY: the fresh allocation contains this whole 4 KiB page.
             assert_ne!(unsafe { VirtualProtect(at as *const _, 4096, PAGE_READWRITE | PAGE_GUARD, &mut previous) }, 0);
-            assert!(store_snapshot_changes(at, &gpu, &before, &title));
+            assert!(store_snapshot_changes(at, &gpu, &before, &title, &mut Vec::new()));
             let mut actual = [0; 16];
             assert!(crate::host::read_into(at as *const u8, &mut actual));
             assert_eq!(actual, gpu);
