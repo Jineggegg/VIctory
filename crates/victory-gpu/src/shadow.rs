@@ -3067,6 +3067,72 @@ pub(crate) mod tests {
         crate::watch::tests::free(pool);
     }
 
+    /// Sixteen pages that each differ from the snapshot by one byte: the
+    /// smallest write-back split into parallel groups, timed on both paths
+    /// in blocks of 50 rounds alternating parallel, sequential, sequential,
+    /// parallel.
+    #[test]
+    #[ignore = "timing of a sparse snapshot write-back on both paths"]
+    fn sparse_write_back_timing() {
+        const PAGES: usize = 16;
+        let h = host().expect("D3D12 for snapshot copy-back");
+        let rounds = std::env::var("VICTORY_BENCH_ROUNDS").map_or(20_000, |s| s.parse::<usize>().unwrap());
+        let pool = crate::watch::tests::pool(PAGES);
+        let len = PAGES * PAGE;
+        let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+        copy.update(pool, len);
+        let mut times = [Vec::new(), Vec::new()];
+        let mut blocks: [Vec<u64>; 2] = [Vec::new(), Vec::new()];
+        for round in 0..rounds {
+            let sequential = matches!((round / 50) % 4, 1 | 2);
+            copy.writing(pool, len, false);
+            let value = round as u8 ^ 0x5a;
+            for page in 0..PAGES {
+                copy.write_host((pool + page * PAGE + 4096 + 4 * page) as u64, &[value]);
+            }
+            FORCE_SEQUENTIAL.set(sequential);
+            let begin = std::time::Instant::now();
+            let written = copy.copy_back(pool, len);
+            let took = begin.elapsed().as_nanos() as u64;
+            FORCE_SEQUENTIAL.set(false);
+            assert_eq!(written, len);
+            times[usize::from(sequential)].push(took);
+            if round % 50 == 49 {
+                let path = &mut times[usize::from(sequential)];
+                let mut block = path[path.len() - 50..].to_vec();
+                block.sort_unstable();
+                blocks[usize::from(sequential)].push(block[25]);
+            }
+        }
+        for page in 0..PAGES {
+            let mut byte = [0];
+            assert!(crate::host::read_into((pool + page * PAGE + 4096 + 4 * page) as *const u8, &mut byte));
+            assert_eq!(byte[0], (rounds - 1) as u8 ^ 0x5a);
+        }
+        for (name, mut path) in ["parallel", "sequential"].into_iter().zip(times) {
+            path.sort_unstable();
+            let at = |p: usize| path[(path.len() * p).div_ceil(100) - 1] as f64 / 1000.;
+            println!("BENCH sparse_writeback_{name}_rounds={}", path.len());
+            for p in [50, 95, 99] {
+                println!("BENCH sparse_writeback_{name}_p{p}_us={:.3}", at(p));
+            }
+        }
+        // Block medians in their ABBA order: parallel blocks 2k, 2k+1 pair
+        // with sequential blocks 2k, 2k+1.
+        let mut ratios: Vec<f64> = blocks[0].iter().zip(&blocks[1]).map(|(&p, &s)| p as f64 / s as f64).collect();
+        ratios.sort_unstable_by(f64::total_cmp);
+        let slower = ratios.iter().filter(|&&r| r > 1.).count();
+        println!("BENCH sparse_writeback_block_pairs={}", ratios.len());
+        println!("BENCH sparse_writeback_parallel_slower_pairs={slower}");
+        println!("BENCH sparse_writeback_paired_ratio_median={:.4}", ratios[ratios.len() / 2]);
+        println!("BENCH sparse_writeback_paired_ratio_q1={:.4}", ratios[ratios.len() / 4]);
+        println!("BENCH sparse_writeback_paired_ratio_q3={:.4}", ratios[3 * ratios.len() / 4]);
+        drop(copy);
+        crate::watch::tests::free(pool);
+        println!("BENCH verified=1");
+    }
+
     /// Two groups of one parallel write-back at once: a guard installed
     /// after one group read its title page sends its masked store to the
     /// kernel, while the other group stores normally. Both publish the
