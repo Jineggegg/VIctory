@@ -3067,6 +3067,90 @@ pub(crate) mod tests {
         crate::watch::tests::free(pool);
     }
 
+    /// Two groups of one parallel write-back at once: a guard installed
+    /// after one group read its title page sends its masked store to the
+    /// kernel, while the other group stores normally. Both publish the
+    /// shader's bytes and keep the CPU's on either side of them.
+    #[cfg(target_arch = "x86_64")]
+    #[test]
+    fn a_guarded_group_retries_in_the_kernel_while_another_group_completes() {
+        use std::sync::atomic::{AtomicBool, Ordering::SeqCst};
+        use windows_sys::Win32::System::Memory::{PAGE_GUARD, PAGE_READWRITE, VirtualProtect};
+        const PAGES: usize = 16;
+        // In the second and the third group of four pages.
+        const GUARDED: usize = 5;
+        const NORMAL: usize = 9;
+        const RUN: usize = 4096 + 32;
+        let h = host().expect("D3D12 for snapshot copy-back");
+        let pool = crate::watch::tests::pool(PAGES);
+        let len = PAGES * PAGE;
+        let (buffer, data) = h.shared_buffer(len as u64).unwrap();
+        let copy = Shadow::new(buffer, data, 0, pool as u64, len as u64);
+        copy.update(pool, len);
+        copy.writing(pool, len, false);
+        for page in 0..PAGES {
+            copy.write_host((pool + page * PAGE + RUN) as u64, &[0x40 + page as u8; 16]);
+        }
+        let parallel = AtomicBool::new(true);
+        let normal_done = AtomicBool::new(false);
+        let overlapped = AtomicBool::new(false);
+        crate::host::MAPPED_WRITE_CALLS.set(0);
+        let written = copy.snapshot_copy(pool, len, true, |at, title| {
+            let page = (at as usize - pool) / PAGE;
+            let base = pool + page * PAGE;
+            if !crate::watch::mappings_held() {
+                parallel.store(false, SeqCst);
+            }
+            assert!(crate::host::read_into(at, title));
+            if page == GUARDED || page == NORMAL {
+                // SAFETY: bytes beside the shader's run in this live page,
+                // written by the CPU after the title was read.
+                unsafe {
+                    ((base + RUN - 1) as *mut u8).write_volatile(0xc0 + page as u8);
+                    ((base + RUN + 16) as *mut u8).write_volatile(0xd0 + page as u8);
+                }
+            }
+            if page == GUARDED {
+                let mut previous = 0;
+                // SAFETY: one 4 KiB block of this live page; the store's fault clears it.
+                let guarded = unsafe {
+                    VirtualProtect((base + 4096) as *const _, 4096, PAGE_READWRITE | PAGE_GUARD, &mut previous)
+                };
+                assert_ne!(guarded, 0);
+                // The next piece of the other group is read once it stored.
+                let waited = std::time::Instant::now();
+                while !normal_done.load(SeqCst) && waited.elapsed() < std::time::Duration::from_secs(2) {
+                    std::thread::yield_now();
+                }
+                overlapped.store(normal_done.load(SeqCst), SeqCst);
+            }
+            if page == NORMAL + 1 {
+                normal_done.store(true, SeqCst);
+            }
+            true
+        });
+        assert!(parallel.into_inner(), "the write-back kept address order");
+        assert!(overlapped.into_inner(), "the other group did not complete meanwhile");
+        assert_eq!(written, len);
+        // Only the guarded run went through the kernel.
+        assert_eq!(crate::host::MAPPED_WRITE_CALLS.get(), 1);
+        for page in 0..PAGES {
+            let base = pool + page * PAGE;
+            let mut actual = [0; 18];
+            assert!(crate::host::read_into((base + RUN - 1) as *const u8, &mut actual));
+            let cpu = [GUARDED, NORMAL].contains(&page);
+            let mut expected = [0x40 + page as u8; 18];
+            expected[0] = if cpu { 0xc0 + page as u8 } else { 0 };
+            expected[17] = if cpu { 0xd0 + page as u8 } else { 0 };
+            assert_eq!(actual, expected, "title page {page}");
+            // The joined resync took the CPU's bytes into the shadow.
+            assert_eq!(copy.read_host((base + RUN - 4) as u64, 1)[0].to_le_bytes()[3], expected[0]);
+            assert_eq!(copy.read_host((base + RUN + 16) as u64, 1)[0].to_le_bytes()[0], expected[17]);
+        }
+        drop(copy);
+        crate::watch::tests::free(pool);
+    }
+
     /// The title releases a pool while a parallel snapshot write-back is
     /// storing into it and maps one physical page at two addresses that
     /// belong to different groups. The release waits for every group, so
