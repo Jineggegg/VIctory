@@ -1,0 +1,32 @@
+Instrumented parent 3d986b3; default parallelism; selected lines.
+Virtual page numbers are replaced by letters within each process.
+
+Process A. Guard metadata at VirtualFree and at the next take.
+FREE_GUARDED page-A by shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes OS 2 holders Some(["shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes"])
+STALE page-A watch::tests::a_retake_marks_the_copies_and_keeps_the_guard os 4 holders Some(["shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes", "watch::tests::a_retake_marks_the_copies_and_keeps_the_guard"])
+left: 4
+ right: 2
+
+Process B. The same mismatch in a texture staging tracker.
+FREE_GUARDED page-B by shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes OS 2 holders Some(["shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes"])
+STALE page-B texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission os 4 holders Some(["texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission"])
+subresource 3, row 0, format DXGI_FORMAT(28)
+
+Process C. A real submission took both pages of the partial-refresh fixture.
+PARTIAL take page-C via Some("memory::tests::a_submission_that_missed_leaves_the_copies_at_once")
+PARTIAL take page-D via Some("memory::tests::a_submission_that_missed_leaves_the_copies_at_once")
+left: [0, 102, 68, 17]
+ right: [170, 102, 0, 17]
+
+Forced submission between bitmap write and drain.
+assertion `left == right` failed: page 1 held back
+  left: (170, 187)
+ right: (170, 0)
+
+Forced reuse of an old batch address before its last reference dropped.
+left: [162, 0]
+ right: [162, 194]
+
+Completed list / replacement-buffer submissions, before the production fix.
+left: [0]
+ right: [123]
