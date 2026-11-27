@@ -3218,9 +3218,6 @@ pub(crate) mod tests {
         const RUN: usize = 4096 + 32;
         let h = host().expect("D3D12 for snapshot copy-back");
         let _one = parallel_tests();
-        // Both groups can run at once only with a second executor
-        // (`parallel_items`: the caller and up to seven pool threads).
-        let concurrent = std::thread::available_parallelism().map_or(1, usize::from).min(8) > 1;
         let pool = crate::watch::tests::pool(PAGES);
         let len = PAGES * PAGE;
         let (buffer, data) = h.shared_buffer(len as u64).unwrap();
@@ -3234,17 +3231,25 @@ pub(crate) mod tests {
         let guard_ready = AtomicBool::new(false);
         let normal_done = AtomicBool::new(false);
         let (saw_guard, saw_normal) = (AtomicBool::new(false), AtomicBool::new(false));
-        let wait = |flag: &AtomicBool| {
+        // Which thread read each page. Both groups can run at once only if
+        // this write-back has a second executor: `parallel_items` runs the
+        // groups on the caller alone when the process pool is not available.
+        let threads = Mutex::new([None; PAGES]);
+        let second_executor = AtomicBool::new(false);
+        let wait_for = |done: &dyn Fn() -> bool| {
             let waited = std::time::Instant::now();
-            while !flag.load(SeqCst) && waited.elapsed() < std::time::Duration::from_secs(5) {
+            while !done() && waited.elapsed() < std::time::Duration::from_secs(5) {
                 std::thread::yield_now();
             }
-            flag.load(SeqCst)
+            done()
         };
+        let wait = |flag: &AtomicBool| wait_for(&|| flag.load(SeqCst));
         crate::host::MAPPED_WRITE_CALLS.set(0);
         let written = copy.snapshot_copy(pool, len, true, |at, title| {
             let page = (at as usize - pool) / PAGE;
             let base = pool + page * PAGE;
+            let me = std::thread::current().id();
+            threads.lock().unwrap()[page] = Some(me);
             if !parallel_at(pool) {
                 parallel.store(false, SeqCst);
             }
@@ -3265,14 +3270,19 @@ pub(crate) mod tests {
                 };
                 assert_ne!(guarded, 0);
                 guard_ready.store(true, SeqCst);
-                // Its store waits until the other group stored its page and
-                // read the next one.
-                if concurrent {
+                // A second executor shows itself by reading a page on another
+                // thread. With one, the remaining groups go to it while this
+                // group waits: its store waits until the other group stored
+                // its page and read the next one.
+                let other = wait_for(&|| threads.lock().unwrap().iter().flatten().any(|&t| t != me));
+                second_executor.store(other, SeqCst);
+                if other {
                     saw_normal.store(wait(&normal_done), SeqCst);
                 }
             }
-            // The other group stores its page only once the guard is in place.
-            if page == NORMAL && concurrent {
+            // The other group stores its page only once the guard is in place
+            // (one executor reached the guarded group before this one).
+            if page == NORMAL {
                 saw_guard.store(wait(&guard_ready), SeqCst);
             }
             if page == NORMAL + 1 {
@@ -3281,10 +3291,15 @@ pub(crate) mod tests {
             true
         });
         assert!(parallel.into_inner(), "the write-back kept address order");
-        // One executor runs the groups one after another: nothing overlaps.
-        if concurrent {
+        // Without a second executor the groups ran one after another: nothing
+        // overlapped, and only the results below are checked.
+        if second_executor.into_inner() {
+            let threads = threads.into_inner().unwrap();
+            assert_ne!(threads[GUARDED], threads[NORMAL], "both groups ran on one thread");
             assert!(saw_guard.into_inner(), "the other group stored before the guard was installed");
             assert!(saw_normal.into_inner(), "the other group did not complete meanwhile");
+        } else {
+            println!("guarded group: one executor, the groups ran one after another");
         }
         assert_eq!(written, len);
         // Only the guarded run went through the kernel.
