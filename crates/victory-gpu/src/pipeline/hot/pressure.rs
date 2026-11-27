@@ -175,9 +175,9 @@ fn heap_capacity() {
         // heap, root and PSO.
         unsafe {
             data.cast::<u32>().write(u32::MAX);
+            list.list.SetDescriptorHeaps(&[Some(h.heap.clone())]);
             list.list.SetComputeRootSignature(&root);
             list.list.SetPipelineState(&pso);
-            list.list.SetDescriptorHeaps(&[Some(h.heap.clone())]);
             list.list
                 .SetComputeRootDescriptorTable(0, h.gpu(cold as u32));
             list.list

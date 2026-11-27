@@ -57,6 +57,7 @@ pub(super) fn pixel_helper_marks(host: &Host, execute: impl Fn(&str, &HostList, 
             })
             .unwrap();
         let (bits, b) = host.shared_buffer((bit_words * 4) as u64).unwrap();
+        let samplers = crate::descriptor::fallback_samplers().expect("shader-visible sampler heap");
         let list = host.new_list().unwrap();
         // SAFETY: these mapped buffers and descriptors outlive execution.
         unsafe {
@@ -78,7 +79,7 @@ pub(super) fn pixel_helper_marks(host: &Host, execute: impl Fn(&str, &HostList, 
             b.write_bytes(0, bit_words * 4);
             let heap = raw_uav_heap(host, &out, (bytes / 4) as u32);
             let l = &list.list;
-            l.SetDescriptorHeaps(&[Some(heap.clone())]);
+            l.SetDescriptorHeaps(&[Some(heap.clone()), Some(samplers.heap.clone())]);
             l.SetGraphicsRootSignature(&root);
             l.SetPipelineState(&pso);
             let constants = vec![virtual_slot * 32; ps.user_data_dwords().max(1) as usize];
@@ -220,6 +221,7 @@ fn raster_helpers_and_compute_stores_mark_exact_view_pages() {
         let (meta, metadata) = host.shared_buffer(8).unwrap();
         let (bitmap, bits) = host.shared_buffer(12).unwrap();
         let heap = raw_uav_heap(host, &out, words);
+        let samplers = crate::descriptor::fallback_samplers().expect("shader-visible sampler heap");
         let list = host.new_list().unwrap();
         // SAFETY: resources and their mappings live through execution and the
         // fence. The metadata selects page 31 so a crossing changes two words.
@@ -228,7 +230,7 @@ fn raster_helpers_and_compute_stores_mark_exact_view_pages() {
             metadata.cast::<[u32; 2]>().write([31, phase]);
             bits.cast::<[u32; 3]>().write([0; 3]);
             let l = &list.list;
-            l.SetDescriptorHeaps(&[Some(heap.clone())]);
+            l.SetDescriptorHeaps(&[Some(heap.clone()), Some(samplers.heap.clone())]);
             l.SetComputeRootSignature(&root);
             l.SetPipelineState(&pso);
             let constants = vec![0u32; shader.user_data_dwords().max(1) as usize];

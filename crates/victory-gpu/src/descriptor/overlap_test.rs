@@ -148,6 +148,7 @@ impl Kernel {
     }
 
     fn run(&self, host: &Host, heap: &HostHeap, slot: u32) {
+        let samplers = crate::descriptor::fallback_samplers().expect("shader-visible sampler heap");
         let list = host.new_list().unwrap();
         // Follow the heap-indexed dispatch path in draw::State::bind. Each
         // submission gets the chance to refresh the heap's backing buffers.
@@ -163,7 +164,7 @@ impl Kernel {
         // SAFETY: all descriptors, resources and root arguments live through
         // the waited submission. Each buffer implicitly promotes from COMMON.
         unsafe {
-            list.list.SetDescriptorHeaps(&[Some(heap.heap.clone())]);
+            list.list.SetDescriptorHeaps(&[Some(heap.heap.clone()), Some(samplers.heap.clone())]);
             list.list.SetComputeRootSignature(&self.root);
             list.list.SetPipelineState(&self.pso);
             list.list

@@ -342,8 +342,8 @@ impl State {
     /// root signatures and pipeline are set again before the next draw or
     /// dispatch.
     pub(crate) fn host_state_lost(&mut self) {
-        // No title heaps (0) differ from what the host list has, too.
-        (self.host_pipeline, self.host_roots, self.host_heaps) = (0, [0; 2], [usize::MAX; 2]);
+        // Both bound heap keys are nonzero, including the fallback keys.
+        (self.host_pipeline, self.host_roots, self.host_heaps) = (0, [0; 2], [0; 2]);
     }
 
     pub(crate) fn set_heaps(&mut self, heaps: &[This]) {
@@ -623,12 +623,10 @@ impl State {
         if list.take_rebind() {
             (self.host_pipeline, self.host_roots[1]) = (0, 0);
         }
-        // Heaps first: a root signature with directly indexed heaps must be
-        // set after them. Title memory's views need a view heap: ours where
-        // the title binds none (the BVH builder's dispatches may not).
-        let memory_heap = self.heaps[0] == 0
-            && p.stages.iter().any(|s| s.memory.is_some() || has_root_views(&s.translated().host));
-        self.bind_heaps(list, memory_heap);
+        if !self.bind_heaps(list) {
+            not_run("a directly indexed descriptor heap is unavailable");
+            return false;
+        }
         let root = p.root.as_raw() as usize;
         if self.host_roots[usize::from(compute)] != root {
             // SAFETY: an open list and a live root signature.
@@ -984,55 +982,38 @@ impl State {
         Some((index, offset))
     }
 
-    /// Gives the host list the title's heaps if it has others.
-    /// The heaps a list must have bound before a root signature that indexes
-    /// them directly is set: the title's of each kind, and ours for a kind it
-    /// binds none of — D3D12 requires a heap of both kinds to be bound before
-    /// such a signature (the debug layer's id 1419), and breaking that rule
-    /// removes the device on NVIDIA. Compute lists that only read views are
-    /// the case: they bind no sampler heap, and every signature we make says
-    /// its sampler heap is indexed directly.
-    fn wanted(title: [usize; 2], memory_heap: bool) -> [usize; 2] {
-        let sampler = if title[1] != 0 {
-            title[1]
-        } else {
-            SAMPLERS_OURS
-        };
-        let views = if memory_heap { MEMORY_HEAP } else { title[0] };
-        [views, sampler]
+    /// Every translated root signature declares both directly indexed heaps,
+    /// including resource-free shaders. Supply a host heap for each missing kind.
+    fn wanted([views, samplers]: [usize; 2]) -> [usize; 2] {
+        [
+            if views == 0 { MEMORY_HEAP } else { views },
+            if samplers == 0 { SAMPLERS_OURS } else { samplers },
+        ]
     }
 
-    /// Gives the host list the title's heaps if it has others.
-    fn bind_heaps(&mut self, list: &HostList, memory_heap: bool) {
-        let want = Self::wanted(self.heaps, memory_heap);
-        if self.host_heaps != want {
-            let mut heaps: Vec<Option<ID3D12DescriptorHeap>> = self
-                .heaps
-                .iter()
-                .filter(|&&h| h != 0 && h != SAMPLERS_OURS)
-                .filter_map(|&h| crate::descriptor::heap(h as This).host())
-                .map(|h| Some(h.heap.clone()))
-                .collect();
-            if memory_heap && let Some(h) = crate::memory::heap() {
-                heaps.insert(0, Some(h.heap.clone()));
-            }
-            if want[1] == SAMPLERS_OURS {
-                match crate::descriptor::fallback_samplers() {
-                    Some(h) => {
-                        tracing::debug!("the title binds no sampler heap: binding ours");
-                        heaps.push(Some(h.heap.clone()));
-                    }
-                    None => {
-                        once!("no sampler heap of ours to bind");
-                    }
-                }
-            }
-            heaps.iter().flatten().for_each(|h| list.keep(h));
-            // SAFETY: an open list and shader-visible heaps.
-            unsafe { list.list.SetDescriptorHeaps(&heaps) };
-            self.host_heaps = want;
-            self.host_roots = [0; 2];
+    fn bind_heaps(&mut self, list: &HostList) -> bool {
+        let want = Self::wanted(self.heaps);
+        if self.host_heaps == want {
+            return true;
         }
+        let views = match self.heaps[0] {
+            0 => crate::memory::heap(),
+            h => crate::descriptor::heap(h as This).host(),
+        };
+        let samplers = match self.heaps[1] {
+            0 => crate::descriptor::fallback_samplers(),
+            h => crate::descriptor::heap(h as This).host(),
+        };
+        let (Some(views), Some(samplers)) = (views, samplers) else {
+            return false;
+        };
+        list.keep(&views.heap);
+        list.keep(&samplers.heap);
+        // SAFETY: both shader-visible heaps remain live through submission.
+        unsafe { list.list.SetDescriptorHeaps(&[Some(views.heap.clone()), Some(samplers.heap.clone())]) };
+        self.host_heaps = want;
+        self.host_roots = [0; 2];
+        true
     }
 
     /// `ClearUnorderedAccessViewUint` or `...Float` (`float`): the view the
@@ -1077,7 +1058,7 @@ impl State {
             slot: 0,
         };
         readable(list, &written, &view, false);
-        self.bind_heaps(list, false);
+        if !self.bind_heaps(list) { return; }
         list.keep(&resource);
         let gpu = visible.gpu(slot);
         // SAFETY: an open list; both slots view the live resource.
@@ -2014,11 +1995,6 @@ fn is_root_view(u: &victory_shader::emit::UserData) -> bool {
     u.root == RootType::Descriptor && u.dword >= victory_shader::emit::ROOT_SRV_VIEW
 }
 
-/// Whether a shader reads root views through views the host makes.
-fn has_root_views(t: &victory_shader::emit::HostShader) -> bool {
-    t.user_data.iter().any(is_root_view)
-}
-
 /// The console's own primitive topologies.
 const TRIANGLE_FAN: u32 = 6;
 const RECTANGLES: u32 = 17;
@@ -2038,16 +2014,16 @@ pub(crate) mod tests {
     #[test]
     fn a_list_without_a_sampler_heap_gets_ours() {
         // The title binds both: nothing of ours.
-        assert_eq!(State::wanted([0x10, 0x20], false), [0x10, 0x20]);
+        assert_eq!(State::wanted([0x10, 0x20]), [0x10, 0x20]);
         // Views only: our sampler heap after them.
-        assert_eq!(State::wanted([0x10, 0], false), [0x10, SAMPLERS_OURS]);
-        // Neither, with title memory's views needed: ours of both kinds.
+        assert_eq!(State::wanted([0x10, 0]), [0x10, SAMPLERS_OURS]);
+        // Neither, including a depth-only draw: ours of both kinds.
         assert_eq!(
-            State::wanted([0, 0], true),
+            State::wanted([0, 0]),
             [MEMORY_HEAP, SAMPLERS_OURS]
         );
         // A title sampler heap stays whatever the views are.
-        assert_eq!(State::wanted([0, 0x20], true), [MEMORY_HEAP, 0x20]);
+        assert_eq!(State::wanted([0, 0x20]), [MEMORY_HEAP, 0x20]);
     }
     use crate::object::{HRESULT, S_OK};
     use windows::Win32::Graphics::Direct3D::Fxc::D3DCompile;
