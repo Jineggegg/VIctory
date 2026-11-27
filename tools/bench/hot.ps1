@@ -138,6 +138,24 @@ function Assert-Keys($expected, $actual, $context) {
     }
 }
 
+# Older default-suite binaries predate the four texture staging counters.
+# Keep them in each arm's report and compare them when both binaries emit them.
+function Get-ComparableKeys($left, $right, $suite, $context) {
+    if ($suite -ceq 'victory-hot-v1') {
+        $staging = 'texture_full_staging_requested_bytes','texture_full_staging_backing_bytes',
+                   'texture_partial_staging_requested_bytes','texture_partial_staging_backing_bytes'
+        $leftCount = @($staging | Where-Object { $_ -cin $left }).Count
+        $rightCount = @($staging | Where-Object { $_ -cin $right }).Count
+        if ($leftCount -eq 0 -and $rightCount -eq $staging.Count) {
+            $right = @($right | Where-Object { $_ -cnotin $staging })
+        } elseif ($rightCount -eq 0 -and $leftCount -eq $staging.Count) {
+            $left = @($left | Where-Object { $_ -cnotin $staging })
+        }
+    }
+    Assert-Keys $left $right $context
+    $left
+}
+
 function Read-Metrics($text) {
     $values = [ordered]@{}
     foreach ($match in [regex]::Matches($text, 'BENCH (\w+)=(.*)')) {
@@ -354,16 +372,15 @@ function Telemetry-Range($rows, $phase) {
 
 function Paired-Report($a, $b) {
     # Each array is indexed by chronological pair, even on BA rounds.
-    Assert-Keys $a.runs[0].values.Keys $b.runs[0].values.Keys 'A/B'
+    $null = Get-ComparableKeys $a.runs[0].values.Keys $b.runs[0].values.Keys $suiteName 'A/B'
     foreach ($key in $workload) {
         $base = $a.runs[0].values[$key]
         foreach ($row in (@($a.runs) + @($b.runs))) {
             if ($null -eq $base -or $row.values[$key] -ne $base) { throw "Workload mismatch: $key" }
         }
     }
-    Assert-Keys $a.summary.Keys $b.summary.Keys 'A/B summary'
     $table = [ordered]@{}
-    [string[]]$keys = @($a.summary.Keys)
+    [string[]]$keys = @(Get-ComparableKeys $a.summary.Keys $b.summary.Keys $suiteName 'A/B summary')
     [array]::Sort($keys, [StringComparer]::Ordinal)
     # A zero baseline makes a pair's percentage undefined. Keep the two
     # medians and mark the entire metric inestimable instead of dropping pairs.
@@ -434,7 +451,7 @@ function Sample {
                     try {
                         $valid = Measure-One $targets[$label] $warmer $reports[$label] $i $position $label $log $thermal
                         if ($paired -and $valid -and $position -eq 2) {
-                            Assert-Keys $reports.A.runs[-1].values.Keys $reports.B.runs[-1].values.Keys "A/B pair $i"
+                            $null = Get-ComparableKeys $reports.A.runs[-1].values.Keys $reports.B.runs[-1].values.Keys $suiteName "A/B pair $i"
                         }
                     }
                     finally { Save-Json $paths[$label] $reports[$label] }
@@ -493,9 +510,8 @@ function Compare-Reports {
     }
     if (!(Passed $a) -or !(Passed $b)) { exit 1 }
     if ($a.schema -ne $b.schema -or $a.suite -cne $b.suite) { throw '基准格式或工作负载版本不同' }
-    [string[]]$keys = @($a.summary.PSObject.Properties.Name)
+    [string[]]$keys = @(Get-ComparableKeys @($a.summary.PSObject.Properties.Name) @($b.summary.PSObject.Properties.Name) $a.suite 'Comparison')
     [array]::Sort($keys, [StringComparer]::Ordinal)
-    Assert-Keys $keys @($b.summary.PSObject.Properties.Name) 'Comparison'
     if ($a.PSObject.Properties['workload_keys'] -and $b.PSObject.Properties['workload_keys']) {
         Assert-Keys $a.workload_keys $b.workload_keys 'Workload'
         Assert-Keys $a.timing_keys $b.timing_keys 'Timing'
