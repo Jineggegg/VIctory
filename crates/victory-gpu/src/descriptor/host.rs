@@ -17,6 +17,7 @@ use std::sync::Mutex;
 
 use windows::Win32::Graphics::Direct3D12::*;
 use windows::Win32::Graphics::Dxgi::Common::*;
+use windows::core::Interface;
 
 use super::pages::{NULL_PAGE, PAGE, Pages, SCRATCH_PAGE};
 use super::{VIEW_TAG, View, view_at, with_views};
@@ -186,18 +187,23 @@ pub(crate) fn view_pages() -> bool {
         }
         let Some(host) = host() else { return false };
         let slots = victory_shader::emit::HEAP_VIEWS + DYNAMIC;
-        let mut limits = D3D12_FEATURE_DATA_D3D12_OPTIONS19::default();
-        // SAFETY: the query writes the matching feature structure. Older
-        // runtimes can reject the query; keep the allocation probe there.
-        if unsafe {
-            host.device.CheckFeatureSupport(
-                D3D12_FEATURE_D3D12_OPTIONS19,
-                (&raw mut limits).cast(),
-                size_of_val(&limits) as u32,
-            )
-        }.is_ok() && limits.MaxViewDescriptorHeapSize < slots {
-            tracing::info!(paged = true, limit = limits.MaxViewDescriptorHeapSize, "host view heaps");
-            return true;
+        // Without the debug layer the original allocation probe is authoritative:
+        // preserve driver-specific flat capacity even beyond the reported limit.
+        // Check the actual device: a caller can enable validation outside VIctory.
+        if host.device.cast::<ID3D12InfoQueue>().is_ok() {
+            let mut limits = D3D12_FEATURE_DATA_D3D12_OPTIONS19::default();
+            // SAFETY: the query writes the matching feature structure. Older
+            // runtimes can reject it; retain the allocation probe in that case.
+            if unsafe {
+                host.device.CheckFeatureSupport(
+                    D3D12_FEATURE_D3D12_OPTIONS19,
+                    (&raw mut limits).cast(),
+                    size_of_val(&limits) as u32,
+                )
+            }.is_ok() && limits.MaxViewDescriptorHeapSize < slots {
+                tracing::info!(paged = true, limit = limits.MaxViewDescriptorHeapSize, "host view heaps");
+                return true;
+            }
         }
         let desc = D3D12_DESCRIPTOR_HEAP_DESC {
             Type: D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
