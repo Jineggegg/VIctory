@@ -3218,9 +3218,6 @@ pub(crate) mod tests {
         const RUN: usize = 4096 + 32;
         let h = host().expect("D3D12 for snapshot copy-back");
         let _one = parallel_tests();
-        // Both groups can run at once only with a second executor
-        // (`parallel_items`: the caller and up to seven pool threads).
-        let concurrent = std::thread::available_parallelism().map_or(1, usize::from).min(8) > 1;
         let pool = crate::watch::tests::pool(PAGES);
         let len = PAGES * PAGE;
         let (buffer, data) = h.shared_buffer(len as u64).unwrap();
@@ -3234,17 +3231,25 @@ pub(crate) mod tests {
         let guard_ready = AtomicBool::new(false);
         let normal_done = AtomicBool::new(false);
         let (saw_guard, saw_normal) = (AtomicBool::new(false), AtomicBool::new(false));
-        let wait = |flag: &AtomicBool| {
+        // Which thread read each page. Both groups can run at once only if
+        // this write-back has a second executor: `parallel_items` runs the
+        // groups on the caller alone when the process pool is not available.
+        let threads = Mutex::new([None; PAGES]);
+        let second_executor = AtomicBool::new(false);
+        let wait_for = |done: &dyn Fn() -> bool| {
             let waited = std::time::Instant::now();
-            while !flag.load(SeqCst) && waited.elapsed() < std::time::Duration::from_secs(5) {
+            while !done() && waited.elapsed() < std::time::Duration::from_secs(5) {
                 std::thread::yield_now();
             }
-            flag.load(SeqCst)
+            done()
         };
+        let wait = |flag: &AtomicBool| wait_for(&|| flag.load(SeqCst));
         crate::host::MAPPED_WRITE_CALLS.set(0);
         let written = copy.snapshot_copy(pool, len, true, |at, title| {
             let page = (at as usize - pool) / PAGE;
             let base = pool + page * PAGE;
+            let me = std::thread::current().id();
+            threads.lock().unwrap()[page] = Some(me);
             if !parallel_at(pool) {
                 parallel.store(false, SeqCst);
             }
@@ -3265,14 +3270,19 @@ pub(crate) mod tests {
                 };
                 assert_ne!(guarded, 0);
                 guard_ready.store(true, SeqCst);
-                // Its store waits until the other group stored its page and
-                // read the next one.
-                if concurrent {
+                // A second executor shows itself by reading a page on another
+                // thread. With one, the remaining groups go to it while this
+                // group waits: its store waits until the other group stored
+                // its page and read the next one.
+                let other = wait_for(&|| threads.lock().unwrap().iter().flatten().any(|&t| t != me));
+                second_executor.store(other, SeqCst);
+                if other {
                     saw_normal.store(wait(&normal_done), SeqCst);
                 }
             }
-            // The other group stores its page only once the guard is in place.
-            if page == NORMAL && concurrent {
+            // The other group stores its page only once the guard is in place
+            // (one executor reached the guarded group before this one).
+            if page == NORMAL {
                 saw_guard.store(wait(&guard_ready), SeqCst);
             }
             if page == NORMAL + 1 {
@@ -3281,10 +3291,15 @@ pub(crate) mod tests {
             true
         });
         assert!(parallel.into_inner(), "the write-back kept address order");
-        // One executor runs the groups one after another: nothing overlaps.
-        if concurrent {
+        // Without a second executor the groups ran one after another: nothing
+        // overlapped, and only the results below are checked.
+        if second_executor.into_inner() {
+            let threads = threads.into_inner().unwrap();
+            assert_ne!(threads[GUARDED], threads[NORMAL], "both groups ran on one thread");
             assert!(saw_guard.into_inner(), "the other group stored before the guard was installed");
             assert!(saw_normal.into_inner(), "the other group did not complete meanwhile");
+        } else {
+            println!("guarded group: one executor, the groups ran one after another");
         }
         assert_eq!(written, len);
         // Only the guarded run went through the kernel.
@@ -3306,8 +3321,9 @@ pub(crate) mod tests {
         crate::watch::tests::free(pool);
     }
 
-    /// Tests that need a write-back to run in parallel, one at a time: the
-    /// alias races' remaps send other write-backs into address order.
+    /// Tests that need a write-back to run in parallel, one at a time: a
+    /// remap sends other write-backs into address order. The alias races run
+    /// in child processes ([`alias_race_alone`]) and take it there too.
     fn parallel_tests() -> std::sync::MutexGuard<'static, ()> {
         static ONE: Mutex<()> = Mutex::new(());
         ONE.lock().unwrap_or_else(|e| e.into_inner())
@@ -3390,6 +3406,7 @@ pub(crate) mod tests {
             on: bool,
             fired: AtomicBool,
             parallel: AtomicBool,
+            reached_gate: AtomicBool,
             remapped_early: AtomicBool,
             remapper: Mutex<Option<std::thread::JoinHandle<Vec<usize>>>>,
         }
@@ -3400,6 +3417,7 @@ pub(crate) mod tests {
                     on: race,
                     fired: AtomicBool::new(false),
                     parallel: AtomicBool::new(false),
+                    reached_gate: AtomicBool::new(false),
                     remapped_early: AtomicBool::new(false),
                     remapper: Mutex::new(None),
                 });
@@ -3416,6 +3434,17 @@ pub(crate) mod tests {
                         finished.store(true, SeqCst);
                         views
                     }));
+                    // First the remap reaches the gate (a remap that does not
+                    // wait there may finish first). This group holds the
+                    // mappings, so it is then waiting there...
+                    let waited = std::time::Instant::now();
+                    while crate::watch::tests::remaps_at_gate() == 0 && !done.load(SeqCst)
+                        && waited.elapsed() < std::time::Duration::from_secs(5)
+                    {
+                        std::thread::yield_now();
+                    }
+                    s.reached_gate.store(crate::watch::tests::remaps_at_gate() != 0 || done.load(SeqCst), SeqCst);
+                    // ...and must not complete while the groups store.
                     let waited = std::time::Instant::now();
                     while !done.load(SeqCst) && waited.elapsed() < std::time::Duration::from_millis(300) {
                         std::thread::yield_now();
@@ -3430,19 +3459,23 @@ pub(crate) mod tests {
                 };
                 // Read the section before giving back the views.
                 let bytes = section_bytes();
-                // Only the views this run mapped: an address it failed to map
-                // may be another test's memory by now.
+                // Only the views this run mapped, while it still maps them: the
+                // rest of the released pool, and an address it failed to map,
+                // may be other memory by now. Reporting them would dirty, guard
+                // and unlink pages someone else holds.
                 for &view in &views {
                     crate::watch::title_memory_remapped(view, PAGE);
                     // SAFETY: a view `remap` mapped; the copy is gone.
                     unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: view as _ }) };
                 }
-                crate::watch::title_memory_remapped(pool, len);
                 // Another test's remap kept this one in address order, or took
                 // the released range: neither is the case under test.
                 if views.len() == aliases.len()
                     && (!race || state.fired.load(SeqCst) && state.parallel.load(SeqCst))
                 {
+                    if race {
+                        assert!(state.reached_gate.load(SeqCst), "the remap did not reach the gate in 5 s");
+                    }
                     return (result, state.remapped_early.load(SeqCst), bytes);
                 }
             }
@@ -3520,30 +3553,65 @@ pub(crate) mod tests {
         });
     }
 
+    /// Runs `race`, the body of test `name` of this module, alone in a child
+    /// process of this test binary. An alias race releases and remaps title
+    /// memory and reports it process-wide: freed addresses another test
+    /// reuses, and the guard state of their pages, must not be shared with
+    /// tests running beside it. The child's output is kept unless it fails,
+    /// so this binary's results count each race once.
+    fn alias_race_alone(name: &str, race: impl FnOnce()) {
+        const CHILD: &str = "VICTORY_TEST_ALIAS_RACE_CHILD";
+        if std::env::var_os(CHILD).is_some() {
+            race();
+            return;
+        }
+        let test = format!("shadow::tests::{name}");
+        let out = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", &test, "--test-threads=1", "--nocapture"])
+            .env(CHILD, "1")
+            .output()
+            .unwrap();
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            out.status.success() && stdout.contains("test result: ok. 1 passed"),
+            "{test} in a child process: {}\n{stdout}\n{}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
     /// The release waits for every group of a parallel snapshot write-back.
     #[test]
     fn a_release_and_alias_during_parallel_groups_waits_for_them() {
-        snapshot_alias_race(true);
+        alias_race_alone("a_release_and_alias_during_parallel_groups_waits_for_them", || {
+            snapshot_alias_race(true);
+        });
     }
 
     /// With the pool released behind the runtime's back, mapping the alias
     /// waits for every group of a parallel snapshot write-back.
     #[test]
     fn an_alias_after_an_unseen_release_waits_for_snapshot_groups() {
-        snapshot_alias_race(false);
+        alias_race_alone("an_alias_after_an_unseen_release_waits_for_snapshot_groups", || {
+            snapshot_alias_race(false);
+        });
     }
 
     /// The release waits for every run of a parallel marked write-back.
     #[test]
     fn a_release_and_alias_during_parallel_marked_runs_waits_for_them() {
-        marked_alias_race(true);
+        alias_race_alone("a_release_and_alias_during_parallel_marked_runs_waits_for_them", || {
+            marked_alias_race(true);
+        });
     }
 
     /// With the pool released behind the runtime's back, mapping the alias
     /// waits for every run of a parallel marked write-back.
     #[test]
     fn an_alias_after_an_unseen_release_waits_for_marked_runs() {
-        marked_alias_race(false);
+        alias_race_alone("an_alias_after_an_unseen_release_waits_for_marked_runs", || {
+            marked_alias_race(false);
+        });
     }
 
     #[test]

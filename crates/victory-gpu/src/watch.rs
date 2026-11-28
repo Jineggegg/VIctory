@@ -1189,6 +1189,13 @@ pub(crate) mod tests {
         unsafe { VirtualFree(p as *mut _, 0, MEM_RELEASE) };
     }
 
+    /// Remaps counted in at [`remapping`]: each counts itself in under the
+    /// gate's lock and only then waits there, so while a write-back holds
+    /// its mappings a counted remap is waiting at the gate.
+    pub(crate) fn remaps_at_gate() -> usize {
+        remaps().0
+    }
+
     /// Trackers joining pages a neighbour guarded: how long they hold the
     /// guard lock. Run alone (held_times drains process-wide counters).
     #[cfg(feature = "diagnostics")]

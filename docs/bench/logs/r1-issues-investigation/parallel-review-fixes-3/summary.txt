@@ -1,0 +1,16 @@
+c3 a_release_and_alias_during_parallel_groups_waits_for_them: 10/10 passed
+c3 an_alias_after_an_unseen_release_waits_for_snapshot_groups: 10/10 passed
+c3 a_release_and_alias_during_parallel_marked_runs_waits_for_them: 10/10 passed
+c3 an_alias_after_an_unseen_release_waits_for_marked_runs: 10/10 passed
+c3 a_guarded_group_retries_in_the_kernel_while_another_group_completes: 10/10 passed
+nogate a_release_and_alias_during_parallel_groups_waits_for_them: 0/1 passed
+nogate an_alias_after_an_unseen_release_waits_for_snapshot_groups: 0/1 passed
+nogate a_release_and_alias_during_parallel_marked_runs_waits_for_them: 0/1 passed
+nogate an_alias_after_an_unseen_release_waits_for_marked_runs: 0/1 passed
+  tests-nogate.log: message "a group stored into the remapped physical page" x3
+  tests-nogate.log: message "the remap completed while groups were storing" x1
+ci-run1/ci-workspace.txt: 9 top-level programs, passed=570, failed=1, ignored=9 (child-process result lines not counted: 4)
+ci-workspace.txt: 29 top-level programs, passed=976, failed=0, ignored=13 (child-process result lines not counted: 4)
+ci-gpu1.txt: 2 top-level programs, passed=321, failed=0, ignored=4 (child-process result lines not counted: 3)
+ci-gpu2.txt: 2 top-level programs, passed=321, failed=0, ignored=4 (child-process result lines not counted: 3)
+ci-gpu3.txt: 2 top-level programs, passed=321, failed=0, ignored=4 (child-process result lines not counted: 3)

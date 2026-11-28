@@ -1,0 +1,15 @@
+diff --git a/crates/victory-gpu/src/watch.rs b/crates/victory-gpu/src/watch.rs
+index 195640e..706db2d 100644
+--- a/crates/victory-gpu/src/watch.rs
++++ b/crates/victory-gpu/src/watch.rs
+@@ -922,9 +922,7 @@ pub struct Remapping(());
+ pub fn remapping() -> Remapping {
+     let mut state = remaps();
+     state.0 += 1;
+-    while state.1 != 0 {
+-        state = REMAPS_DONE.wait(state).unwrap_or_else(|e| e.into_inner());
+-    }
++    // NEGATIVE CONTROL: no wait
+     Remapping(())
+ }
+ 
