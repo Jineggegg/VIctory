@@ -1,0 +1,346 @@
+GPU idle gate used from this directory on (2026-11-27, at the user's request).
+
+Old rule (all earlier logs, including ../ and the rest of r1-issues-investigation):
+  window scripts: every sample of 3 (scenarios, validation) or 10 (1 MiB soak) consecutive
+  nvidia-smi readings <= 3 % whole-GPU utilization; run.ps1 called with -MaxGpuUtilization 3.
+  gpu-quiet (accept3-tools copy): 10 consecutive samples < 15 % with no 3D/Compute user other
+  than chrome/dwm/msedge/firefox/brave at <= 3 % per engine.
+  On an idle desktop the GPU sits at 3-6 % (35 C, ~62 W), so the second review round's CI and
+  validation windows were refused 21 times (Microsoft.AAD.BrokerPlugin, ms-teams at 1 % 3D).
+
+New rule (accept3-tools/gpu-gate.ps1, shared by gpu-quiet and every per-run gate):
+  the last 10 samples average <= 8 % and none is above 10 % (span >= 10 s);
+  no process outside the desktop-background list uses a 3D/Compute/CUDA engine;
+  no miner process. Desktop background is admitted and logged with its peak per engine.
+  A sample that breaks the rule only makes the gate wait; it never stops or signals a process.
+  gpu-quiet gives up after GPU_QUIET_TIMEOUT seconds (default 180; these runs used 1800).
+  run.ps1 keeps its own default per-sample limit of 10 %; the -MaxGpuUtilization 3 override is gone.
+
+Files changed (not versioned: accept-r1/target/accept3-tools and investigate-r1/target):
+  accept3-tools/gpu-gate.ps1          new, full text below
+  accept3-tools/bin/gpu-quiet         gpu_sample() calls gpu-gate.ps1 (diff below)
+  accept3-tools/window-extra.sh       runs accept3-tools/bin/gpu-quiet instead of the PATH copy
+  accept3-tools/fixed/window.sh       same
+  investigate-r1/target/parallel-review3/{bench,scenarios,final}.ps1
+                                      copies of parallel-review2 with Gate = Invoke-GpuGate
+Versioned: tools/bench/hot.ps1 records gpu-quiet's "Idle window:" line as quiet_window.admission;
+  tools/bench/hot.sh can run another gpu-quiet via VICTORY_GPU_QUIET (commit dc725af).
+Not changed: ~/.local/bin/gpu-quiet (global copy; tolerates any non-miner <= 8 % per engine).
+
+===== accept3-tools/gpu-gate.ps1
+# Shared GPU idle gate for VIctory benchmark windows. Dot-source this file; it only
+# defines functions. Used by bin/gpu-quiet and by the investigate-r1 window scripts.
+#
+# Admission (2026-11-27, user request): the desktop alone keeps the whole GPU at
+# 3-6 %, so a run starts when
+#   * the last 10 samples average <= 8 % whole-GPU utilization,
+#   * no single one of them exceeds 10 %,
+#   * no process outside the desktop-background list uses a 3D/Compute/CUDA engine,
+#   * no miner process exists.
+# Desktop background (compositor, browsers, Edge WebView, Teams, Windows shell) is
+# admitted and every such process is written to the log. Anything else only makes
+# the gate wait. The gate never stops or signals any process.
+
+function Get-GpuGateDesktop { @(
+    'dwm', 'csrss', 'explorer', 'ShellExperienceHost', 'StartMenuExperienceHost',
+    'SearchHost', 'SearchApp', 'TextInputHost', 'ApplicationFrameHost', 'LockApp',
+    'Microsoft.AAD.BrokerPlugin', 'PhoneExperienceHost', 'Widgets', 'WidgetBoard',
+    'chrome', 'msedge', 'msedgewebview2', 'firefox', 'brave', 'opera',
+    'ms-teams', 'Teams', 'cloudmusic'
+) }
+
+function Get-GpuGateSample {
+    $smi = "$env:WINDIR\System32\nvidia-smi.exe"
+    $query = '--query-gpu=name,driver_version,utilization.gpu,memory.used,memory.total,power.draw,temperature.gpu,clocks.current.graphics,clocks.current.memory'
+    $rows = @(& $smi $query '--format=csv,noheader,nounits')
+    if ($LASTEXITCODE -ne 0 -or $rows.Count -ne 1) { throw 'Expected one NVIDIA GPU from nvidia-smi' }
+    $fields = $rows[0] -split ',\s*'
+    if ($fields.Count -ne 9 -or $fields[2] -notmatch '^\d+$') { throw "Invalid GPU utilization: $rows" }
+    $util = [int]$fields[2]
+    $eng = @(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine -OperationTimeoutSec 6)
+    $desktop = Get-GpuGateDesktop
+    $owners = @(); $other = @(); $tolerated = @(); $tracked = 0
+    foreach ($row in $eng) {
+        if ($row.Name -notmatch '^pid_(\d+)_.*_engtype_(.+)$') { continue }
+        $procId = $Matches[1]; $type = $Matches[2]
+        $isTracked = $type -match '^(3d|compute|cuda)'
+        if ($isTracked) { $tracked++ }
+        if ($null -eq $row.UtilizationPercentage) { throw 'Unreadable GPU Engine counter' }
+        if ($row.UtilizationPercentage -le 0) { continue }
+        $name = (Get-Process -Id $procId -ErrorAction SilentlyContinue).ProcessName
+        if (!$name) { $name = 'unknown' }
+        $entry = [pscustomobject]@{ name = $name; pid = $procId; type = $type; pct = [int]$row.UtilizationPercentage }
+        if (!$isTracked) { $other += $entry }
+        elseif ($name -in $desktop) { $tolerated += $entry }
+        else { $owners += $entry }
+    }
+    if (!$tracked) { throw 'No Windows 3D/Compute engine counters available' }
+    $miner = @(Get-Process -Name 'krig-miner', 'alpha-miner' -ErrorAction SilentlyContinue)
+    $fmt = { param($list) if ($list.Count) { ($list | ForEach-Object { "$($_.name)(pid=$($_.pid)) $($_.type)=$($_.pct)%" }) -join ', ' } else { 'none' } }
+    $line = '{0:u} | {1} | driver={2} | GPU={3}% | VRAM={4}/{5} MiB | power={6} W | temp={7} C | graphics={8} MHz | memory={9} MHz | 3D/Compute={10} | krig-miner={11} | other engines={12} | tolerated background={13}' -f `
+        [datetime]::UtcNow, $fields[0], $fields[1], $util, $fields[3], $fields[4], $fields[5], $fields[6], $fields[7], $fields[8],
+        (& $fmt $owners), $(if ($miner.Count) { ($miner | ForEach-Object { "$($_.ProcessName)($($_.Id))" }) -join ',' } else { 'none' }),
+        (& $fmt $other), (& $fmt $tolerated)
+    [pscustomobject]@{ util = $util; owners = $owners; tolerated = $tolerated; miners = $miner.Count; line = $line }
+}
+
+# Waits until the admission rule holds. Returns the accepted window, or $null after
+# TimeoutSeconds (0 = wait indefinitely). Waiting lines go to the output so the log
+# shows why a run was delayed (Write-Host, so they never mix into the returned
+# object); at most one per distinct reason every 20 s.
+function Wait-GpuIdle {
+    param([int]$Samples = 10, [double]$MaxMean = 8, [int]$MaxSingle = 10,
+          [double]$MinSpanSeconds = 10, [int]$IntervalMs = 850, [int]$TimeoutSeconds = 0)
+    $clock = [Diagnostics.Stopwatch]::StartNew()
+    $window = [Collections.Generic.List[object]]::new()
+    $busy = 0; $lastReason = ''; $lastLogged = -1e9; $last = $null
+    while ($true) {
+        $s = Get-GpuGateSample
+        $last = $s
+        $now = $clock.Elapsed.TotalSeconds
+        $reason = $null; $kind = ''
+        if ($s.miners) { $reason = 'miner process present'; $kind = 'miner' }
+        elseif ($s.owners.Count) { $kind = 'owner'; $reason = 'non-desktop process on 3D/Compute: ' + (($s.owners | ForEach-Object { "$($_.name)(pid=$($_.pid)) $($_.type)=$($_.pct)%" }) -join ', ') }
+        elseif ($s.util -gt $MaxSingle) { $kind = 'single'; $reason = "GPU=$($s.util)% > single-sample limit $MaxSingle%" }
+        if ($reason) {
+            $window.Clear()
+        } else {
+            $window.Add([pscustomobject]@{ t = $now; s = $s })
+            while ($window.Count -gt $Samples) { $window.RemoveAt(0) }
+            if ($window.Count -eq $Samples) {
+                $vals = @($window | ForEach-Object { $_.s.util })
+                $mean = ($vals | Measure-Object -Average).Average
+                $span = $now - $window[0].t
+                if ($mean -le $MaxMean -and $span -ge $MinSpanSeconds) {
+                    $bg = @{}
+                    foreach ($w in $window) { foreach ($e in $w.s.tolerated) {
+                        $k = "$($e.name)(pid=$($e.pid)) $($e.type)"
+                        if (!$bg.ContainsKey($k)) { $bg[$k] = @{ max = 0; n = 0 } }
+                        $bg[$k].max = [Math]::Max($bg[$k].max, $e.pct); $bg[$k].n++
+                    } }
+                    $bgText = if ($bg.Count) { ($bg.Keys | Sort-Object | ForEach-Object { "$_ max=$($bg[$_].max)% in $($bg[$_].n)/$Samples" }) -join ', ' } else { 'none' }
+                    return [pscustomobject]@{
+                        samples = $vals; mean = $mean; max = ($vals | Measure-Object -Maximum).Maximum
+                        span = $span; waited = $now; busy = $busy; background = $bgText; line = $s.line
+                        rule = "mean<=$MaxMean% single<=$MaxSingle% over $Samples samples, non-desktop 3D/Compute=none"
+                    }
+                }
+                if ($mean -gt $MaxMean) { $kind = 'mean'; $reason = ('mean of last {0} = {1:F1}% > {2}%' -f $Samples, $mean, $MaxMean) }
+            }
+        }
+        if ($reason) {
+            $busy++
+            if ($kind -ne $lastReason -or ($now - $lastLogged) -ge 20) {
+                Write-Host ("GPU gate waiting ({0:F0}s): {1} | {2}" -f $now, $reason, $s.line)
+                $lastReason = $kind; $lastLogged = $now
+            }
+        }
+        if ($TimeoutSeconds -gt 0 -and $now -ge $TimeoutSeconds) {
+            Write-Host $last.line
+            return $null
+        }
+        Start-Sleep -Milliseconds $IntervalMs
+    }
+}
+
+# One-line form for the per-run gates inside window scripts. The prefix is kept
+# from the old 3 % gates ("GPU gate samples=").
+function Invoke-GpuGate {
+    $g = Wait-GpuIdle
+    Write-Output ('GPU gate samples={0} mean={1:F1}% max={2}% busy={3} waited_s={4:F1} rule={5} desktop background={6}' -f `
+        ($g.samples -join ','), $g.mean, $g.max, $g.busy, $g.waited, $g.rule, $g.background)
+}
+
+===== accept3-tools/bin/gpu-quiet
+--- gpu-quiet	2026-11-27 19:12:10.664855077 +0000
++++ gpu-quiet	2026-11-27 19:13:05.715240200 +0000
+@@ -176,75 +176,31 @@
+ }
+ 
+ gpu_sample() {
+-    local check='$false' ps
+-    if [[ $1 == quiet ]]; then check='$true'; fi
+-    ps=$(cat <<'PS'
+-$ErrorActionPreference = "Stop"
+-[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+-$smi = "C:\Windows\System32\nvidia-smi.exe"
+-$query = "--query-gpu=name,driver_version,utilization.gpu,memory.used,memory.total,power.draw,temperature.gpu,clocks.current.graphics,clocks.current.memory"
+-$clock = [Diagnostics.Stopwatch]::StartNew()
+-$since = $null
+-$lastBusy = ""
+-$count = 0
+-$peak = 0
+-do {
+-    $rows = @(& $smi $query "--format=csv,noheader,nounits")
+-    if ($LASTEXITCODE -ne 0 -or $rows.Count -ne 1) { throw "Expected one NVIDIA GPU from nvidia-smi" }
+-    $fields = $rows[0] -split ",\s*"
+-    if ($fields.Count -ne 9 -or $fields[2] -notmatch "^\d+$") { throw "Invalid GPU utilization: $rows" }
+-    $util = [int]$fields[2]
+-    $eng = @(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine -OperationTimeoutSec 6)
+-    $owners = @()
+-    $other = @()
+-    $tolerated = @()
+-    $tracked = 0
+-    foreach ($row in $eng) {
+-        if ($row.Name -notmatch "^pid_(\d+)_.*_engtype_(.+)$") { continue }
+-        $procId = $Matches[1]; $type = $Matches[2]
+-        $isTracked = $type -match "^(3d|compute|cuda)"
+-        if ($isTracked) { $tracked++ }
+-        if ($null -eq $row.UtilizationPercentage) { throw "Unreadable GPU Engine counter" }
+-        if ($row.UtilizationPercentage -gt 0) {
+-            $name = (Get-Process -Id $procId -ErrorAction SilentlyContinue).ProcessName
+-            if (!$name) { $name = "unknown" }
+-            $entry = "$name(pid=$procId) $type=$($row.UtilizationPercentage)%"
+-            # Desktop background (browser video, compositing) at <= 3% per engine is tolerated and logged.
+-            if ($isTracked -and $row.UtilizationPercentage -le 3 -and $name -in @("chrome","dwm","msedge","firefox","brave")) { $tolerated += $entry }
+-            elseif ($isTracked) { $owners += $entry } else { $other += $entry }
+-        }
+-    }
+-    if (!$tracked) { throw "No Windows 3D/Compute engine counters available" }
+-    $miner = @(Get-Process -Name krig-miner -ErrorAction SilentlyContinue)
+-    $active = if ($owners.Count) { $owners -join ", " } else { "none" }
+-    $otherActive = if ($other.Count) { $other -join ", " } else { "none" }
+-    $miners = if ($miner.Count) { ($miner.Id -join ",") } else { "none" }
+-    $now = $clock.Elapsed.TotalSeconds
+-    $line = "{0:u} | {1} | driver={2} | GPU={3}% | VRAM={4}/{5} MiB | power={6} W | temp={7} C | graphics={8} MHz | memory={9} MHz | 3D/Compute={10} | krig-miner={11} | other engines={12} | tolerated background={13}" -f [datetime]::UtcNow,$fields[0],$fields[1],$util,$fields[3],$fields[4],$fields[5],$fields[6],$fields[7],$fields[8],$active,$miners,$otherActive,$(if ($tolerated.Count) { $tolerated -join ", " } else { "none" })
+-    if (!$quiet) { Write-Output $line; exit 0 }
+-    if ($util -lt 15 -and !$owners.Count -and !$miner.Count) {
+-        if ($null -eq $since) { $since = $now; $count = 0; $peak = 0 }
+-        $count++; $peak = [Math]::Max($peak,$util)
+-        if (($now - $since) -ge 10 -and $count -ge 10) {
+-            Write-Output $line
+-            Write-Output ("Idle window: {0:F1}s, {1} samples, max GPU={2}%, active 3D/Compute=none" -f ($now-$since),$count,$peak)
+-            exit 0
+-        }
+-    } else {
+-        $since = $null
+-        $lastBusy = $line
+-    }
+-    if ($now -ge 75) {
+-        Write-Output $line
+-        [Console]::Error.WriteLine("gpu-quiet: 75 s timeout; last busy sample: $lastBusy")
+-        exit 1
+-    }
+-    Start-Sleep -Milliseconds 850
+-} while ($true)
++    # The admission rule lives in ../gpu-gate.ps1 (shared with the window scripts):
++    # 10 samples averaging <= 8 % and none above 10 %, desktop background admitted
++    # and logged, any other 3D/Compute user or a miner only makes this wait.
++    local gate ps limit=${GPU_QUIET_TIMEOUT:-180}
++    [[ $limit =~ ^[0-9]+$ ]] || { echo 'gpu-quiet: invalid GPU_QUIET_TIMEOUT' >&2; return 2; }
++    gate=$(wslpath -w "$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")/../gpu-gate.ps1")
++    if [[ $1 == quiet ]]; then
++        ps=$(cat <<PS
++\$ErrorActionPreference = "Stop"
++[Console]::OutputEncoding = [Text.UTF8Encoding]::new(\$false)
++. '$gate'
++\$g = Wait-GpuIdle -TimeoutSeconds $limit
++if (\$null -eq \$g) {
++    [Console]::Error.WriteLine("gpu-quiet: $limit s timeout; the GPU stayed above the admission rule")
++    exit 1
++}
++Write-Output \$g.line
++Write-Output ("Idle window: {0:F1}s, {1} samples={2}, mean GPU={3:F1}%, max GPU={4}%, rule: {5}, waited={6:F1}s, busy samples={7}, desktop background admitted: {8}" -f \$g.span, \$g.samples.Count, (\$g.samples -join ','), \$g.mean, \$g.max, \$g.rule, \$g.waited, \$g.busy, \$g.background)
+ PS
+ )
++    else
++        ps=". '$gate'; (Get-GpuGateSample).line"
++    fi
+     # tr keeps Windows CRLF out of a benchmark's captured log. pipefail preserves failures.
+-    timeout 90s "$powershell" -NoLogo -NoProfile -NonInteractive -Command "\$quiet=$check; $ps" | tr -d '\r'
++    timeout "$((limit + 60))s" "$powershell" -NoLogo -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -Command "$ps" | tr -d '\r'
+ }
+ 
+ wsl_cuda() {
+
+===== accept3-tools/window-extra.sh
+--- window-extra.sh	2026-11-27 19:15:29.924243458 +0000
++++ window-extra.sh	2026-11-27 19:15:29.928860900 +0000
+@@ -194,7 +194,8 @@
+     # A desktop service restored by gpu-quiet must not inherit the slot locks.
+     for fd in "${held[@]}"; do exec {fd}>&-; done
+     exec 3>&-
+-    exec gpu-quiet run -- build-queue "$ps" -NoLogo -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -File "$(winpath "$root/target/accept3-tools/extra.ps1")" -Stage "$ACCEPT3_STAGE" -OutDir "$(winpath "$out")"
++    # Use this directory's gpu-quiet (shared 8 %/10 % gate in gpu-gate.ps1), not the global copy.
++    exec "${GPU_QUIET:-$root/target/accept3-tools/bin/gpu-quiet}" run -- build-queue "$ps" -NoLogo -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -File "$(winpath "$root/target/accept3-tools/extra.ps1")" -Stage "$ACCEPT3_STAGE" -OutDir "$(winpath "$out")"
+ ) 2>&1 |
+     redact |
+     tee -a /dev/fd/3
+
+===== target/parallel-review3/scenarios.ps1 against parallel-review2
+--- scenarios.ps1	2026-11-27 15:51:28.080379800 +0000
++++ scenarios.ps1	2026-11-27 19:19:07.980237500 +0000
+@@ -4,16 +4,10 @@
+ $warmexe=(Resolve-Path (Join-Path ../accept-r1 $B.executable)).Path
+ if((Get-FileHash $warmexe).Hash -ne $B.sha256){throw 'invalid warm-up binary'}
+ $arms=@{ mark="$PSScriptRoot/mark.exe"; final="$PSScriptRoot/final.exe" }
+-function Gate {
+-    $samples=@(); $busy=0
+-    while($samples.Count -lt 3) {
+-        $v=[int](& "$env:WINDIR/System32/nvidia-smi.exe" --query-gpu=utilization.gpu --format=csv,noheader,nounits)
+-        if($LASTEXITCODE){throw 'telemetry failed'}
+-        if($v -gt 3){$samples=@();$busy++}else{$samples+=@($v)}
+-        if($samples.Count -lt 3){Start-Sleep -Milliseconds 700}
+-    }
+-    Write-Output "GPU gate samples=$($samples -join ',') busy=$busy"
+-}
++# GPU gate (2026-11-27): 10 samples averaging <= 8 %, none above 10 %, desktop
++# background admitted and logged, any other 3D/Compute user only makes this wait.
++. "$PSScriptRoot/../../../accept-r1/target/accept3-tools/gpu-gate.ps1"
++function Gate { Invoke-GpuGate }
+ $culture=[Globalization.CultureInfo]::InvariantCulture
+ $utf8=[Text.UTF8Encoding]::new($false)
+ $gpuFields = 'name','driver_version','memory.total','utilization.gpu','memory.used','temperature.gpu','clocks.gr','clocks.mem','power.draw','pstate','clocks.max.gr','clocks.max.mem','pcie.link.gen.current','pcie.link.gen.max','pcie.link.width.current','pcie.link.width.max'
+
+===== target/parallel-review3/final.ps1 against parallel-review2
+--- final.ps1	2026-11-27 15:33:51.676717800 +0000
++++ final.ps1	2026-11-27 19:19:39.007691000 +0000
+@@ -1,26 +1,28 @@
+ param([string]$Kind)
+ . "$PSScriptRoot/../r1-review/env-local.ps1"
+-function Gate {
+-    $samples=@(); $busy=0
+-    while($samples.Count -lt 3) {
+-        $v=[int](& "$env:WINDIR/System32/nvidia-smi.exe" --query-gpu=utilization.gpu --format=csv,noheader,nounits)
+-        if($LASTEXITCODE){throw 'telemetry failed'}
+-        if($v -gt 3){$samples=@();$busy++}else{$samples+=@($v)}
+-        if($samples.Count -lt 3){Start-Sleep -Milliseconds 700}
+-    }
+-    Write-Output "GPU gate samples=$($samples -join ',') busy=$busy"
+-}
++# GPU gate (2026-11-27): 10 samples averaging <= 8 %, none above 10 %, desktop
++# background admitted and logged, any other 3D/Compute user only makes this wait.
++. "$PSScriptRoot/../../../accept-r1/target/accept3-tools/gpu-gate.ps1"
++function Gate { Invoke-GpuGate }
+ if($Kind -eq 'validation'){
+     Gate
+     $dir="$PSScriptRoot/validation-" + (Get-Date -Format 'yyyyMMdd-HHmmss')
+-    & "$root/tools/bench/run.ps1" -CheckOnly -MaxGpuUtilization 3 -OutputDirectory $dir
++    & "$root/tools/bench/run.ps1" -CheckOnly -OutputDirectory $dir
+     if($LASTEXITCODE){throw 'CheckOnly failed'}
+     $report=Get-Content "$dir/results.json" -Raw | ConvertFrom-Json
+     if(!$report.complete -or $report.failed_runs -or $report.process_crashes -or $report.validation_status -ne 'passed' -or $null -eq $report.runs[1].values.validation_errors -or $report.runs[1].values.validation_errors -ne 0){throw 'Validation report failed'}
+     exit 0
+ }
++if($Kind -eq 'build'){
++    cargo.exe test --workspace --locked --no-run
++    if($LASTEXITCODE){throw 'workspace test build failed'}
++    cargo.exe test --locked -p victory-gpu --no-run
++    if($LASTEXITCODE){throw 'test build failed'}
++    exit 0
++}
+ if($Kind -eq 'ci'){
+     foreach($name in 'workspace','gpu1','gpu2','gpu3'){
++        Gate
+         $log=Join-Path $PSScriptRoot "ci-$name.txt"
+         Write-Output "START $name $(Get-Date -Format o)"
+         if($name -eq 'workspace'){cargo.exe test --workspace --locked > $log}
+
+===== target/parallel-review3/window.sh
+#!/bin/bash
+# Run a target/parallel-review3 PowerShell script inside a gpu-quiet window that uses
+# the shared 8 %/10 % gate (accept3-tools/gpu-gate.ps1). Waiting never ends a process.
+set -eu
+q=../accept-r1/target/accept3-tools/bin/gpu-quiet
+export GPU_QUIET_TIMEOUT=${GPU_QUIET_TIMEOUT:-1800}
+exec build-queue "$q" run -- /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -File "target/parallel-review3/$1.ps1" "${@:2}"

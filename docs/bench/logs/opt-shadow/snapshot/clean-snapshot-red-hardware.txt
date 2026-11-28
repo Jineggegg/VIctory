@@ -1,0 +1,17 @@
+running 1 test
+test shadow::tests::overlapping_snapshots_keep_late_cpu_stores ...
+thread 'shadow::tests::overlapping_snapshots_keep_late_cpu_stores' (12848) panicked at crates\victory-gpu\src\shadow.rs:1684:9:
+assertion `left == right` failed: CPU store during first snapshot
+  left: [161, 0, 0, 162]
+ right: [161, 0, 193, 162]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    shadow::tests::overlapping_snapshots_keep_late_cpu_stores
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.66s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`

@@ -1,0 +1,199 @@
+Compiling memchr v2.8.3
+   Compiling windows-sys v0.61.2
+   Compiling opus-pure v0.2.4
+   Compiling windows v0.62.2
+   Compiling object v0.41.0
+   Compiling victory-pe v0.1.0 (E:\Projects\GTA-build\opt-texture-2358\crates\victory-pe)
+   Compiling nu-ansi-term v0.50.3
+   Compiling tempfile v3.27.0
+   Compiling tracing-subscriber v0.3.23
+   Compiling victory-core v0.1.0 (E:\Projects\GTA-build\opt-texture-2358\crates\victory-core)
+   Compiling victory-pipeline v0.1.0 (E:\Projects\GTA-build\opt-texture-2358\crates\victory-pipeline)
+   Compiling victory-loader v0.1.0 (E:\Projects\GTA-build\opt-texture-2358\crates\victory-loader)
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\opt-texture-2358\crates\victory-shader)
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\opt-texture-2358\crates\victory-gpu)
+   Compiling victory-hle v0.1.0 (E:\Projects\GTA-build\opt-texture-2358\crates\victory-hle)
+    Finished `diag` profile [optimized + debuginfo] target(s) in 30.68s
+     Running unittests src\lib.rs (target\diag\deps\victory_hle-abdc4ab53b51d251.exe)
+
+running 152 tests
+test host::imp::tests::loading_a_host_dll_does_not_block_thread_attach ...
+running 1 test
+test host::imp::tests::loading_a_host_dll_does_not_block_thread_attach ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 151 filtered out; finished in 0.50s
+
+ok
+test modules::apu::tests::decodes_into_unaligned_output_interleaved_and_deinterleaved ... ok
+test modules::apu::tests::decodes_opus_as_the_title_drives_it ... ok
+test modules::audio::tests::a_loop_skips_subframes_of_its_first_frame ... ok
+test modules::audio::tests::full_message_queues_count_drops ... ok
+test modules::audio::tests::heap_maps_every_byte_of_a_block ... ok
+test modules::audio::tests::heap_reuses_freed_addresses ... ok
+test modules::audio::tests::startup_as_fmod_does_it ... ok
+test modules::audio::tests::xma_contexts_decode_into_their_output_rings ... ok
+test modules::audio::tests::xma_read_blocks_past_the_ring_end_wrap ... ok
+test modules::audio::tests::xma_write_blocks_past_the_ring_end_wrap ... ok
+test modules::d3d12x::tests::the_interface_id_import_is_bound_to_data ... ok
+test modules::display::tests::sdr_and_display_deferrals ... ok
+test modules::dsp::tests::convolution_stream_as_the_title_drives_it ... ok
+test modules::dstorage::tests::a_closed_queue_completes_nothing ... ok
+test modules::dstorage::tests::a_page_list_filled_after_its_request_starts ... ok
+test modules::dstorage::tests::a_page_list_the_title_changes_before_its_submit ... ok
+test modules::dstorage::tests::a_queue_that_submits_itself_holds_reads_into_pages ... ok
+test modules::dstorage::tests::a_status_waits_for_every_earlier_read ... ok
+test modules::dstorage::tests::bcpack_requests_unpack_into_the_destination ... ok
+test modules::dstorage::tests::half_a_queue_submits_itself ... ok
+test modules::dstorage::tests::memory_sources_inflate_too ... ok
+test modules::dstorage::tests::physical_page_destinations ... ok
+test modules::dstorage::tests::priorities_share_by_bytes_about_tenfold ... ok
+test modules::dstorage::tests::raw_and_zlib_reads_from_a_file ... ok
+test modules::dstorage::tests::request_layout_is_the_titles ... ok
+test modules::dstorage::tests::staging_bounds_compressed_bytes_in_flight ... ok
+test modules::dstorage::tests::statuses_complete_in_order_with_the_first_failure ... ok
+test modules::dstorage::tests::zlib_into_pages_in_place_and_across_allocations ... ok
+test modules::dstorage::tests::zlib_then_bcpack ... ok
+test modules::fidelityfx::tests::resource_states_read_as_the_pc_backend_reads_them ... ok
+test modules::fidelityfx::tests::the_console_backend_becomes_the_hosts ... ok
+test modules::fidelityfx::tests::without_the_dll_the_titles_own_runs ... ok
+test modules::files::tests::an_empty_root_is_the_current_directory ... ok
+test modules::files::tests::kernel_reads_reach_the_buffer ... ok
+test modules::files::tests::long_title_paths_work_on_the_host ... ok
+test modules::files::tests::narrow_paths_are_rewritten_once ... ok
+test modules::files::tests::rewrites_only_paths_on_mounted_drives ... ok
+test modules::files::tests::title_file_calls_land_in_the_host_folder ... ok
+test modules::gameinput::host::host_pads_convert_to_console_pads ... ok
+test modules::gameinput::tests::async_enumeration_waits_for_the_poll_and_unregistering_stops_callbacks ... ok
+test modules::gameinput::tests::devices_are_found_by_id_and_rumble_reaches_the_host ... ok
+test modules::gameinput::tests::keys_feed_the_keyboard_and_the_stand_in_pad ... ok
+test modules::gameinput::tests::ordinal_one_resolves_to_create ... ok
+test modules::gameinput::tests::pads_connect_report_and_disconnect ... ok
+test modules::gameinput::tests::scripted_keys_merge_into_connected_host_pad ... ok
+test modules::gameinput::tests::switched_off_receiver_does_not_hide_the_keyboard_stand_in ... ok
+test modules::gameinput::tests::unregistering_waits_for_a_running_callback ... ok
+test modules::gameinput::tests::with_no_device_readings_are_walked_across_devices_in_time_order ... ok
+test modules::kernel::tests::a_module_name_that_fits_clears_the_last_error ... ok
+test modules::kernel::tests::a_title_image_name_into_no_buffer ... ok
+test modules::kernel::tests::host_lookups_by_name_get_our_overrides ... ok
+test modules::kernel::tests::title_dlls_and_pseudo_modules_are_found_by_name ... ok
+test modules::kernel::tests::title_images_report_their_original_path ... ok
+test modules::lifecycle::tests::a_title_window_is_shown_through_a_stand_in_that_always_answers ... ok
+test modules::lifecycle::tests::configured_window_limit_fits_4k_into_1080p ... ok
+test modules::lifecycle::tests::configured_window_limit_preserves_non_widescreen_proportions ... ok
+test modules::lifecycle::tests::configured_window_limit_still_respects_the_work_area ... ok
+test modules::lifecycle::tests::constrained_registrations_come_and_go ... ok
+test modules::lifecycle::tests::constrained_routines_run_before_suspend_routines ... ok
+test modules::lifecycle::tests::hooked_windows_still_reach_the_title_procedure ... ok
+test modules::lifecycle::tests::oversized_windows_shrink_to_the_screen ... ok
+test modules::lifecycle::tests::registrations_come_and_go ... ok
+test modules::lifecycle::tests::showing_a_title_window_shows_its_stand_in ... ok
+test modules::lifecycle::tests::the_keyboard_menu_never_reaches_the_title ... ok
+test modules::lifecycle::tests::window_limit_requires_two_positive_dimensions ... ok
+test modules::media::tests::interface_ids_are_the_resolvers ... ok
+test modules::media::tests::only_local_files_reach_the_host ... ok
+test modules::media::tests::percent_decode_requires_two_hex_digits ... ok
+test modules::media::tests::shares_are_refused_however_they_are_spelled ... ok
+test modules::media::tests::the_host_reads_those_spellings_as_shares ... ok
+test modules::net::tests::blocked_name_lookups_clear_the_result ... ok
+test modules::net::tests::only_loopback_is_reachable ... ok
+test modules::rpcrt4::tests::a_created_guid_is_version_four ... ok
+test modules::rpcrt4::tests::a_guid_formats_and_parses_back ... ok
+test modules::rpcrt4::tests::a_string_is_freed_once_through_either_call ... ok
+test modules::rpcrt4::tests::garbage_is_refused ... ok
+test modules::rpcrt4::tests::uuid_from_string_writes_what_it_reads ... ok
+test modules::speech::tests::streams_are_empty_wave_files ... ok
+test modules::storage::tests::serves_a_drive_over_the_title_folder_and_its_quota ... ok
+test modules::xasync::tests::a_canceled_call_leaves_the_next_call_alone ... ok
+test modules::xasync::tests::a_finished_calls_work_result_leaves_the_next_call_alone ... ok
+test modules::xasync::tests::a_new_block_where_a_result_was_left_begins_a_call ... ok
+test modules::xasync::tests::a_nonnegative_completion_still_returns_its_payload ... ok
+test modules::xasync::tests::async_calls_complete_and_return_results ... ok
+test modules::xasync::tests::canceling_a_completed_call_leaves_it_alone ... ok
+test modules::xasync::tests::cleanup_runs_without_the_completion_lock ... ok
+test modules::xasync::tests::manual_ports_run_callbacks_when_dispatched ... ok
+test modules::xasync::tests::pool_callbacks_may_wait_for_each_other ... ok
+test modules::xasync::tests::run_returns_the_work_result ... ok
+test modules::xasync::tests::terminate_cancels_delayed_callbacks ... ok
+test modules::xasync::tests::terminate_cancels_what_is_queued ... ok
+test modules::xasync::tests::terminate_ends_a_waiting_dispatch ... ok
+test modules::xg::tests::bad_descriptions_fail ... ok
+test modules::xg::tests::element_offsets_follow_the_layout ... ok
+test modules::xg::tests::layout_and_copies_through_the_object ... ok
+test modules::xg::tests::suggestions_follow_the_use ... ok
+test modules::xgame::tests::a_relaunch_keeps_our_options ... ok
+test modules::xgame::tests::a_relaunch_replaces_a_relative_startup_executable ... ok
+test modules::xgame::tests::served_areas_are_available_others_not ... ok
+test modules::xgameruntime::tests::title_stub_loads_the_runtime_dynamically ... ok
+test modules::xgamesave::tests::a_full_disk_is_not_the_quota ... ok
+test modules::xgamesave::tests::a_kept_blob_past_the_link_limit_is_copied ... ok
+test modules::xgamesave::tests::a_kill_at_any_step_leaves_old_or_new ... ok
+test modules::xgamesave::tests::a_noncanonical_folder_does_not_remove_a_committed_save ... ok
+test modules::xgamesave::tests::an_empty_configuration_id_is_the_default_one ... ok
+test modules::xgamesave::tests::an_unreadable_newer_version_does_not_cost_the_save ... ok
+test modules::xgamesave::tests::crash_child ... ok
+test modules::xgamesave::tests::names_are_exact ... ok
+test modules::xgamesave::tests::no_readable_version_is_refused_and_kept ... ok
+test modules::xgamesave::tests::saves_persist_across_providers ... ok
+test modules::xgamesave::tests::the_old_layout_moves_over ... ok
+test modules::xgameui::dialog::tests::command_before_init_is_ignored ... ok
+test modules::xgameui::tests::dialogs_end_with_what_was_typed ... ok
+test modules::xgameui::tests::password_scope_masks_the_edit_control ... ok
+test modules::xgameui::tests::text_entry_limits_follow_the_console ... ok
+test modules::xmem::low_guards::tests::a_refused_retry_leaves_the_guards_in_place ... ok
+test modules::xmem::low_guards::tests::a_released_guard_is_guarded_again_around_what_took_it ... ok
+test modules::xmem::tests::alloc_honours_alignment_and_frees ... ok
+test modules::xmem::tests::allocator_refusal_report_names_apu_heap_and_system_commit ... ok
+test modules::xmem::tests::commit_limit_report_includes_request_and_system_commit ... ok
+test modules::xmem::tests::mapping_no_pages_changes_nothing ... ok
+test modules::xmem::tests::page_windows_cover_one_run_in_place ... ok
+test modules::xmem::tests::page_windows_report_where_the_pages_show_when_done ... ok
+test modules::xmem::tests::physical_pages_map_alias_and_unmap ... ok
+test modules::xmem::tests::runs_group_consecutive_pages_of_one_allocation ... ok
+test modules::xmem::tests::statistics_have_the_console_layout ... ok
+test modules::xmem::tests::transfers_shrink_the_title_budget ... ok
+test modules::xmem::tests::virtual_alloc_meets_console_constraints ... ok
+test modules::xmem::tests::writes_cross_runs_and_allocations ... ok
+test modules::xnetworking::tests::offline_but_initialized ... ok
+test modules::xpackage::tests::completed_installation_unregisters_progress_immediately ... ok
+test modules::xpackage::tests::the_installation_is_complete_and_alone ... ok
+test modules::xstore::tests::a_store_id_without_a_package_is_an_invalid_argument ... ok
+test modules::xstore::tests::offline_async_calls_report_network_error_from_their_result_slots ... ok
+test modules::xstore::tests::the_game_is_licensed_and_the_store_is_offline ... ok
+test modules::xsystem::device_type::tests::other_keys_reach_the_host ... ok
+test modules::xsystem::device_type::tests::titles_read_the_chosen_model ... ok
+test modules::xsystem::tests::analytics_info_comes_back_through_the_buffer ... ok
+test modules::xsystem::tests::identity_strings_fit_the_documented_sizes ... ok
+test modules::xuser::tests::a_gamertag_without_a_suffix_has_an_empty_modern_suffix ... ok
+test modules::xuser::tests::startup_adds_the_user_and_reads_its_id ... ok
+test registry::tests::api_set_prefix_matching ... ok
+test registry::tests::export_names_are_unique_per_dll_pattern ... ok
+test runtime::tests::a_quoted_angle_bracket_does_not_end_its_tag ... ok
+test runtime::tests::inline_comments_do_not_truncate_a_field ... ok
+test runtime::tests::reads_title_id_store_id_and_storage_quota ... ok
+test tests::console_api_resolves_to_hle ... ok
+test tests::overrides_win_over_host ... ok
+test tests::shared_api_sets_pass_through_to_host ... ok
+test tests::strict_policy_reports_missing ... ok
+test tests::the_rpc_runtime_is_implemented_here ... ok
+
+test result: ok. 152 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.39s
+
+     Running tests\fidelityfx.rs (target\diag\deps\fidelityfx-6ab7a2046ecf8385.exe)
+
+running 1 test
+test the_titles_upscaler_runs_on_the_host ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\no_dll_planting.rs (target\diag\deps\no_dll_planting-7861689e6d4981b6.exe)
+
+running 1 test
+test ignores_dlls_in_current_folder ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_hle
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -153,6 +153,12 @@ pub extern "system" fn XMemVirtualAlloc(
             constrained.into(),
         )
     };
+    // A commit at the title's address can replace memory a resident tracker
+    // holds (a loose window's copy, `victory_gpu::shadow`): open its guards
+    // before Windows installs the title's protection, keep them open until
+    // the new mapping is reported, and report it only once it exists.
+    let remapping = (!constrained && kind & MEM_COMMIT != 0 && size != 0)
+        .then(|| victory_gpu::KernelWrite::before_remap(base as usize, size));
     let mut at = allocate(&mut parameter);
     // A 32-bit request that found no room below 4 GiB: the guards there
     // make way for it.
@@ -172,6 +178,9 @@ pub extern "system" fn XMemVirtualAlloc(
                 "XMemVirtualAlloc refused"
             );
         }
+    }
+    if !at.is_null() && remapping.is_some() {
+        report_remap(base as usize, size);
     }
     if base.is_null() {
         tracing::debug!(
@@ -330,6 +339,36 @@ pub extern "system" fn XMemAllocDefault(size: usize, attributes: u64) -> *mut c_
     }
 }
 
+/// Size of the single reservation that MEM_RELEASE will free, including
+/// subranges whose guard, protection or commitment differs from the first.
+fn reservation_size(base: *mut c_void) -> usize {
+    let mut len = 0;
+    loop {
+        let mut info = MEMORY_BASIC_INFORMATION::default();
+        // SAFETY: queries metadata only; the caller still owns the reservation.
+        let read = unsafe {
+            VirtualQueryEx(GetCurrentProcess(), (base as usize + len) as _, &mut info, size_of_val(&info))
+        };
+        if read == 0 || info.AllocationBase != base {
+            return len;
+        }
+        len = info.BaseAddress as usize + info.RegionSize - base as usize;
+    }
+}
+
+/// Title memory `[at, at + len)` shows something new: GPU trackers holding
+/// it count it changed (the tests read the reports back).
+fn report_remap(at: usize, len: usize) {
+    #[cfg(test)]
+    REMAPPED.with(|reports| reports.borrow_mut().push((at, len)));
+    victory_gpu::title_memory_remapped(at, len);
+}
+
+#[cfg(test)]
+thread_local! {
+    static REMAPPED: std::cell::RefCell<Vec<(usize, usize)>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
 /// Frees what [`XMemAllocDefault`] returned, given the same attributes.
 pub extern "system" fn XMemFreeDefault(address: *mut c_void, attributes: u64) {
     if address.is_null() {
@@ -339,10 +378,19 @@ pub extern "system" fn XMemFreeDefault(address: *mut c_void, attributes: u64) {
     // whole reservation, or a header-prefixed block.
     unsafe {
         if attributes & ALLOC_32BIT != 0 {
-            VirtualFree(address, 0, MEM_RELEASE);
+            // A 32-bit block is a watched reservation, which loose windows
+            // may track: released the same way as a commit replaces it,
+            // after GPU write-backs storing into it in parallel are done.
+            let size = reservation_size(address);
+            let _remapping = victory_gpu::KernelWrite::before_remap(address as usize, size);
+            if VirtualFree(address, 0, MEM_RELEASE) != 0 {
+                report_remap(address as usize, size);
+            }
             return;
         }
         let user = address.cast::<u8>();
+        // Host heap blocks are never tracked (`victory_gpu` guards only the
+        // runtime's watched pools and views): nothing to report.
         let [size, align] = user.sub(HEADER).cast::<[usize; 2]>().read();
         dealloc(
             user.sub(align),
@@ -801,6 +849,10 @@ pub fn map_alias(to: u64, from: u64, len: u64) -> bool {
 /// Maps `slice` and the slices after it over `[base, base + len)`, which
 /// must lie in one placeholder.
 fn map(physical: &mut Physical, base: usize, len: usize, slice: Slice) -> bool {
+    // A new view can show a physical page at a second address. Parallel GPU
+    // write-backs into private memory finish before it does, even one whose
+    // allocation the title released through the host behind our back.
+    let _remapping = victory_gpu::remapping();
     // SAFETY: splits the placeholder around the range (failing harmlessly
     // when the range is the whole placeholder), then maps the section
     // there; both act only on placeholders.
@@ -1112,6 +1164,35 @@ mod tests {
         let p = XMemAlloc(4096, ALLOC_32BIT);
         assert!(!p.is_null() && (p as usize) < 1 << 32);
         XMemFree(p, ALLOC_32BIT);
+    }
+
+    #[test]
+    fn fixed_commits_and_default_frees_report_the_title_range() {
+        use windows_sys::Win32::System::Memory::{MEM_DECOMMIT, PAGE_READONLY, VirtualProtect};
+        let reports = || REMAPPED.with(|r| r.take());
+        reports();
+        let p = XMemAllocDefault(2 * PAGE, ALLOC_32BIT);
+        assert!(!p.is_null());
+        let tail = (p as usize + PAGE) as *mut c_void;
+        // SAFETY: the allocation has two pages. Change the second page's
+        // commitment so the release must cover more than the first region.
+        assert_ne!(unsafe { VirtualFree(tail, PAGE, MEM_DECOMMIT) }, 0);
+        assert_eq!(XMemVirtualAlloc(tail, PAGE, MEM_COMMIT, 0, PAGE_READONLY), tail);
+        assert_eq!(query(tail).host.Protect, PAGE_READONLY);
+        assert_eq!(reports(), [(tail as usize, PAGE)]);
+        // Invalid protection is rejected and does not announce a new mapping.
+        assert!(XMemVirtualAlloc(tail, PAGE, MEM_COMMIT, 0, 0xff).is_null());
+        assert!(reports().is_empty());
+        let mut old = 0;
+        // SAFETY: the second page belongs to this reservation.
+        assert_ne!(unsafe { VirtualProtect(tail, PAGE, PAGE_NOACCESS, &mut old) }, 0);
+        XMemFreeDefault(p, ALLOC_32BIT);
+        assert_eq!(reports(), [(p as usize, 2 * PAGE)]);
+
+        let p = XMemAllocDefault(53, 0);
+        assert!(!p.is_null());
+        XMemFreeDefault(p, 0);
+        assert!(reports().is_empty(), "host heap blocks are not GPU memory");
     }
 
     #[test]

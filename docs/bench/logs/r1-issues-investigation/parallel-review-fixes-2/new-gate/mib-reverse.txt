@@ -1,0 +1,81 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+GPU gate waiting (1s): GPU=14% > single-sample limit 10% | 2026-11-27 19:24:59Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=14% | VRAM=4970/32607 MiB | power=118.07 W | temp=38.99 C | graphics=2400 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=chrome(pid=18724) VideoDecode=2%, chrome(pid=18724) VideoDecode=1% | tolerated background=chrome(pid=18724) 3D=6%, dwm(pid=2312) 3D=6%
+GPU gate waiting (21s): GPU=14% > single-sample limit 10% | 2026-11-27 19:25:20Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=14% | VRAM=4936/32607 MiB | power=101.02 W | temp=38.82 C | graphics=2085 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=chrome(pid=18724) VideoDecode=3%, chrome(pid=18724) VideoDecode=4%, System(pid=4) Copy=1% | tolerated background=chrome(pid=18724) 3D=6%, dwm(pid=2312) 3D=8%, cloudmusic(pid=26500) 3D=4%
+2026-11-27 19:25:38Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=3% | VRAM=4605/32607 MiB | power=61.33 W | temp=37.18 C | graphics=937 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=dwm(pid=2312) 3D=1%
+Idle window: 11.6s, 10 samples=5,3,10,8,3,3,10,9,3,3, mean GPU=5.7%, max GPU=10%, rule: mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none, waited=39.5s, busy samples=21, desktop background admitted: chrome(pid=18724) 3D max=1% in 1/10, cloudmusic(pid=26500) 3D max=2% in 1/10, dwm(pid=2312) 3D max=4% in 10/10, msedgewebview2(pid=35668) 3D max=5% in 2/10
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+ARM mark test=pipeline::hot::soak::mixed sha256=1B21CCF68B7F1D08A489D04DC7AB7E2C7CCFD64457ACE1AF9A0558EF050067DF
+GPU gate waiting (11s): GPU=16% > single-sample limit 10% | 2026-11-27 19:25:49Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=16% | VRAM=4655/32607 MiB | power=70.18 W | temp=37.50 C | graphics=1605 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=dwm(pid=2312) 3D=1%
+GPU gate samples=10,3,3,3,7,3,3,3,4,3 mean=4.2% max=10% busy=1 waited_s=23.6 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=dwm(pid=2312) 3D max=1% in 10/10
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=41492
+BENCH soak_1_p50_us=1404.400
+BENCH soak_1_p95_us=1826.000
+BENCH soak_1_p99_us=2348.800
+BENCH soak_1_ws_bytes=186597376
+BENCH soak_1_handles=376
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=41492
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 350 filtered out; finished in 60.26s
+
+ARM final test=pipeline::hot::soak::mixed sha256=AB91EAEB2A5CDC4A7DF5A15C0E7E215E15AEAE73F33AAC6341859F8E27A92966
+GPU gate waiting (0s): GPU=21% > single-sample limit 10% | 2026-11-27 19:27:03Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=21% | VRAM=4928/32607 MiB | power=123.22 W | temp=39.81 C | graphics=2857 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=chrome(pid=18724) VideoDecode=2%, chrome(pid=18724) VideoDecode=2% | tolerated background=chrome(pid=18724) 3D=6%, dwm(pid=2312) 3D=5%
+GPU gate waiting (25s): GPU=12% > single-sample limit 10% | 2026-11-27 19:27:27Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=12% | VRAM=5090/32607 MiB | power=82.40 W | temp=38.38 C | graphics=1620 MHz | memory=13801 MHz | 3D/Compute=none | krig-miner=none | other engines=System(pid=4) Copy=2% | tolerated background=chrome(pid=18724) 3D=2%
+GPU gate samples=5,3,2,2,1,7,1,1,1,7 mean=3.0% max=7% busy=13 waited_s=37.7 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=2% in 4/10, cloudmusic(pid=26500) 3D max=4% in 3/10, dwm(pid=2312) 3D max=4% in 5/10
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=43918
+BENCH soak_1_p50_us=1329.200
+BENCH soak_1_p95_us=1693.200
+BENCH soak_1_p99_us=1972.800
+BENCH soak_1_ws_bytes=186683392
+BENCH soak_1_handles=376
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=43918
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 358 filtered out; finished in 60.26s
+
+manifest_commit=6b1e408b9161b062f75ad10f2b06913f81ed6dee
+ARM A test=pipeline::hot::soak::mixed sha256=888ED490721961CFA2128E4343F91998D47625995A284B6EB2720EC60F21E4A6
+GPU gate waiting (0s): GPU=12% > single-sample limit 10% | 2026-11-27 19:28:41Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=12% | VRAM=4702/32607 MiB | power=102.23 W | temp=39.02 C | graphics=2670 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+GPU gate samples=2,4,1,4,3,4,1,2,6,2 mean=2.9% max=6% busy=1 waited_s=13.2 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=2% in 5/10, cloudmusic(pid=26500) 3D max=3% in 3/10, dwm(pid=2312) 3D max=2% in 3/10
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=43826
+BENCH soak_1_p50_us=1338.000
+BENCH soak_1_p95_us=1612.800
+BENCH soak_1_p99_us=1988.100
+BENCH soak_1_ws_bytes=186802176
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=43826
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 60.28s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+Restored studio-comfy.service=active studio-swarm.service=active

@@ -1,0 +1,44 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 12:20:13Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=1% | VRAM=5278/32607 MiB | power=60.12 W | temp=43.66 C | graphics=975 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%
+Idle window: 12.0s, 10 samples, max GPU=2%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+
+running 31 tests
+test shadow::tests::a_replacement_buffer_tracks_cpu_writes_at_its_predecessors_address ... ok
+test shadow::tests::arena_runs_are_aligned_to_their_elements_and_join_again ... ok
+test shadow::tests::bytes_off_the_runtimes_memory_are_copied_at_each_use ... ok
+test shadow::tests::failed_store_retries_only_bytes_after_the_completed_prefix ... ok
+test shadow::tests::fragmented_megabyte_snapshot_needs_no_kernel_writes ... ok
+test shadow::tests::inaccessible_store_retries_mapped_bytes_beyond_the_hole ... ok
+test shadow::tests::last_word_keeps_all_allocatable_marks ... ok
+test shadow::tests::late_cpu_bytes_in_short_gaps_survive_exact_stores ... ok
+test shadow::tests::mark_runs_are_reused_and_joined ... ok
+test shadow::tests::marked_pages_go_back_by_the_bytes_the_gpu_changed ... ok
+test shadow::tests::marks_of_shaders_using_title_memory_are_held_back ... ok
+test shadow::tests::masked_stores_match_every_vector_mask_and_partial_tail ... ok
+test shadow::tests::one_cpu_store_crosses_two_gpu_written_pages ... ok
+test shadow::tests::overlapping_snapshot_does_not_replay_cpu_bytes_from_a_marked_page ... ok
+test shadow::tests::overlapping_snapshots_keep_late_cpu_stores ... ok
+test shadow::tests::partial_refresh_under_marked_range_updates_saved_bytes ... ok
+test shadow::tests::partial_snapshot_after_a_full_page_preserves_a_new_cpu_store ... ok
+test shadow::tests::patterned_stores_report_the_first_unfinished_byte_on_a_guard ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::private_snapshot_groups_keep_cpu_gaps_and_retry_a_failed_piece ... ok
+test shadow::tests::publish_valid_declaration_beside_a_withheld_write_on_one_page ... ok
+test shadow::tests::readable_partial_snapshot_retries_after_a_full_page_read_fails ... ok
+test shadow::tests::snapshot_stores_retry_a_guard_installed_after_reading_the_title ... ok
+test shadow::tests::snapshots_cover_the_declared_ranges_and_writes_go_back_once ... ok
+test shadow::tests::title_write_mid_scan_uses_the_pre_write_snapshot ... ok
+test shadow::tests::title_writes_under_a_busy_range_are_copied ... ok
+test shadow::tests::unmarked_snapshot_preserves_late_cpu_bytes_across_a_page_boundary ... ok
+test shadow::tests::what_a_frame_withholds_leaves_the_copies_at_its_end ... ok
+test shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes ... ok
+test shadow::tests::withheld_byte_on_each_side_of_a_boundary_blocks_both_marked_pages ... ok
+test shadow::writeback_merge_matches_bytewise_oracle ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 319 filtered out; finished in 0.39s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

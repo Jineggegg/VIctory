@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "disk-shaders",
+  "test": "pipeline::hot::shader_bench::disk",
+  "parameters": {
+    "VICTORY_BENCH_DISK": "shaders"
+  },
+  "family_size": 6,
+  "pairs": 15,
+  "a_commit": "c481fe8b54fe3d71dd0f25fee26a59898151a75f",
+  "b_commit": "da4a66603472506df8ac78ed45b67a85078366a0",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 17:13:22Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=2% | VRAM=3882\/32607 MiB | power=66.06 W | temp=37.21 C | graphics=1117 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%",
+    "tolerated_background": "chrome(pid=60252) 3D=1%"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [
+    "cache_cold_ready_us",
+    "cache_cold_saved_us",
+    "cache_warm_open_us",
+    "cache_warm_ready_us",
+    "cache_warm_saved_us"
+  ],
+  "family_excludes_zero": [
+    "cache_cold_ready_us",
+    "cache_cold_saved_us",
+    "cache_warm_open_us",
+    "cache_warm_ready_us",
+    "cache_warm_saved_us"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "cache_cold_open_us": {
+      "a_median": 748.2,
+      "b_median": 736,
+      "change_pct": 0.412995594713661,
+      "ci95_pct": [
+        -4.2509568069983628,
+        2.5654450261780148
+      ],
+      "family95_pct": [
+        -7.6583801122694588,
+        3.6882487548795195
+      ]
+    },
+    "cache_cold_ready_us": {
+      "a_median": 15161.5,
+      "b_median": 12397.2,
+      "change_pct": -15.854269460132731,
+      "ci95_pct": [
+        -20.983167066223285,
+        -12.04623532779846
+      ],
+      "family95_pct": [
+        -21.88269694295537,
+        -8.0491806519203841
+      ]
+    },
+    "cache_cold_saved_us": {
+      "a_median": 15331.8,
+      "b_median": 12573.2,
+      "change_pct": -15.554304397669227,
+      "ci95_pct": [
+        -20.597386037615561,
+        -11.794207942503865
+      ],
+      "family95_pct": [
+        -21.702545814244068,
+        -7.9681845400817579
+      ]
+    },
+    "cache_warm_open_us": {
+      "a_median": 575,
+      "b_median": 559.1,
+      "change_pct": -2.1834862385321063,
+      "ci95_pct": [
+        -9.1205771212641729,
+        -1.60056909123244
+      ],
+      "family95_pct": [
+        -14.757938573659546,
+        -1.5493432132030915
+      ]
+    },
+    "cache_warm_ready_us": {
+      "a_median": 2103.7,
+      "b_median": 1472.6,
+      "change_pct": -28.563731527093594,
+      "ci95_pct": [
+        -32.640632264063221,
+        -25.497344026663892
+      ],
+      "family95_pct": [
+        -34.87315563060347,
+        -23.154442173313683
+      ]
+    },
+    "cache_warm_saved_us": {
+      "a_median": 2249,
+      "b_median": 1624.4,
+      "change_pct": -26.693111103024126,
+      "ci95_pct": [
+        -30.007397415256076,
+        -23.502393269835132
+      ],
+      "family95_pct": [
+        -33.508010181164835,
+        -20.991551800800355
+      ]
+    },
+    "shader_count": {
+      "a_median": 20,
+      "b_median": 20,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}

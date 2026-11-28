@@ -1,0 +1,27 @@
+Binaries used in this section (Windows x64 native, toolchain/env.ps1, rustc 1.98.1).
+Test builds: cargo test --locked -p victory-gpu --lib --no-run (debug).
+Benchmark builds: cargo test --locked --profile diag -p victory-gpu --lib --features diagnostics --no-run.
+
+gate.exe    8e01359b...  test build, working tree of b6dc581 (gate + race test)
+nogate.exe  62058695...  test build, b6dc581 race test with the negative-control patch below
+            (the first run of the control used an earlier binary 0f0f638e... built before
+            the assertions were reordered; both fail)
+pre2.exe    ebf07808...  test build, b6dc581 + the marked-retry test, without the fix of 72eb73e
+fix3.exe    e1e5ee20...  test build, working tree of cd7ed42 before an equivalent
+            SAFETY-comment rewrite of the new test (logic identical)
+par.exe     738f5024...  diag build, working tree of bf688eb before it was committed
+seq.exe     bcd182d1...  diag build, par.exe source with parallel groups disabled (patch below)
+final.exe   d7047e02...  diag build of committed bf688eb (clean tree)
+mark.exe    1b21ccf6...  diag build of feb14ed from the previous section; 679826a only adds docs
+A           888ed490...  integ-base hot-bench manifest, 6b1e408
+B           2e614d27...  accept-r1 hot-bench manifest, b5c06a7 (warm-up program and old-B arm)
+
+Negative control (nogate.exe), crates/victory-gpu/src/watch.rs remapping():
+-    while state.1 != 0 {
+-        state = REMAPS_DONE.wait(state).unwrap_or_else(|e| e.into_inner());
+-    }
++    // NEGATIVE CONTROL: no wait
+
+Sequential arm (seq.exe), crates/victory-gpu/src/shadow.rs snapshot_copy():
+-            let held = (!sequential && changed.len() >= 4 * MIN_GROUP)
++            let held = (false && !sequential && changed.len() >= 4 * MIN_GROUP)

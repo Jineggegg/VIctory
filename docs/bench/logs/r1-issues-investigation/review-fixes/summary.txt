@@ -1,0 +1,16 @@
+Candidate 8d39f2c0d100339e1aee1136d9b6796404bf5c90, Windows x64 MSVC, native cargo with ../toolchain/env.ps1.
+Target directory confined to investigate-r1. Tests ran with normal CI concurrency.
+Clippy default and all-features: exit=0, warnings=0, errors=0 for each.
+workspace: passed=966 failed=0 ignored=12 (top-level harnesses)
+gpu1: passed=311 failed=0 ignored=3 (top-level harnesses)
+gpu2: passed=311 failed=0 ignored=3 (top-level harnesses)
+gpu3: passed=311 failed=0 ignored=3 (top-level harnesses)
+Fragmented 1 MiB snapshot: all bytes correct, kernel destination-write calls=0 (test assertion).
+CheckOnly validated on NVIDIA GeForce RTX 5090, driver 621.14; both child processes exited 0.
+Validate mode enables ID3D12Debug1::EnableDebugLayer and SetEnableGPUBasedValidation(true) before device creation.
+Validation errors=0, failed runs=0, process crashes=0; see validation.json for both readbacks.
+Same-window 1 MiB soak: one fresh process per build, 60 seconds each, earlier build first.
+before 7b6a7af0d904118ebe2410b20416d0674737f753 sha256=3F37CF5FB1D0CBD980FF7A66FDE71DFDE4E72E1C5CB51931E00976F5D5598A2A
+elapsed_s=60.001 rounds=27247 p50_us=2161.500 p95_us=2421.400 p99_us=2665.100 failures=0 removed_hresult=0
+after 8d39f2c0d100339e1aee1136d9b6796404bf5c90 sha256=422315D5E17123CE83AF19A09A6E60308C26809A5E3DA5ED1222AB78FAE835F6
+elapsed_s=60.002 rounds=27366 p50_us=2158.200 p95_us=2385.600 p99_us=2591.000 failures=0 removed_hresult=0

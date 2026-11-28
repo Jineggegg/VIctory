@@ -1,0 +1,464 @@
+{
+  "system": {
+    "cpu": "Intel(R) Core(TM) Ultra 9 285K",
+    "ram_bytes": 136871063552,
+    "os": "10.0.26300"
+  },
+  "schema": 1,
+  "suite": "victory-gradient-large-v1",
+  "test": "pipeline::hot::scale::gradient",
+  "parameters": {
+    "VICTORY_BENCH_SCALE": "large"
+  },
+  "timing_keys": [
+    "shadow_refresh_us",
+    "marked_writeback_frame_us",
+    "submit_256_us",
+    "submit_fence_wait_us",
+    "submit_prepare_us",
+    "submit_queue_and_fence_us",
+    "descriptors_100000_us",
+    "texture_full_us",
+    "texture_partial_us",
+    "shader_batch_translate_us",
+    "shader_batch_cold_us",
+    "shader_batch_hot_us",
+    "prebuild_1996_cold_us",
+    "prebuild_1996_hot_us"
+  ],
+  "workload_keys": [
+    "submit_count",
+    "prebuild_count",
+    "shader_count",
+    "shadow_refresh_bytes",
+    "texture_title_patch_bytes",
+    "descriptors_100000_changed"
+  ],
+  "timeout_seconds": 180,
+  "formal": false,
+  "complete": true,
+  "debug_layer": "pending: Windows Graphics Tools unavailable",
+  "binary": {
+    "commit": "b717db908f42fb93397ce4a642803415b387c26f",
+    "source_delta_sha256": null,
+    "executable": "target/diag/deps/victory_gpu-b3e12a1e6b92b6a6.exe",
+    "sha256": "668a0ddf723b431dd2b4e9c732460baedbacc1d41a3327fadda6bd56f4b2c28b",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.1\nLLVM version: 22.1.8"
+  },
+  "requested": 1,
+  "utc": "2026-11-26T17:53:37.072673+00:00",
+  "gpu": {
+    "utc": "2026-11-26T17:53:37.045063+00:00",
+    "name": "NVIDIA GeForce RTX 5090",
+    "driver_version": "621.14",
+    "memory.total": "32607",
+    "utilization.gpu": "8",
+    "memory.used": "4730",
+    "temperature.gpu": "36.28",
+    "clocks.gr": "1612",
+    "clocks.mem": "7001",
+    "power.draw": "66.83",
+    "pstate": "P3",
+    "clocks.max.gr": "3090",
+    "clocks.max.mem": "14001",
+    "pcie.link.gen.current": "5",
+    "pcie.link.gen.max": "5",
+    "pcie.link.width.current": "16",
+    "pcie.link.width.max": "16"
+  },
+  "profile": "diag",
+  "runs": [
+    {
+      "index": 1,
+      "position": 1,
+      "utc": "2026-11-26T17:53:37.224648+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T17:53:37.312408+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "8",
+          "memory.used": "4725",
+          "temperature.gpu": "36.19",
+          "clocks.gr": "1612",
+          "clocks.mem": "7001",
+          "power.draw": "67.46",
+          "pstate": "P3",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T17:53:37.312408+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "8",
+        "memory.used": "4725",
+        "temperature.gpu": "36.19",
+        "clocks.gr": "1612",
+        "clocks.mem": "7001",
+        "power.draw": "67.46",
+        "pstate": "P3",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": false,
+      "post": {
+        "utc": "2026-11-26T17:54:19.319310+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4602",
+        "temperature.gpu": "37.01",
+        "clocks.gr": "2655",
+        "clocks.mem": "13801",
+        "power.draw": "92.88",
+        "pstate": "P1",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "shadow_refresh_us": 143073.6,
+        "marked_writeback_frame_us": 338157.8,
+        "shadow_refresh_bytes": 1073741824,
+        "writeback_bytes": 1006632960,
+        "writeback_withheld_bytes": 67108864,
+        "submit_256_us": 34149.6,
+        "submit_count": 256,
+        "submit_fence_wait_us": 10101.6,
+        "submit_prepare_us": 169,
+        "submit_queue_and_fence_us": 18454,
+        "descriptors_100000_us": 68309.8,
+        "descriptors_100000_scanned": 131072,
+        "descriptors_100000_changed": 100000,
+        "texture_full_us": 339266.8,
+        "texture_full_bytes": 1426063360,
+        "texture_full_subresources": 256,
+        "texture_full_staging_requested_bytes": 1426063360,
+        "texture_full_staging_backing_bytes": 2147483648,
+        "texture_partial_us": 314341.4,
+        "texture_partial_bytes": 268435456,
+        "texture_partial_subresources": 64,
+        "texture_partial_staging_requested_bytes": 1426063360,
+        "texture_partial_staging_backing_bytes": 2147483648,
+        "texture_title_patch_bytes": 65536,
+        "shader_batch_translate_us": 389946.3,
+        "shader_batch_cold_us": 2278003.6,
+        "shader_batch_hot_us": 205481,
+        "prebuild_1996_cold_us": 33510375.8,
+        "prebuild_1996_hot_us": 18092.2,
+        "prebuild_count": 1996,
+        "shader_digest": "75caf52f0bc53030ac6ac6fba3e7b8b6aafe1b0075cd21f9d7ecbe62cbb4ad51",
+        "shader_count": 2000,
+        "shader_dxil_bytes": 8625937,
+        "verified": 1
+      }
+    }
+  ],
+  "summary": {
+    "shadow_refresh_us": {
+      "n": 1,
+      "median": 143073.6,
+      "p95": 143073.6,
+      "p99": 143073.6,
+      "sample_stddev": null
+    },
+    "marked_writeback_frame_us": {
+      "n": 1,
+      "median": 338157.8,
+      "p95": 338157.8,
+      "p99": 338157.8,
+      "sample_stddev": null
+    },
+    "shadow_refresh_bytes": {
+      "n": 1,
+      "median": 1073741824,
+      "p95": 1073741824,
+      "p99": 1073741824,
+      "sample_stddev": null
+    },
+    "writeback_bytes": {
+      "n": 1,
+      "median": 1006632960,
+      "p95": 1006632960,
+      "p99": 1006632960,
+      "sample_stddev": null
+    },
+    "writeback_withheld_bytes": {
+      "n": 1,
+      "median": 67108864,
+      "p95": 67108864,
+      "p99": 67108864,
+      "sample_stddev": null
+    },
+    "submit_256_us": {
+      "n": 1,
+      "median": 34149.6,
+      "p95": 34149.6,
+      "p99": 34149.6,
+      "sample_stddev": null
+    },
+    "submit_count": {
+      "n": 1,
+      "median": 256,
+      "p95": 256,
+      "p99": 256,
+      "sample_stddev": null
+    },
+    "submit_fence_wait_us": {
+      "n": 1,
+      "median": 10101.6,
+      "p95": 10101.6,
+      "p99": 10101.6,
+      "sample_stddev": null
+    },
+    "submit_prepare_us": {
+      "n": 1,
+      "median": 169,
+      "p95": 169,
+      "p99": 169,
+      "sample_stddev": null
+    },
+    "submit_queue_and_fence_us": {
+      "n": 1,
+      "median": 18454,
+      "p95": 18454,
+      "p99": 18454,
+      "sample_stddev": null
+    },
+    "descriptors_100000_us": {
+      "n": 1,
+      "median": 68309.8,
+      "p95": 68309.8,
+      "p99": 68309.8,
+      "sample_stddev": null
+    },
+    "descriptors_100000_scanned": {
+      "n": 1,
+      "median": 131072,
+      "p95": 131072,
+      "p99": 131072,
+      "sample_stddev": null
+    },
+    "descriptors_100000_changed": {
+      "n": 1,
+      "median": 100000,
+      "p95": 100000,
+      "p99": 100000,
+      "sample_stddev": null
+    },
+    "texture_full_us": {
+      "n": 1,
+      "median": 339266.8,
+      "p95": 339266.8,
+      "p99": 339266.8,
+      "sample_stddev": null
+    },
+    "texture_full_bytes": {
+      "n": 1,
+      "median": 1426063360,
+      "p95": 1426063360,
+      "p99": 1426063360,
+      "sample_stddev": null
+    },
+    "texture_full_subresources": {
+      "n": 1,
+      "median": 256,
+      "p95": 256,
+      "p99": 256,
+      "sample_stddev": null
+    },
+    "texture_full_staging_requested_bytes": {
+      "n": 1,
+      "median": 1426063360,
+      "p95": 1426063360,
+      "p99": 1426063360,
+      "sample_stddev": null
+    },
+    "texture_full_staging_backing_bytes": {
+      "n": 1,
+      "median": 2147483648,
+      "p95": 2147483648,
+      "p99": 2147483648,
+      "sample_stddev": null
+    },
+    "texture_partial_us": {
+      "n": 1,
+      "median": 314341.4,
+      "p95": 314341.4,
+      "p99": 314341.4,
+      "sample_stddev": null
+    },
+    "texture_partial_bytes": {
+      "n": 1,
+      "median": 268435456,
+      "p95": 268435456,
+      "p99": 268435456,
+      "sample_stddev": null
+    },
+    "texture_partial_subresources": {
+      "n": 1,
+      "median": 64,
+      "p95": 64,
+      "p99": 64,
+      "sample_stddev": null
+    },
+    "texture_partial_staging_requested_bytes": {
+      "n": 1,
+      "median": 1426063360,
+      "p95": 1426063360,
+      "p99": 1426063360,
+      "sample_stddev": null
+    },
+    "texture_partial_staging_backing_bytes": {
+      "n": 1,
+      "median": 2147483648,
+      "p95": 2147483648,
+      "p99": 2147483648,
+      "sample_stddev": null
+    },
+    "texture_title_patch_bytes": {
+      "n": 1,
+      "median": 65536,
+      "p95": 65536,
+      "p99": 65536,
+      "sample_stddev": null
+    },
+    "shader_batch_translate_us": {
+      "n": 1,
+      "median": 389946.3,
+      "p95": 389946.3,
+      "p99": 389946.3,
+      "sample_stddev": null
+    },
+    "shader_batch_cold_us": {
+      "n": 1,
+      "median": 2278003.6,
+      "p95": 2278003.6,
+      "p99": 2278003.6,
+      "sample_stddev": null
+    },
+    "shader_batch_hot_us": {
+      "n": 1,
+      "median": 205481,
+      "p95": 205481,
+      "p99": 205481,
+      "sample_stddev": null
+    },
+    "prebuild_1996_cold_us": {
+      "n": 1,
+      "median": 33510375.8,
+      "p95": 33510375.8,
+      "p99": 33510375.8,
+      "sample_stddev": null
+    },
+    "prebuild_1996_hot_us": {
+      "n": 1,
+      "median": 18092.2,
+      "p95": 18092.2,
+      "p99": 18092.2,
+      "sample_stddev": null
+    },
+    "prebuild_count": {
+      "n": 1,
+      "median": 1996,
+      "p95": 1996,
+      "p99": 1996,
+      "sample_stddev": null
+    },
+    "shader_count": {
+      "n": 1,
+      "median": 2000,
+      "p95": 2000,
+      "p99": 2000,
+      "sample_stddev": null
+    },
+    "shader_dxil_bytes": {
+      "n": 1,
+      "median": 8625937,
+      "p95": 8625937,
+      "p99": 8625937,
+      "sample_stddev": null
+    }
+  },
+  "invalid_count": 0,
+  "max_invalid": 0,
+  "invalid_runs": [],
+  "telemetry": {
+    "pre": {
+      "pstate": [
+        "P3"
+      ],
+      "clocks.gr": [
+        1612,
+        1612
+      ],
+      "clocks.mem": [
+        7001,
+        7001
+      ],
+      "pcie.link.gen.current": [
+        5,
+        5
+      ],
+      "pcie.link.width.current": [
+        16,
+        16
+      ],
+      "temperature.gpu": [
+        36.19,
+        36.19
+      ],
+      "power.draw": [
+        67.46,
+        67.46
+      ]
+    },
+    "post": {
+      "pstate": [
+        "P1"
+      ],
+      "clocks.gr": [
+        2655,
+        2655
+      ],
+      "clocks.mem": [
+        13801,
+        13801
+      ],
+      "pcie.link.gen.current": [
+        5,
+        5
+      ],
+      "pcie.link.width.current": [
+        16,
+        16
+      ],
+      "temperature.gpu": [
+        37.01,
+        37.01
+      ],
+      "power.draw": [
+        92.88,
+        92.88
+      ]
+    }
+  }
+}

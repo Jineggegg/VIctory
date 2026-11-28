@@ -1,0 +1,29 @@
+    Finished `diag` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe)
+
+running 1 test
+test pipeline::hot::waves::wave_scenarios ... BENCH adapter=Microsoft Basic Render Driver
+BENCH wave_page_marks_gpu_us=2586.800
+BENCH wave_page_marks_lanes=262144
+BENCH loop_page_lookup_gpu_us=7449.700
+BENCH loop_page_lookup_lanes=262144
+BENCH loop_global_loads=2097152
+BENCH wave_two_pages_gpu_us=1504.800
+BENCH wave_two_pages_lanes=262144
+BENCH wave_sixteen_pages_gpu_us=1551.500
+BENCH wave_sixteen_pages_lanes=262144
+BENCH wave_straddling_pairs_gpu_us=1545.600
+BENCH wave_straddling_pairs_lanes=262144
+BENCH loop_early_exit_gpu_us=9719.700
+BENCH loop_early_exit_lanes=262144
+BENCH title_odd_lanes_gpu_us=15882.900
+BENCH title_odd_lanes_lanes=262144
+BENCH title_scattered_odd_lanes_gpu_us=16248.800
+BENCH title_scattered_odd_lanes_lanes=262144
+BENCH pixel_helper_shared_view_page_gpu_us=1571.700
+BENCH pixel_helper_scattered_view_pages_gpu_us=1094.000
+BENCH pixel_helper_descriptor_page_gpu_us=1211.100
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 278 filtered out; finished in 0.21s

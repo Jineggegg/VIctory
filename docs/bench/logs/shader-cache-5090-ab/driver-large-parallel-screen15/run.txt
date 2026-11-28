@@ -1,0 +1,810 @@
+
+Sample A 1, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=1566865873 digest=e130bbb56f1bea6a97c53177870fd06bc04bf71006c13ebed2388f07d12acc34 DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=1566865873
+BENCH driver_fresh_first_us=16397
+BENCH driver_replay_first_us=994
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=34933149
+BENCH driver_replay_us=492829
+BENCH driver_fresh_peak_bytes=507052032
+BENCH driver_replay_peak_bytes=345489408
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 36.99s
+
+
+exit 0
+
+Sample B 1, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=2101741048 digest=715a56643d17e632478f90718b8192f6b582edbe34d8ed6326f4b7090807dc4e DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=2101741048
+BENCH driver_fresh_first_us=89879
+BENCH driver_replay_first_us=45196
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=5073040
+BENCH driver_replay_us=181128
+BENCH driver_fresh_peak_bytes=723554304
+BENCH driver_replay_peak_bytes=381714432
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 6.76s
+
+
+exit 0
+
+Sample B 2, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=736071690 digest=57940d637732664d0fcdca840823ce6dbde3bf2218c1642a8679f997298534cc DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=736071690
+BENCH driver_fresh_first_us=171989
+BENCH driver_replay_first_us=47548
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=5415476
+BENCH driver_replay_us=163589
+BENCH driver_fresh_peak_bytes=732659712
+BENCH driver_replay_peak_bytes=392749056
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.13s
+
+
+exit 0
+
+Sample A 2, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=16057012 digest=b7cc859cf6cc8e281d1087492282e1cfbc9fe2fc00f032a630af80a4c86fb0fe DXIL bytes=9237488 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=16057012
+BENCH driver_fresh_first_us=99320
+BENCH driver_replay_first_us=1234
+BENCH driver_fresh_inflight_bytes=4628
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4628
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4628
+BENCH driver_total_dxil_bytes=9237488
+BENCH driver_fresh_us=35674384
+BENCH driver_replay_us=492129
+BENCH driver_fresh_peak_bytes=518594560
+BENCH driver_replay_peak_bytes=343314432
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 37.67s
+
+
+exit 0
+
+Sample A 3, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=1030512655 digest=1bff9c80094d066523aabde0fca55f5187ebe1a787c9c71ba136f0ed5d82860a DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=1030512655
+BENCH driver_fresh_first_us=66786
+BENCH driver_replay_first_us=956
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=37069004
+BENCH driver_replay_us=492711
+BENCH driver_fresh_peak_bytes=548790272
+BENCH driver_replay_peak_bytes=341114880
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 39.06s
+
+
+exit 0
+
+Sample B 3, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=1173569034 digest=fadc803f28503e9a50cc79290f55b9c4e64dc00d21d9735ab90eca8d23f11253 DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=1173569034
+BENCH driver_fresh_first_us=194572
+BENCH driver_replay_first_us=58193
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=5517996
+BENCH driver_replay_us=250915
+BENCH driver_fresh_peak_bytes=779722752
+BENCH driver_replay_peak_bytes=389898240
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.34s
+
+
+exit 0
+
+Sample B 4, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=2521154429 digest=05992015aed2d56ae2f00191cb1e9fe91252ec2f76c9a96b1564d48d16557eaf DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=2521154429
+BENCH driver_fresh_first_us=130996
+BENCH driver_replay_first_us=64126
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=5628581
+BENCH driver_replay_us=199595
+BENCH driver_fresh_peak_bytes=793395200
+BENCH driver_replay_peak_bytes=384643072
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.30s
+
+
+exit 0
+
+Sample A 4, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=2682341232 digest=f9df8a8b6fc2527298c2ca957da723ccf60a4c0bf9fd921f3530dafa3eefdd69 DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=2682341232
+BENCH driver_fresh_first_us=138267
+BENCH driver_replay_first_us=959
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=37685198
+BENCH driver_replay_us=531303
+BENCH driver_fresh_peak_bytes=564805632
+BENCH driver_replay_peak_bytes=342044672
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 39.77s
+
+
+exit 0
+
+Sample A 5, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=2930994615 digest=31b732e15c9d4e0497aebb629d06436dd118328b0ab369319cab8be387e2b375 DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=2930994615
+BENCH driver_fresh_first_us=83811
+BENCH driver_replay_first_us=968
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=36885910
+BENCH driver_replay_us=525447
+BENCH driver_fresh_peak_bytes=577826816
+BENCH driver_replay_peak_bytes=344657920
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 38.96s
+
+
+exit 0
+
+Sample B 5, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=2656237567 digest=5e77c6470df28af3b2a0255356de8a3ed49858538c9194f9b5816bb1e9478111 DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=2656237567
+BENCH driver_fresh_first_us=153656
+BENCH driver_replay_first_us=67069
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=5681620
+BENCH driver_replay_us=342997
+BENCH driver_fresh_peak_bytes=833540096
+BENCH driver_replay_peak_bytes=393846784
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.53s
+
+
+exit 0
+
+Sample B 6, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=197454585 digest=f02454ca5052acc6d55b10a5b7791d46bdd5eac9e0cffed1f2cb0a21bdfea110 DXIL bytes=9245460 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=197454585
+BENCH driver_fresh_first_us=159606
+BENCH driver_replay_first_us=68719
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245460
+BENCH driver_fresh_us=5801108
+BENCH driver_replay_us=198336
+BENCH driver_fresh_peak_bytes=832286720
+BENCH driver_replay_peak_bytes=397742080
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.53s
+
+
+exit 0
+
+Sample A 6, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=2862604114 digest=4d60b361c03293358bafb21344699ec4193b937689e7a489525fb538403060e6 DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=2862604114
+BENCH driver_fresh_first_us=95978
+BENCH driver_replay_first_us=938
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=38948275
+BENCH driver_replay_us=518231
+BENCH driver_fresh_peak_bytes=612347904
+BENCH driver_replay_peak_bytes=341598208
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 41.06s
+
+
+exit 0
+
+Sample A 7, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=3133211477 digest=7647a16a7e4ac3a7c41b6154570a0d97b10f78cf7931c1f98c742990e3aa9139 DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=3133211477
+BENCH driver_fresh_first_us=162831
+BENCH driver_replay_first_us=881
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=39735148
+BENCH driver_replay_us=525664
+BENCH driver_fresh_peak_bytes=624410624
+BENCH driver_replay_peak_bytes=341553152
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 41.78s
+
+
+exit 0
+
+Sample B 7, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=3151332785 digest=5200f6860a65b1ac0d49df4fa2834ea4e9e0ea0eede3713dc3bf5d8614c99b35 DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=3151332785
+BENCH driver_fresh_first_us=153344
+BENCH driver_replay_first_us=62844
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=5987113
+BENCH driver_replay_us=209470
+BENCH driver_fresh_peak_bytes=864661504
+BENCH driver_replay_peak_bytes=380334080
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.76s
+
+
+exit 0
+
+Sample B 8, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=666921231 digest=f26615baeab7ff946e251796c4a4ca0a341e452fcb64d1faadcf99070ccfaaff DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=666921231
+BENCH driver_fresh_first_us=245844
+BENCH driver_replay_first_us=81718
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=5886297
+BENCH driver_replay_us=245147
+BENCH driver_fresh_peak_bytes=874614784
+BENCH driver_replay_peak_bytes=390619136
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.71s
+
+
+exit 0
+
+Sample A 8, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=1247610483 digest=f3e4686082078e57983cd2f99906fa6cb9b7f50e77b073132472181d0388659e DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=1247610483
+BENCH driver_fresh_first_us=112746
+BENCH driver_replay_first_us=1215
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=39017014
+BENCH driver_replay_us=521752
+BENCH driver_fresh_peak_bytes=677425152
+BENCH driver_replay_peak_bytes=338718720
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 41.16s
+
+
+exit 0
+
+Sample A 9, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=1444328992 digest=95e9e537a91ec40b0d4abc962ad0f27d3f806bfcaa479b7dffe8aa4a5137590d DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=1444328992
+BENCH driver_fresh_first_us=118556
+BENCH driver_replay_first_us=987
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=39385722
+BENCH driver_replay_us=518961
+BENCH driver_fresh_peak_bytes=574107648
+BENCH driver_replay_peak_bytes=340398080
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 41.41s
+
+
+exit 0
+
+Sample B 9, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=626829105 digest=a9a747b010dc21519c49c6eaa5831f9f1a91d762b4cc2bb955e8f1d17e5aa598 DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=626829105
+BENCH driver_fresh_first_us=261480
+BENCH driver_replay_first_us=81578
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=7589132
+BENCH driver_replay_us=215073
+BENCH driver_fresh_peak_bytes=920633344
+BENCH driver_replay_peak_bytes=386441216
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 9.54s
+
+
+exit 0
+
+Sample B 10, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=482783577 digest=477f668a6c2a1ee1fad58b5588ed02e619f284d5b12d9519a686df1b38c2193b DXIL bytes=9245460 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=482783577
+BENCH driver_fresh_first_us=295769
+BENCH driver_replay_first_us=86515
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245460
+BENCH driver_fresh_us=6290627
+BENCH driver_replay_us=212088
+BENCH driver_fresh_peak_bytes=965926912
+BENCH driver_replay_peak_bytes=374403072
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 8.53s
+
+
+exit 0
+
+Sample A 10, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=3760767726 digest=6e3d1c014c2508f413ad22834e73916926ccb416f78c0a2fe56dd558e85ce5eb DXIL bytes=9245460 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=3760767726
+BENCH driver_fresh_first_us=130364
+BENCH driver_replay_first_us=1101
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245460
+BENCH driver_fresh_us=43376560
+BENCH driver_replay_us=550540
+BENCH driver_fresh_peak_bytes=724631552
+BENCH driver_replay_peak_bytes=341790720
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 45.49s
+
+
+exit 0
+
+Sample A 11, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=3263085112 digest=77deea5bd3acb63da24a814749bab22462af97d2443a626d6fad8a93703ed80f DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=3263085112
+BENCH driver_fresh_first_us=135419
+BENCH driver_replay_first_us=942
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=39585070
+BENCH driver_replay_us=570653
+BENCH driver_fresh_peak_bytes=733876224
+BENCH driver_replay_peak_bytes=340525056
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 41.77s
+
+
+exit 0
+
+Sample B 11, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=2237950413 digest=68264b885e0f8d5b9e6858b915a22618f40db8ea5f93243dafe530f2722f1fe7 DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=2237950413
+BENCH driver_fresh_first_us=295464
+BENCH driver_replay_first_us=90436
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=6015831
+BENCH driver_replay_us=197551
+BENCH driver_fresh_peak_bytes=982536192
+BENCH driver_replay_peak_bytes=375492608
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.81s
+
+
+exit 0
+
+Sample B 12, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=1087320987 digest=f693bbae1a0c35cb9025b5bed25b35e93aa671de5e56de265cd8e22bf8d0803c DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=1087320987
+BENCH driver_fresh_first_us=230958
+BENCH driver_replay_first_us=91120
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=5913264
+BENCH driver_replay_us=210590
+BENCH driver_fresh_peak_bytes=1000198144
+BENCH driver_replay_peak_bytes=400842752
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 7.73s
+
+
+exit 0
+
+Sample A 12, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=691969485 digest=7cf4bd139eaa2f54845a5e85a7dd8421982f64639d9fa16a0786732b05c88662 DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=691969485
+BENCH driver_fresh_first_us=145542
+BENCH driver_replay_first_us=1300
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=39675605
+BENCH driver_replay_us=551978
+BENCH driver_fresh_peak_bytes=752336896
+BENCH driver_replay_peak_bytes=341082112
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 41.82s
+
+
+exit 0
+
+Sample A 13, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=2477336992 digest=35e877e3638e3966aa3ddf1d4d5a4e4f3756bdaad26d6879b749994db52ad520 DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=2477336992
+BENCH driver_fresh_first_us=154157
+BENCH driver_replay_first_us=1385
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=39818611
+BENCH driver_replay_us=552458
+BENCH driver_fresh_peak_bytes=802992128
+BENCH driver_replay_peak_bytes=340111360
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 42.02s
+
+
+exit 0
+
+Sample B 13, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=139100333 digest=f6bd10f4326a7cae1d907d1fd4c38087953d14f1600f475864f0fe08e182fe76 DXIL bytes=9245460 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=139100333
+BENCH driver_fresh_first_us=236519
+BENCH driver_replay_first_us=106380
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245460
+BENCH driver_fresh_us=6312709
+BENCH driver_replay_us=302958
+BENCH driver_fresh_peak_bytes=1002455040
+BENCH driver_replay_peak_bytes=389300224
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 8.20s
+
+
+exit 0
+
+Sample B 14, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=271978107 digest=38dfe13612b11650ee7e5e559a632cf032fe894196ed9ca2df5d1107361b9105 DXIL bytes=9245460 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=271978107
+BENCH driver_fresh_first_us=341309
+BENCH driver_replay_first_us=112445
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245460
+BENCH driver_fresh_us=6228097
+BENCH driver_replay_us=237716
+BENCH driver_fresh_peak_bytes=1046822912
+BENCH driver_replay_peak_bytes=378183680
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 8.05s
+
+
+exit 0
+
+Sample A 14, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=357761065 digest=278460fddfd42e58e003f352acc09da89d61e65a93b7041defe5107c419c3541 DXIL bytes=9245460 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=357761065
+BENCH driver_fresh_first_us=171767
+BENCH driver_replay_first_us=1310
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245460
+BENCH driver_fresh_us=40627848
+BENCH driver_replay_us=566416
+BENCH driver_fresh_peak_bytes=799469568
+BENCH driver_replay_peak_bytes=341540864
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 42.76s
+
+
+exit 0
+
+Sample A 15, position 1
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=1594641012 digest=8d4fc668c1a9aeca5de4ecab539930a9001db6f986895020e56e187feb72c68e DXIL bytes=9245472 workers=1
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=1594641012
+BENCH driver_fresh_first_us=172907
+BENCH driver_replay_first_us=1163
+BENCH driver_fresh_inflight_bytes=4632
+BENCH driver_fresh_inflight_jobs=1
+BENCH driver_replay_inflight_bytes=4632
+BENCH driver_replay_inflight_jobs=1
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=40792335
+BENCH driver_replay_us=594167
+BENCH driver_fresh_peak_bytes=813670400
+BENCH driver_replay_peak_bytes=343334912
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 43.02s
+
+
+exit 0
+
+Sample B 15, position 2
+
+running 1 test
+test pipeline::hot::driver_cache::fresh_and_replayed ... driver seed=547949996 digest=068682f17d86ead1874c86f51f2d4b86b0500995150aa1403e6dfdba01ba8e70 DXIL bytes=9245472 workers=24
+BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH driver_seed=547949996
+BENCH driver_fresh_first_us=208378
+BENCH driver_replay_first_us=120307
+BENCH driver_fresh_inflight_bytes=111168
+BENCH driver_fresh_inflight_jobs=24
+BENCH driver_replay_inflight_bytes=111168
+BENCH driver_replay_inflight_jobs=24
+BENCH driver_largest_dxil_bytes=4632
+BENCH driver_total_dxil_bytes=9245472
+BENCH driver_fresh_us=6466443
+BENCH driver_replay_us=372869
+BENCH driver_fresh_peak_bytes=1080492032
+BENCH driver_replay_peak_bytes=386076672
+BENCH driver_psos=1996
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 289 filtered out; finished in 8.45s
+
+
+exit 0

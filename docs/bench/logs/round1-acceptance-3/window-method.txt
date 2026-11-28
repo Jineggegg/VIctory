@@ -1,0 +1,15 @@
+Window admission
+  gpu-quiet run retains the host service snapshot/restore, reservation lock, WSL CUDA check and continuous quiet-period check.
+  A checkout-local copy of the host launcher narrows desktop tolerance for this acceptance run; no host settings changed.
+  Tracked 3D/compute/CUDA engines with nonzero utilization are allowed only for chrome/dwm/msedge/firefox/brave at <=3% per engine.
+  Other tracked owners, mining, or higher desktop use must clear before admission. Timeout windows do not contribute samples.
+  Board utilization is the separate nvidia-smi reading. Desktop engine readings in window.txt are admission snapshots.
+  Local build-queue slots are reserved as in tools/bench/hot.sh; the launcher restores the saved services when the window closes.
+  Original host launcher sha256 8cd41930431038f54c424c9f0ac32cb6295105ee2c4746b7ed10dc2db5e249ee
+  Acceptance launcher sha256 80415936f9b5b137058440b3c25364bc3fdeac6b16dc31d3b5e0bd5654a8d078
+Plan before extended dispatch samples
+  Three scale manifests, 30 pairs per window, forward and independent reverse windows. Alternate AB/BA within each window.
+  Two preselected GPU dispatch timings in one new, fixed 90-pair default workload window. Keep the full timing family of 19.
+  Use the existing parent comparisons for attribution of hot PSO costs. Preserve first observed cold prebuild in chronological order.
+  Two 1800-second mixed scenarios run separately, one persistent native Windows PID per arm.
+  Validation runs in a separate B window with run.ps1 -CheckOnly and without -SkipValidation.

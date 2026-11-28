@@ -1,0 +1,193 @@
+Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running unittests src\main.rs (target\debug\deps\victory-194a589f37591d69.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+     Running tests\census.rs (target\debug\deps\census-a255d957a44ba2ee.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests\census_unreadable.rs (target\debug\deps\census_unreadable-7dd9961cb041140b.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests\translate.rs (target\debug\deps\translate-62bc34dd8d6ceaed.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_core-51f8c46a2f8449d8.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_formats-0c7e51b8272807f7.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_game-4013e62613415e43.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-fafd4220db8e0d77.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_hle-715220e14005980d.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 152 filtered out; finished in 0.00s
+
+     Running tests\fidelityfx.rs (target\debug\deps\fidelityfx-ffa915b03ea22c20.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests\no_dll_planting.rs (target\debug\deps\no_dll_planting-9d3de9cb7cad3712.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_loader-200470b272292ca3.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+     Running tests\crash_log.rs (target\debug\deps\crash_log-0a309a53e68e2388.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests\load_probe.rs (target\debug\deps\load_probe-bf0578a10d3d4466.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests\title_dlls.rs (target\debug\deps\title_dlls-1976a5926922e13e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_pe-90f95e0f3fdfbfc4.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_pipeline-bbc4a0ec49b567c1.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-3d01bf2c2a103fdb.exe)
+
+running 1 test
+test emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride ... FAILED
+
+failures:
+
+---- emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride stdout ----
+
+thread 'emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride' (30468) panicked at crates\victory-shader\src\emit\stride_tests.rs:300:9:
+assertion `left == right` failed: hardware
+  left: [101, 104, 107, 110, 113, 116, 119, 122, 125, 128, 131, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+ right: [200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 304 filtered out; finished in 0.34s
+
+error: test failed, to rerun pass `-p victory-shader --lib`
+     Running tests\resource_tracking.rs (target\debug\deps\resource_tracking-70f4095dc288451d.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\deps\xtask-95d5f7b7b9b46810.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+   Doc-tests victory_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_formats
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_game
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_gpu
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_hle
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_loader
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_pe
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_pipeline
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests victory_shader
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p victory-shader --lib`

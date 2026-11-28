@@ -1,0 +1,431 @@
+
+running 13 tests
+test emit::lower::tests::small_floats_widen_as_halves ... ok
+test dxbc::tests::rejects_bad_input ... ok
+test emit::lower::tests::a_descriptor_selected_by_scc_picks_its_heap_index ... ok
+test emit::synthetic_tests::gathers_at_a_level_that_may_be_a_fraction_stop ... ok
+test emit::tests::the_loop_limit_switch_parses_or_falls_back ... ok
+test emit::semantics_tests::rounding_matches_the_hardware ... ok
+test gfx10::opcodes::tests::s_ttracedata_imm_is_sopp_0x28 ... ok
+test ir::tests::non_trivial_phis_preserve_compressed_representatives ... ok
+test resource::tests::a_descriptor_read_from_the_first_lane_of_a_loop_phi_fails_naming_it ... ok
+test resource::tests::root_constant_zero_offsets_tables_and_root_descriptors ... ok
+test emit::semantics_tests::carries_match_the_hardware ... ok
+test emit::valu_tests::v_cvt_norm_i16_and_u16_f16_round_the_exact_product ... ok
+test emit::bvh_tests::intersections_on_nodes_in_title_memory_equal_the_reference ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 24.94s
+
+
+running 13 tests
+test dxbc::tests::round_trips_parts ... ok
+test emit::lower::tests::sums_of_absolute_differences_lower ... ok
+test emit::lower::tests::a_descriptor_skipped_only_by_lanes_that_never_run_needs_no_source ... ok
+test emit::synthetic_tests::ordered_pixel_sections_use_rasterizer_ordered_views ... ok
+test emit::semantics_tests::class_compares_match_the_hardware ... ok
+test emit::semantics_tests::scalar_alu_matches_the_hardware ... ok
+test gfx10::sp3::tests::atc_probe_immediate_is_not_a_register ... ok
+test ir::tests::relative_vgpr_access_spans_up_to_the_vgpr_count ... ok
+test resource::tests::a_descriptor_used_after_exec_is_restored_is_no_waterfall ... ok
+test resource::tests::root_descriptors_are_built_in_code ... ok
+test emit::valu_tests::a_branch_to_fallthrough_keeps_both_values_at_a_join ... ok
+test emit::bvh_tests::intersections_on_the_gpu_equal_the_reference ... ok
+test emit::valu_tests::v_cvt_off_f32_i4_uses_the_signed_low_nibble ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 3.98s
+
+
+running 13 tests
+test dxil::tests::detects_xbox_layout ... ok
+test emit::lower::tests::a_guarded_scalar_write_kills_a_stale_sgpr ... ok
+test emit::lower::tests::the_24_bit_multiplies_lower_both_halves ... ok
+test emit::semantics_tests::compares_match_the_hardware ... ok
+test emit::semantics_tests::scalar_min_max_set_scc_from_the_compare ... ok
+test emit::synthetic_tests::permutes_mask_high_address_bits_and_divergent_branches ... ok
+test gfx10::sp3::tests::fields_the_instruction_lacks_are_not_printed ... ok
+test ir::tests::remove_trivial_phis_compresses_reverse_chain_in_bounded_steps ... ok
+test resource::tests::a_first_lane_read_outside_a_loop_is_no_waterfall ... ok
+test resource::tests::root_parameters_past_the_user_sgprs_load_from_the_pointer ... ok
+test emit::bvh_tests::intersections_with_64_bit_pointers_on_the_gpu_equal_the_reference ... ok
+test emit::valu_tests::v_cvt_u16_and_i16_f16_saturate ... ok
+test emit::valu_tests::bfe_signed_and_unsigned_match_rdna2 ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 11.42s
+
+
+running 13 tests
+test dxil::tests::parses_standard_layout ... ok
+test emit::bvh_tests::nan_bounds_miss ... ok
+test emit::lower::tests::the_code_table_starts_after_the_instructions ... ok
+test emit::lower::tests::a_mask_joined_with_data_needs_a_uniform_join ... ok
+test emit::semantics_tests::compares_of_denormals_agree_across_adapters ... ok
+test emit::semantics_tests::selects_match_the_hardware ... ok
+test gfx10::sp3::tests::image_d16_data_is_packed ... ok
+test ir::tests::reports_what_it_cannot_express ... ok
+test resource::tests::a_first_lane_read_without_its_compare_is_no_waterfall ... ok
+test resource::tests::sampler_words_from_bit_masks_and_wide_literals_are_constants ... ok
+test emit::synthetic_tests::permutes_read_the_lane_named_and_zero_from_lanes_left_out ... ok
+test emit::valu_tests::v_fma_f16_rounds_once_and_preserves_other_half ... ok
+test emit::valu_tests::f16_max_and_min_order_negative_zero_below_positive_zero ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 3.04s
+
+
+running 13 tests
+test dxil::tests::rejects_missing_bitcode_magic ... ok
+test emit::bvh_tests::parallel_rays_zero_area_and_nan_miss ... ok
+test emit::lower::tests::v_cndmask_accepts_uniform_and_constant_masks ... ok
+test emit::lower::tests::a_missing_value_on_a_path_no_lane_takes_is_dead ... ok
+test emit::synthetic_tests::pops_wait_loop_exits_immediately_for_inactive_lanes ... ok
+test emit::semantics_tests::constant_compares_run ... ok
+test gfx10::sp3::tests::lane_masks_follow_the_wave_size ... ok
+test ir::tests::reverse_order_diamond_chain_eliminates_trivial_phis ... ok
+test resource::tests::a_loop_that_drops_unmatched_lanes_is_no_waterfall ... ok
+test resource::tests::spilled_sgprs_are_followed_through_vgpr_lanes ... ok
+test emit::semantics_tests::sixteen_bit_floats_match_the_hardware ... ok
+test emit::valu_tests::v_fract_f16_never_returns_one ... ok
+test emit::valu_tests::fspx_programs_run_with_the_hardwares_dot_products ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 3.31s
+
+
+running 13 tests
+test emit::bitcode::tests::a_constant_branch_drops_its_other_side_and_that_side_s_phi_entry ... ok
+test emit::lower::tests::a_missing_value_stays_missing_through_two_live_joins ... ok
+test emit::lower::tests::vop3_conversion_modifiers_affect_the_lowering ... ok
+test emit::bvh_tests::shared_edges_and_vertices_leave_no_gap ... ok
+test emit::semantics_tests::constant_results_run ... ok
+test emit::semantics_tests::sub_dword_operands_match_the_hardware ... ok
+test gfx10::sp3::tests::memory_and_export ... ok
+test native::tests::compute_dispatch_settings ... ok
+test resource::tests::a_per_lane_descriptor_some_lanes_do_not_write_fails ... ok
+test resource::tests::table_descriptors_are_loaded_from_their_range ... ok
+test emit::synthetic_tests::relative_moves_in_waterfall_loops_reach_each_lane_s_element ... ok
+test emit::valu_tests::image_addresses_of_16_bits_and_clamps ... ok
+test emit::valu_tests::v_fract_f32_never_returns_one ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 2.58s
+
+
+running 13 tests
+test emit::bitcode::tests::a_loop_whose_back_edge_is_never_taken ... ok
+test emit::lower::tests::a_scalar_carry_chain_reaches_the_select ... ok
+test emit::lower::tests::waterfall_loops_over_descriptors_joined_per_lane_sample_with_each_lanes_own ... ok
+test emit::bvh_tests::the_denominators_sign_and_ratios_match_moller_trumbore ... ok
+test emit::semantics_tests::conversions_match_the_hardware ... ok
+test emit::semantics_tests::transcendental_specials_match_the_hardware ... ok
+test gfx10::sp3::tests::one_sided_packed_negation_is_printed ... ok
+test native::tests::finds_graphics_programs ... ok
+test resource::tests::a_retry_that_keeps_other_lanes_than_those_waiting_is_no_waterfall ... ok
+test resource::tests::the_console_waterfall_over_a_first_lane_offset_is_one ... ok
+test emit::synthetic_tests::wave64_permutes_check_exec_within_each_half ... ok
+test emit::valu_tests::image_atomics_of_64_bits ... ok
+test emit::valu_tests::v_med3_f16_matches_rdna2_with_nan ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 3.34s
+
+
+running 13 tests
+test emit::bitcode::tests::bench_write ... ignored, benchmark: cargo test --release -p victory-shader bitcode -- --ignored --nocapture
+test emit::bvh_tests::the_triangle_id_names_vertices_and_barycentrics ... ok
+test emit::lower::tests::a_scalar_result_needs_no_exec ... ok
+test emit::lower::tests::waterfall_loops_over_per_lane_descriptors_sample_with_each_lanes_own ... ok
+test emit::semantics_tests::wide_shifts_match_the_hardware ... ok
+test emit::semantics_tests::cube_faces_match_the_hardware ... ok
+test gfx10::sp3::tests::scalar ... ok
+test native::tests::finds_mesh_and_compute_programs ... ok
+test resource::tests::a_selection_that_mixes_two_descriptors_fails ... ok
+test resource::tests::untraceable_addresses_fail_with_a_reason ... ok
+test emit::synthetic_tests::wave64_permutes_stay_within_each_32_lane_half ... ok
+test emit::valu_tests::v_med3_f32_matches_rdna2_with_nan ... ok
+test emit::valu_tests::max_and_min_order_negative_zero_below_positive_zero ... ok
+
+test result: ok. 12 passed; 0 failed; 1 ignored; 0 measured; 297 filtered out; finished in 3.55s
+
+
+running 13 tests
+test emit::bitcode::tests::constant_globals_nothing_reads_are_left_out ... ok
+test emit::semantics_tests::defect_multiply_adds_fused_only_where_the_host_fuses ... ignored, defect: multiply-adds are fused only where the host fuses
+test emit::lower::tests::a_value_no_lane_from_its_edge_reads_needs_no_form ... ok
+test emit::shader::tests::uavs_outside_pixel_and_compute_programs_are_declared ... ok
+test emit::tests::a_half_over_a_first_interpolation_half_reads_as_a_half ... ok
+test emit::census_tests::every_opcode_translate_or_refuse_never_panic ... ok
+test gfx10::sp3::tests::vector_modifiers ... ok
+test native::tests::initialized_sgprs_covers_user_system_and_scratch ... ok
+test resource::tests::a_v_cmpx_waterfall_whose_retry_drops_lanes_is_none ... ok
+test structure::tests::a_forward_exit_to_a_null_export_is_a_discard ... ok
+test emit::memory_tests::heap_direct_texture_reads_mark_their_heap_index ... ok
+test emit::valu_tests::med3_orders_negative_zero_below_positive_zero ... ok
+test emit::valu_tests::v_min3_max3_med3_integer_forms_match_rdna2 ... ok
+
+test result: ok. 12 passed; 0 failed; 1 ignored; 0 measured; 297 filtered out; finished in 37.89s
+
+
+running 13 tests
+test emit::container::tests::md5_core_matches_the_standard ... ok
+test emit::bitcode::tests::empty_blocks_before_a_phi_fold_only_where_the_entry_can_move ... ok
+test emit::lower::tests::a_waterfall_loop_that_only_sizes_takes_the_kind_of_the_sampled_one ... ok
+test emit::tests::a_row_keeps_one_interpolation_mode ... ok
+test emit::semantics_tests::else_lanes_keep_their_registers ... ok
+test emit::memory_tests::root_views_read_their_copy_and_zeros_past_it ... ok
+test gfx10::tests::flat_offsets_ignore_bit_eleven ... ok
+test native::tests::mesh_stage_io_ignores_unused_vs_input_count ... ok
+test resource::tests::a_waterfall_narrowed_by_v_cmpx_is_one ... ok
+test structure::tests::a_loop_exit_to_a_null_export_is_no_discard ... ok
+test emit::stride_tests::a_constant_buffer_through_the_heap_reads_as_a_raw_buffer ... ok
+test emit::valu_tests::v_mul_legacy_f32_treats_denormals_as_zero ... ok
+test emit::valu_tests::normalized_buffer_formats_load_correctly_rounded_quotients has been running for over 60 seconds
+test emit::valu_tests::normalized_buffer_formats_load_correctly_rounded_quotients ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 144.80s
+
+
+running 13 tests
+test emit::crosslane_tests::cpu_reference_oracle_boundary_checks ... ok
+test emit::bitcode::tests::empty_latch_with_dead_phis_is_folded ... ok
+test emit::lower::tests::an_address_half_set_where_only_lanes_that_never_run_skip_is_known ... ok
+test emit::tests::a_stencil_export_declares_the_stencil_ref_feature ... ok
+test emit::stride_tests::a_half_buffer_load_reads_the_half_at_its_address ... ok
+test emit::semantics_tests::f16_arithmetic_rounds_once ... ok
+test gfx10::tests::follows_branches_and_skips_data ... ok
+test native::tests::pc_layout_has_none ... ok
+test resource::tests::a_waterfall_nested_in_another_is_refused_by_name ... ok
+test structure::tests::a_mask_spilled_to_a_vgpr_lane_comes_back_as_itself ... ok
+test emit::memory_tests::straddling_writes_across_256mib_and_4gib_boundaries_mark_exact_pages ... ok
+test emit::valu_tests::v_sin_and_v_cos_f16_reduce_large_turns ... ok
+test emit::valu_tests::normalized_buffer_formats_load_their_ends_exactly ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 6.46s
+
+
+running 13 tests
+test emit::bitcode::tests::only_values_with_effects_or_readers_are_written ... ok
+test emit::lower::tests::buffer_cache_invalidations_lower_as_no_ops ... ok
+test emit::semantics_tests::f16_results_round_as_the_mode_says ... ok
+test emit::tests::an_exec_high_write_does_not_overflow_the_stack ... ok
+test emit::memory_tests::title_memory_is_read_and_written_at_computed_addresses ... ok
+test emit::stride_tests::a_heap_buffer_read_by_element_takes_the_views_stride ... ok
+test gfx10::tests::follows_far_jumps ... ok
+test native::tests::reads_every_native_blob ... ok
+test resource::tests::a_wave64_access_with_exec_hi_overwritten_is_no_waterfall ... ok
+test structure::tests::bench_bools ... ignored, benchmark: cargo test --release -p victory-shader bench_bools -- --ignored --nocapture
+test emit::valu_tests::normalized_codes_truncate_back_to_themselves ... ok
+test emit::valu_tests::v_sin_and_v_cos_f32_reduce_large_turns ... ok
+test emit::crosslane_tests::dpp16_inactive_source_and_bound_ctrl_match_rdna2_on_gpu ... ok
+
+test result: ok. 12 passed; 0 failed; 1 ignored; 0 measured; 297 filtered out; finished in 41.16s
+
+
+running 13 tests
+test emit::bitcode::tests::successors_of_each_terminator ... ok
+test emit::lower::tests::buffer_formats_by_number ... ok
+test emit::stride_tests::a_heap_buffer_read_where_no_buffer_view_is_reads_zeros ... ok
+test emit::tests::an_export_before_a_discarding_done_export_stores_unguarded ... ok
+test emit::semantics_tests::f16_results_round_to_nearest_even ... ok
+test emit::memory_tests::writes_through_views_mark_their_pages ... ok
+test gfx10::tests::follows_far_jumps_backward ... ok
+test native::tests::reads_fspx_compute_programs ... ok
+test resource::tests::a_wave64_retry_of_one_half_is_no_waterfall ... ok
+test structure::tests::data_loaded_where_a_mask_was_is_no_mask ... ok
+test emit::waterfall_tests::lanes_load_from_the_buffer_their_nested_arms_chose ... ok
+test emit::valu_tests::packed_add_selects_halves_of_inline_constants ... ok
+test emit::crosslane_tests::dpp8_and_dpp8fi_inactive_source_match_rdna2_on_gpu ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 7.38s
+
+
+running 13 tests
+test emit::rect::rule_tests::right_angles_are_found_in_any_order ... ok
+test emit::bitcode::tests::unread_phis_are_dropped ... ok
+test emit::lower::tests::compute_spills_beside_a_descriptor_word_read_back ... ok
+test emit::tests::an_interpolation_after_j_is_reused_in_other_lanes_translates ... ok
+test emit::semantics_tests::floor_conversions_match_the_hardware ... ok
+test emit::stride_tests::a_heap_index_in_a_paged_view_heap_reads_where_its_page_is ... ok
+test gfx10::tests::lengths_and_names ... ok
+test native::tests::reads_mesh_outputs_and_limits ... ok
+test resource::tests::an_access_under_a_further_mask_is_no_waterfall ... ok
+test structure::tests::divergent_if_becomes_a_lane_branch ... ok
+test emit::valu_tests::packed_fmac_accumulates_each_half ... ok
+test emit::waterfall_tests::lanes_sample_the_entry_their_offset_names_in_the_console_waterfall ... ok
+test emit::crosslane_tests::ds_swizzle_b32_inactive_source_returns_zero_on_gpu ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 3.38s
+
+
+running 13 tests
+test emit::bitcode::tests::uses_count_only_what_is_written ... ok
+test emit::lower::tests::descriptors_joined_by_nested_control_flow_lower_to_one_uniform_handle ... ok
+test emit::semantics_tests::hosts_that_do_not_fuse_are_named ... ok
+test emit::tests::constant_color_validates ... ok
+test emit::crosslane_tests::pixel_quad_swizzle_and_dpp_validate_and_create_pipeline ... ok
+test emit::stride_tests::a_sampler_chosen_by_a_uniform_branch_samples_as_chosen ... ok
+test gfx10::tests::rejects_bad_code ... ok
+test native::tests::reads_pixel_io_and_applies_the_full_export_patch ... ok
+test resource::tests::computed_addresses_are_title_memory ... ok
+test structure::tests::divergent_loop_exits_per_lane ... ok
+test emit::rect::tests::rectangles_get_their_fourth_corner ... ok
+test emit::valu_tests::relative_moves_reach_only_what_their_clamped_index_can ... ok
+test emit::waterfall_tests::lanes_sample_the_texture_their_arm_loaded_or_picked ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 1.41s
+
+
+running 13 tests
+test emit::sampler::tests::anisotropic_samplers_preserve_mip_point_filtering ... ok
+test emit::diff_tests::cube_gradients_pick_the_level ... ok
+test emit::bitcode::tests::vbr_and_blocks ... ok
+test emit::lower::tests::descriptors_reloaded_from_a_root_table_share_one_handle ... ok
+test emit::tests::edge_flagged_triangles_draw_as_unflagged_ones ... ok
+test emit::semantics_tests::integers_match_the_hardware ... ok
+test gfx10::tests::tables_are_sorted ... ok
+test native::tests::reads_root_tables ... ok
+test resource::tests::descriptors_joined_by_control_flow_are_traced_per_edge ... ok
+test structure::tests::exec_narrowed_without_a_branch_leaves_a_guard ... ok
+test emit::stride_tests::d16_typed_buffer_accesses_pass_bits_through_integer_views ... ok
+test emit::waterfall_tests::lanes_sample_the_texture_their_if_else_arm_chose ... ok
+test emit::valu_tests::s_cmpk_compares_against_the_extended_immediate ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 21.33s
+
+
+running 13 tests
+test emit::diff_tests::float_semantics_are_the_consoles ... ok
+test emit::sampler::tests::console_compiled_samplers_decode ... ok
+test emit::lower::tests::ds_bpermute_refuses_gds ... ok
+test emit::bitcode::tests::worklist_liveness_matches_passes ... ok
+test emit::tests::elements_sharing_a_row_keep_their_order ... ok
+test emit::semantics_tests::lds_bytes_and_halves_match_the_hardware ... ok
+test io::tests::interpolation_pairs_and_color_exports ... ok
+test native::tests::rejects_corrupt_blobs ... ok
+test resource::tests::descriptors_joined_from_a_per_lane_load_and_a_per_lane_choice_are_traced_per_path ... ok
+test structure::tests::given_matches_a_walk_per_variable ... ok
+test emit::stride_tests::d16_x_loads_read_r16_uint_and_r16_float_views ... ok
+test emit::waterfall_tests::lanes_sample_their_own_texture_in_a_waterfall_narrowed_by_v_cmpx ... ok
+test emit::valu_tests::scalar_quad_masks_pack_nibbles_and_set_scc ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 2.49s
+
+
+running 13 tests
+test emit::sampler::tests::host_filter_falls_back_without_changing_reduction_or_lod ... ok
+test emit::diff_tests::translated_compute_matches_pc ... ok
+test emit::lower::tests::ds_bpermute_wave64_preserves_32_lane_half ... ok
+test emit::tests::immediate_sampler_slots_distinguish_comparison_uses ... ok
+test emit::bitcode::tests::written_bytes_unchanged ... ok
+test emit::wave::tests::constant_decodes_width_and_inline_kinds ... ok
+test io::tests::mesh_inputs_and_primitive_export ... ok
+test native::tests::rejects_corrupt_fspx_parts ... ok
+test resource::tests::descriptors_read_from_the_first_lane_of_a_per_lane_choice_are_traced_per_lane ... ok
+test structure::tests::given_replaces_every_decided_atom ... ok
+test emit::semantics_tests::lds_out_of_bounds_reads_zero_and_drops_writes ... ok
+test emit::stride_tests::half_buffer_stores_leave_the_other_half_alone ... ok
+test emit::valu_tests::signed_64_bit_operands_sign_extend_their_literal ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 2.11s
+
+
+running 13 tests
+test emit::diff_tests::translated_mesh_shaders_draw_as_pc_ones ... ok
+test emit::sampler::tests::host_filter_keeps_other_filters_unchanged ... ok
+test emit::bvh_tests::a_ray_parallel_to_a_slab_hits_only_between_its_planes ... ok
+test emit::lower::tests::guarded_or_modified_v_mov_b32_is_not_folded_as_constant ... ok
+test emit::tests::indexed_move_initializes_an_input_before_its_first_use ... ok
+test emit::wave::tests::dpp_lanes_follow_the_isa ... ok
+test io::tests::pixel_vgprs_follow_the_input_address ... ok
+test range::tests::a_bound_must_survive_what_the_bounded_moves_write ... ok
+test resource::tests::descriptors_read_from_the_first_lane_of_an_if_else_join_are_traced_per_path ... ok
+test structure::tests::guards_follow_exec_and_block_reachability ... ok
+test emit::semantics_tests::masked_lanes_keep_their_registers ... ok
+test emit::stride_tests::heap_indexed_structured_buffers_with_distinct_strides ... ok
+test emit::valu_tests::src_scc_reads_as_zero_or_one ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 1.66s
+
+
+running 13 tests
+test emit::diff_tests::translated_shaders_draw_as_pc_ones ... ok
+test emit::sampler::tests::mip_lod_bias_decodes_signed_14bit_fixed_point_extremes ... ok
+test emit::lower::tests::packed_buffer_formats_by_number ... ok
+test emit::bvh_tests::a_triangle_returns_t_and_barycentrics_over_one_denominator ... ok
+test emit::tests::interpolated_f16_writes_the_op_sel_half_with_modifiers ... ok
+test emit::wave::tests::exec_minus_two_masks_lane_zero_and_enforces_dpp_guard ... ok
+test io::tests::unpaired_or_unknown_interpolation_fails ... ok
+test range::tests::a_first_lane_where_exec_may_be_empty_is_unbounded ... ok
+test resource::tests::descriptors_read_from_the_first_lane_of_lds_fail_naming_it ... ok
+test structure::tests::irreducible_loops_are_split ... ok
+test emit::semantics_tests::med3_orders_signed_zeros ... ok
+test emit::stride_tests::table_bound_structured_buffer_reads_by_element_and_dimensions ... ok
+test emit::valu_tests::tbuffer_d16_loads_pack_two_channels_per_dword ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 3.79s
+
+
+running 13 tests
+test emit::sampler::tests::no_mip_filter_forces_zero_lod_range_and_non_zero_preserves_it ... ok
+test emit::flow_tests::control_flow_runs_as_pc_compiles_it ... ok
+test emit::bvh_tests::box16_holds_halves_in_pairs ... ok
+test emit::lower::tests::packed_halves_fill_parameters_first_fit ... ok
+test emit::tests::primitive_export_indices_drop_the_edge_flags ... ok
+test emit::wave::tests::per_lane_prefix_soundness ... ok
+test ir::tests::drops_scheduling_and_follows_far_jumps ... ok
+test range::tests::a_loop_counter_bounds_the_index ... ok
+test resource::tests::descriptors_read_from_the_first_lane_of_per_lane_loads_are_traced_to_them ... ok
+test structure::tests::scalar_branches_stay_uniform ... ok
+test emit::semantics_tests::min_max_and_clamp_match_the_hardware ... ok
+test emit::valu_tests::v_cmp_class_f16_matches_rdna2 ... ok
+test emit::stride_tests::views_read_in_a_paged_view_heap_mark_their_pages ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 9.29s
+
+
+running 13 tests
+test emit::bvh_tests::boxes_come_sorted_by_distance_misses_last ... ok
+test emit::lower::tests::perm_constant_selector_needs_no_int64 ... ok
+test emit::host::tests::parallel_warp_pipelines_and_draws ... ok
+test emit::tests::reading_a_channel_below_an_input_element_does_not_underflow ... ok
+test emit::synthetic_tests::a_compare_mask_joined_with_data_on_the_skip_edge_is_0_there ... ok
+test emit::wave::tests::prefixes_are_recognised ... ok
+test ir::tests::in_place_scalar_ops_read_their_destination ... ok
+test resource::tests::a_buffer_descriptor_joined_per_lane_is_traced_on_the_paths_of_lanes_that_load ... ok
+test resource::tests::descriptors_selected_by_scc_are_traced_per_outcome ... ok
+test structure::tests::vars_match_the_scan ... ok
+test emit::semantics_tests::arithmetic_matches_the_hardware ... ok
+test emit::semantics_tests::min_max_and_selects_take_denormals_on_the_bits ... ok
+test emit::valu_tests::v_cmp_lg_is_false_for_nan ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 10.66s
+
+
+running 12 tests
+test emit::bvh_tests::equal_distances_keep_the_networks_order ... ok
+test emit::lower::tests::perm_dynamic_selector_needs_no_int64 ... ok
+test emit::lower::marks::tests::title_page_marks_keep_every_lanes_bit ... ok
+test emit::tests::sample_interpolated_inputs_set_psv_sample_frequency ... ok
+test emit::semantics_tests::byte_dot_products_match_the_hardware ... ok
+test emit::wave::tests::v_add_f16_inline_float_constants_are_not_zero_identity ... ok
+test ir::tests::joins_get_phis_only_where_values_differ ... ok
+test resource::tests::a_compare_that_does_not_mask_the_access_is_no_waterfall ... ok
+test resource::tests::heap_indices_from_root_constants_in_a_merged_stage ... ok
+test emit::synthetic_tests::a_mask_joined_with_data_at_a_uniform_loop_is_its_number ... ok
+test emit::semantics_tests::mixed_precision_matches_the_hardware ... ok
+test emit::valu_tests::v_cmp_u64_and_i64_order_by_the_high_dword has been running for over 60 seconds
+test emit::valu_tests::v_cmp_u64_and_i64_order_by_the_high_dword ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 298 filtered out; finished in 123.27s
+
+
+running 12 tests
+test emit::bvh_tests::extent_and_origin_bound_the_interval_inclusively ... ok
+test emit::lower::tests::a_descriptor_loaded_only_for_its_size_takes_the_kind_of_its_reload ... ok
+test emit::lower::tests::scalar_bit_tests_lower ... ok
+test emit::tests::stub_pipeline_is_created ... ok
+test emit::semantics_tests::byte_packing_matches_the_hardware ... ok
+test emit::wave::tests::wave32_mov_b64_all_lanes_keeps_exec_masked_for_dpp ... ok
+test ir::tests::loops_carry_values_through_phis ... ok
+test resource::tests::a_descriptor_made_raw_is_the_loaded_one ... ok
+test resource::tests::root_constant_zero_offsets_emit_to_dxil ... ok
+test emit::synthetic_tests::gathers_at_a_level_match_the_hardware ... ok
+test emit::semantics_tests::output_multipliers_give_positive_zero ... ok
+test emit::valu_tests::v_cvt_f16_u16_and_i16_widen_the_integer_first ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 298 filtered out; finished in 3.87s

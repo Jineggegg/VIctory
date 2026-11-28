@@ -1,0 +1,187 @@
+统一基线 6b1e408 上的 Windows 原生验证
+
+.  commit=3caeada  sha256=559ba85eab2911ef6b1f9b4b8ea421f81a2136a456b85f64baadcd4c43fa1807
+descriptor-3caeada-default.log: test result: ok. 264 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.45s
+descriptor-3caeada-diagnostics.log: test result: ok. 279 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 2.10s
+
+target/ab-base  commit=6b1e408  sha256=b773735eaa048c4197aeab9029a9b883885664bc167bb9adae406290048c1d2e
+
+target/community-3139  commit=c975df7  sha256=93d2f257f5d83ccbbef0c86b238b05c1c9c6126bf33c5deb9a866ce9380cc2a8
+descriptor-c975df7-diagnostics.log: test result: ok. 275 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 2.07s
+
+target/community-3055  commit=47e8a0d  sha256=392600dc27ed2187cbbb2556451bcc1ebf1fd14c5bf9be97acef53286f70ae6d
+descriptor-47e8a0d-diagnostics.log: test result: ok. 275 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 1.98s
+
+target/community-3055-create  commit=def98c3  sha256=3f226f656dbb6e7c8cd6bd0e7540f0ac5043ff19a078c9554d12a8154e529f7b
+descriptor-def98c3-diagnostics-repeat.log: test result: ok. 276 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 2.29s
+descriptor-def98c3-diagnostics.log: test frame::tests::waits_end_on_ticks_and_count_frames ... FAILED
+descriptor-def98c3-diagnostics.log: test result: FAILED. 275 passed; 1 failed; 12 ignored; 0 measured; 0 filtered out; finished in 4.20s
+
+target/community-2821  commit=deefeb4  sha256=29eb5fc3f70bc2b79024200fa8dab076f09747bdebd36342f5cd6122cee0d8dd
+descriptor-deefeb4-diagnostics-repeat.log: test result: ok. 275 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 2.26s
+
+target/community-3122  commit=56a5af0  sha256=548ab276a1ed999a5e03711cdd5cd62ebfd6e3b3a3596c5d778af0ec08b7d034
+descriptor-56a5af0-diagnostics-repeat.log: test result: ok. 274 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 2.35s
+
+target/submit-base  commit=1186d69  sha256=4b3d118875fc4ad310edb81bd17111758e554e462db30c4f9e5dc4e19715f11f
+
+target/submit-opt  commit=3707a30  sha256=5522756ad6ad06291991889d083940f666d619693263ddfa8ef43682441a0e3c
+
+热点冒烟  [1, 1, 1]
+
+分页修复后、扩充基准工具合入前的各候选验证
+
+分页基线上的候选 · 默认  ef1cdc7
+test descriptor::tests::final_release_drains_the_current_visit_and_invalidates_older_snapshots ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test descriptor::host::tests::a_generation_invalidated_during_prepare_cannot_publish_the_old_resource ... ok
+test descriptor::host::tests::batched_constants_in_the_scratch_page_are_remade_when_resident ... ok
+test descriptor::host::tests::a_recorder_can_replace_a_slot_while_the_heap_sync_prepares_it ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... ok
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test result: ok. 264 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.52s
+
+分页基线上的候选 · diagnostics  ef1cdc7
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test descriptor::host::tests::a_generation_invalidated_during_prepare_cannot_publish_the_old_resource ... ok
+test descriptor::host::tests::a_recorder_can_replace_a_slot_while_the_heap_sync_prepares_it ... ok
+test descriptor::host::tests::batched_constants_in_the_scratch_page_are_remade_when_resident ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test descriptor::tests::final_release_drains_the_current_visit_and_invalidates_older_snapshots ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test host::present_plane_tests::compositor_failure_presents_primary_in_the_same_frame ... ok
+test result: ok. 279 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.31s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+#3139  community-3139-78b9403
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test host::present_plane_tests::compositor_failure_presents_primary_in_the_same_frame ... ok
+test result: ok. 275 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.07s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+#3055 并行探页和比对  community-3055-1325e65
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test host::present_plane_tests::compositor_failure_presents_primary_in_the_same_frame ... ok
+test result: ok. 275 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.24s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+#3055 并行创建  community-3055-create-acef561
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test descriptor::host::tests::batched_constants_in_the_scratch_page_are_remade_when_resident ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test host::present_plane_tests::compositor_failure_presents_primary_in_the_same_frame ... ok
+test result: ok. 276 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.97s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+#3122 首轮  community-3122-10be422
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... FAILED
+test hold::tests::chained_waits_across_two_queues ... ok
+test host::present_plane_tests::compositor_failure_presents_primary_in_the_same_frame ... ok
+test result: FAILED. 273 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.57s
+
+#3122 原命令复跑  community-3122-10be422
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test host::present_plane_tests::compositor_failure_presents_primary_in_the_same_frame ... ok
+test result: ok. 274 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.42s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+#2821  community-2821-7784193
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test descriptor::host::tests::a_reclaimed_constant_cannot_hit_the_ready_cache ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test host::present_plane_tests::compositor_failure_presents_primary_in_the_same_frame ... ok
+test result: ok. 275 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 5.20s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+独立 Windows 进程热点冒烟
+ef1cdc7f3c9a7cc1039f6d4372e200fdfa515cb7  formal=False complete=True verified=[1.0, 1.0, 1.0]
+78b94037385df5fe8c70e7f6ff505a62309c6492  formal=False complete=True verified=[1.0, 1.0, 1.0]
+1325e65554fc8d6f411dab9ef4edffcc254f314f  formal=False complete=True verified=[1.0, 1.0, 1.0]
+10be422904c43643a3c6558e5f5464f97476035a  formal=False complete=True verified=[1.0, 1.0, 1.0]
+7784193de444f2d1f6bf8ceeec9d52f119f71a43  formal=False complete=True verified=[1.0, 1.0, 1.0]
+acef561d60ac1a9e09efbbabcbb5114b17bc62d4  formal=False complete=True verified=[1.0, 1.0, 1.0]
+
+安全的提交快路径试验，Signal 后已完成的提交数
+进程 1，计时前计数 1，计时后计数 1，32 次提交中命中 0 次
+进程 2，计时前计数 1，计时后计数 1，32 次提交中命中 0 次
+进程 3，计时前计数 1，计时后计数 1，32 次提交中命中 0 次
+进程 4，计时前计数 1，计时后计数 1，32 次提交中命中 0 次
+进程 5，计时前计数 1，计时后计数 1，32 次提交中命中 0 次
+进程 6，计时前计数 1，计时后计数 1，32 次提交中命中 0 次
+进程 7，计时前计数 1，计时后计数 1，32 次提交中命中 0 次
+进程 8，计时前计数 1，计时后计数 1，32 次提交中命中 0 次
+
+交换 A/B 角色复核后的统计检查
+将初筛与入围合并的结果、交换角色后由原始值重算的结果、汇总 60 对的结果，交给统一基线的 Windows 原生 xtask bench-stats --paired --family-size 19 复算。共四张表、84 组指标，单臂中位数、变化和两类区间合计 588 个值均一致。
+
+布局安慰剂（基线 6b1e408 加诊断测试专用的无调用填充）
+commit=a9ce58a，Windows 原生诊断 273 通过、0 失败、12 忽略，热点冒烟三个独立进程均通过校验。最终可执行文件与两臂着色器机器代码段的信息见 link-layout.json。
+
+2026-11-26 单代码单元同源对照
+两份独立工作目录均仅通过 CARGO_PROFILE_DIAG_CODEGEN_UNITS=1 影响 diag 测速构建。两臂各自 victory-shader rlib 只含一个 rcgu.o，对照原配置为 16 个。Windows 原生诊断测试，基线 6b1e408 273 项通过、12 项忽略，候选 3caeada 279 项通过、12 项忽略。二进制 SHA-256 与函数信息见 codegen-1-build.json。
+
+合入 GPU 标记更新 177ee68 后，Windows 合并提交 ddf7471
+default
+Running unittests src\lib.rs (target\debug\deps\victory_gpu-430539b01b4c91b0.exe)
+test result: ok. 265 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.07s
+Running unittests src\lib.rs (target\debug\deps\victory_shader-99fbeb2a1ba3f7df.exe)
+test result: ok. 307 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 531.27s
+Running tests\resource_tracking.rs (target\debug\deps\resource_tracking-eaa8167e75316a33.exe)
+test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running benches\guard_runs.rs (target\debug\deps\guard_runs-e30da5eca16c82f0.exe)
+short runs: 82.876µs per program (median)
+long runs: 323.35µs per program (median)
+diagnostics
+Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe)
+test result: ok. 281 passed; 0 failed; 13 ignored; 0 measured; 0 filtered out; finished in 2.65s
+Running unittests src\lib.rs (target\diag\deps\victory_shader-fa3b6765eb312021.exe)
+test result: ok. 307 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 407.00s
+Running tests\resource_tracking.rs (target\diag\deps\resource_tracking-452ffc4d206cf8c0.exe)
+test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running benches\guard_runs.rs (target\diag\deps\guard_runs-1fd6b77c3337a7c1.exe)
+short runs: 8.187µs per program (median)
+long runs: 26.681µs per program (median)
+test descriptor::host::tests::a_generation_invalidated_during_prepare_cannot_publish_the_old_resource ... ok
+test descriptor::host::tests::a_recorder_can_replace_a_slot_while_the_heap_sync_prepares_it ... ok
+test descriptor::host::tests::batched_constants_in_the_scratch_page_are_remade_when_resident ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test descriptor::tests::final_release_drains_the_current_visit_and_invalidates_older_snapshots ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test hold::tests::a_list_waits_for_another_queues_write ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test host::present_plane_tests::compositor_failure_presents_primary_in_the_same_frame ... ok
+release 构建成功。热点冒烟共 3 次，均验证通过，其中着色器摘要为 5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2。新的像素回读存于 merged-pixel.json。

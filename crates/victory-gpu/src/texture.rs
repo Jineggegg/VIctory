@@ -10,7 +10,8 @@
 //! same physical pages) in the runtime's memory; elsewhere, a content hash
 //! of the whole memory at every submission that samples it.
 //!
-//! shortcut: a change detiles the whole texture, not the pages written.
+//! Tracked writes copy whole subresources, or bands of tile rows when
+//! a 2D color mip has independent, contiguous rows of layout blocks.
 //! Textures read through descriptor tables are brought up to date, and for
 //! shaders that index the heap themselves every texture with a resource
 //! object the heap views (`crate::bindless`); textures the title placed in
@@ -44,21 +45,38 @@ pub(crate) struct Staging {
     size: u64,
     footprints: Vec<D3D12_PLACED_SUBRESOURCE_FOOTPRINT>,
     rows: Vec<u32>,
+    /// Native rows match the guest plane byte-for-byte and may be copied in parts.
+    band_copies: bool,
     layout: victory_formats::texture::Layout,
     /// Mips per array slice.
     mips: u32,
     memory: *const u8,
-    /// The memory's pages changed since detiled (none: not the runtime's
-    /// memory, hashed instead).
+    /// Present only when every source page is tracked.
     tracked: Option<crate::watch::Tracked>,
+    /// Hash a safe snapshot when runtime and ordinary private pages coexist.
+    mixed_memory: bool,
     /// Per subresource, the bytes of the texture's memory it lies in (from
     /// its start, whole layout blocks); empty where the layout gives none.
     spans: Vec<(usize, usize)>,
     last: Mutex<Last>,
+    /// A tracked refresh consumed dirty pages before staging failed.
+    retry: std::sync::atomic::AtomicBool,
     /// Uploads [`record_upload`] recorded, and the subresources they
     /// copied.
     uploads: std::sync::atomic::AtomicU64,
     copied: std::sync::atomic::AtomicU64,
+    #[cfg(test)]
+    copied_bytes: std::sync::atomic::AtomicU64,
+    #[cfg(test)]
+    detile_errors: std::sync::atomic::AtomicU64,
+    /// Actual copy footprints, retained only for a texture under readback test.
+    #[cfg(test)]
+    recorded_parts: std::sync::OnceLock<Mutex<Vec<CopyPart>>>,
+}
+
+enum UploadError {
+    NoStagingSpace,
+    InvalidLayout,
 }
 
 /// What was last detiled: the hash of the memory (not tracked), or of each
@@ -161,6 +179,22 @@ fn staging_buffer(size: u64) -> Option<(ID3D12Resource, *mut u8)> {
     Some(made)
 }
 
+#[cfg(all(test, feature = "diagnostics"))]
+static STAGING_REQUESTED: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn staging_requested() -> u64 {
+    STAGING_REQUESTED.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Physical staging buffers used by the most recent submission (including chunk slack).
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn staging_backing() -> u64 {
+    let chunks = CHUNKS.lock().unwrap_or_else(|e| e.into_inner());
+    let count = chunks.current + usize::from(chunks.used > 0);
+    count as u64 * CHUNK + BUFFERS.lock().unwrap_or_else(|e| e.into_inner()).used.iter().map(|e| e.0).sum::<u64>()
+}
+
 /// Staging space carved from large upload buffers, front to back: most
 /// textures take a part of one instead of a buffer of their own (making
 /// upload buffers was 10 % of the submitting thread in a new shot, run
@@ -186,6 +220,8 @@ const CHUNKS_KEPT: usize = 16;
 /// (a multiple of 512, as texture copies need) and its mapping there.
 /// Space larger than a chunk is a buffer of its own ([`staging_buffer`]).
 fn staging_space(size: u64) -> Option<(ID3D12Resource, u64, *mut u8)> {
+    #[cfg(all(test, feature = "diagnostics"))]
+    STAGING_REQUESTED.fetch_add(size, std::sync::atomic::Ordering::Relaxed);
     if size > CHUNK {
         return staging_buffer(size).map(|(b, data)| (b, 0, data));
     }
@@ -385,7 +421,7 @@ pub(crate) fn record_upload(
     list: &HostList,
     copy: &Arc<crate::resource::HostTexture>,
     staging: &Staging,
-    (buffer, at, subresources): &Upload,
+    (buffer, subresources): &Upload,
 ) -> Option<D3D12_RESOURCE_BARRIER> {
     const COPY_DEST: u32 = 0x400;
     const SHADER_RESOURCE: u32 = 0x40 | 0x80;
@@ -393,7 +429,18 @@ pub(crate) fn record_upload(
         // SAFETY: an open list; the barrier names a live texture.
         unsafe { list.list.ResourceBarrier(&[b]) };
     }
-    copies(list, &copy.texture, staging, (buffer, *at), subresources, String::new);
+    copies(
+        list,
+        &copy.texture,
+        staging,
+        buffer,
+        subresources,
+        String::new,
+    );
+    #[cfg(test)]
+    if let Some(parts) = staging.recorded_parts.get() {
+        parts.lock().unwrap().extend_from_slice(subresources);
+    }
     list.keep(buffer);
     staging.uploads.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     staging.copied.fetch_add(subresources.len() as u64, std::sync::atomic::Ordering::Relaxed);
@@ -425,25 +472,38 @@ fn copies(
     list: &HostList,
     texture: &ID3D12Resource,
     staging: &Staging,
-    (buffer, at): (&ID3D12Resource, u64),
-    subresources: &[u32],
+    buffer: &ID3D12Resource,
+    subresources: &[CopyPart],
     name: impl Fn() -> String,
 ) {
-    for &i in subresources {
-        let i = i as usize;
-        let mut footprint = staging.footprints[i];
-        footprint.Offset += at;
-        let footprint = &footprint;
+    for part in subresources {
+        let i = part.index as usize;
+        let footprint = &part.footprint;
+        #[cfg(test)]
+        {
+            let m = staging.layout.mips[i % staging.mips as usize];
+            let rows = footprint
+                .Footprint
+                .Height
+                .div_ceil(staging.layout.desc.block);
+            let bytes = u64::from(m.width)
+                * u64::from(staging.layout.desc.element_bytes)
+                * u64::from(rows)
+                * u64::from(m.depth);
+            staging
+                .copied_bytes
+                .fetch_add(bytes, std::sync::atomic::Ordering::Relaxed);
+        }
         #[cfg(feature = "diagnostics")]
         {
             let f = footprint.Footprint;
             // SAFETY: live resources.
             let (gpu, d) = unsafe { (buffer.GetGPUVirtualAddress(), texture.GetDesc()) };
-            let len = u64::from(f.RowPitch) * u64::from(staging.rows[i]) * u64::from(f.Depth);
+            let len = part.len;
             list.note_read(
                 || {
                     format!(
-                        "texture upload {} ({}x{}x{} f{} mips {}) sub {i} of {} from staging {gpu:#x}+{:#x}: offset {:#x} {}x{}x{} pitch {}",
+                        "texture upload {} ({}x{}x{} f{} mips {}) sub {i} of {} from staging {gpu:#x}: offset {:#x}+{len:#x} {}x{}x{} pitch {}",
                         name(),
                         d.Width,
                         d.Height,
@@ -451,7 +511,6 @@ fn copies(
                         d.Format.0,
                         d.MipLevels,
                         staging.footprints.len(),
-                        staging.size,
                         footprint.Offset,
                         f.Width,
                         f.Height,
@@ -479,13 +538,29 @@ fn copies(
             },
         };
         // SAFETY: an open list; both locations name live resources.
-        unsafe { list.list.CopyTextureRegion(&to, 0, 0, 0, &from, None) };
+        unsafe { list.list.CopyTextureRegion(&to, 0, part.y, 0, &from, None) };
     }
 }
 
-/// What a refresh gives: a staging buffer, where its space starts in it,
-/// and the subresources detiled into it.
-pub(crate) type Upload = (ID3D12Resource, u64, Vec<u32>);
+/// A staging buffer and the absolute footprints of its copies.
+pub(crate) type Upload = (ID3D12Resource, Vec<CopyPart>);
+
+#[derive(Clone)]
+pub(crate) struct CopyPart {
+    index: u32,
+    y: u32,
+    footprint: D3D12_PLACED_SUBRESOURCE_FOOTPRINT,
+    len: u64,
+}
+
+#[cfg(test)]
+pub(crate) fn copied_bytes(resource: This) -> u64 {
+    let staging = crate::resource::host_copy(resource)
+        .and_then(|c| c.staging.lock().unwrap_or_else(|e| e.into_inner()).clone());
+    staging.map_or(0, |s| {
+        s.copied_bytes.load(std::sync::atomic::Ordering::Relaxed)
+    })
+}
 
 /// Runs `f(i)` for each `i` below `n` on up to a quarter of the CPUs (four
 /// at most: the title's own threads need the rest), here when that is
@@ -536,6 +611,7 @@ impl Staging {
     /// untracked texture always may).
     pub(crate) fn maybe_changed(&self) -> bool {
         self.tracked.as_ref().is_none_or(|t| !t.clean())
+            || self.retry.load(std::sync::atomic::Ordering::Relaxed)
     }
 
     /// A staging buffer with the texture memory detiled into it if it
@@ -562,10 +638,16 @@ impl Staging {
         if let Some(t) = &self.tracked {
             // Most refreshes find nothing: the tracker's dense bit says so
             // without its lock (123,000 refreshes a frame, run evict3).
-            if t.clean() {
+            let retry = self.retry.load(std::sync::atomic::Ordering::Relaxed);
+            if !retry && t.clean() {
                 return (0, None);
             }
-            let ranges = t.take(start, start + size);
+            let mut ranges = t.take(start, start + size);
+            if retry {
+                ranges.clear();
+                ranges.push((start, start + size));
+                last.hashes.clear();
+            }
             if ranges.is_empty() {
                 return (0, None);
             }
@@ -580,6 +662,29 @@ impl Staging {
                     ranges.iter().any(|&(f, e)| f - start < b && a < e - start)
                 })
                 .collect();
+            // A complete tracked page in each span bypasses shared-page hashing.
+            // Such 2D mips can be read in bounded strips, straight into their
+            // own packed footprints. Shared/tail pages retain the hash path.
+            if !touched.is_empty()
+                && touched.iter().all(|&i| {
+                    let (a, b) = span(i);
+                    let page = crate::watch::PAGE;
+                    ranges.iter().any(|&(f, e)| {
+                        f.max(start + a).next_multiple_of(page) + page <= e.min(start + b)
+                    })
+                })
+                && let Some((bytes, upload)) = self.upload_bands(&touched, &ranges)
+            {
+                last.hashes.resize(n, None);
+                for &i in &touched {
+                    last.hashes[i] = None;
+                }
+                #[cfg(feature = "diagnostics")]
+                crate::copystat::add(crate::copystat::C::TexWatched, bytes as u64);
+                self.retry
+                    .store(false, std::sync::atomic::Ordering::Relaxed);
+                return (bytes, Some(upload));
+            }
             // Read through the copy, which stands unmapped pages: memory of
             // big pools is too slow to ask page by page. Not kept: it would
             // double each texture's system memory. Only the touched spans
@@ -619,17 +724,26 @@ impl Staging {
             if fresh.is_empty() {
                 return (bytes, None);
             }
-            let buffer = self.detile(read, &fresh);
-            if buffer.is_none() {
+            let result = self.detile(read, &fresh);
+            self.retry
+                .store(matches!(result, Err(UploadError::NoStagingSpace)), std::sync::atomic::Ordering::Relaxed);
+            if result.is_err() {
                 for &i in &fresh {
                     last.hashes[i as usize] = None;
                 }
             }
             #[cfg(feature = "diagnostics")]
             crate::copystat::add(crate::copystat::C::TexWatched, bytes as u64);
-            return (bytes, buffer.map(|(b, at)| (b, at, fresh)));
+            return (bytes, result.ok());
         }
-        if !committed(self.memory, size) {
+        let mut scratch;
+        let tiled = if self.mixed_memory {
+            // Private pages can change without a fault; other pages may be
+            // unmapped. Snapshot the whole range with the fault-tolerant copy.
+            scratch = Scratch::take(size);
+            crate::host::copy_mapped(scratch.0.as_mut_ptr(), self.memory, size, false);
+            &scratch.0[..size]
+        } else if !committed(self.memory, size) {
             #[cfg(feature = "diagnostics")]
             tracing::debug!(
                 memory = ?self.memory,
@@ -644,12 +758,13 @@ impl Staging {
             }
             let zeros = vec![0u8; size];
             let every = all();
-            let buffer = self.detile(&zeros, &every);
+            let buffer = self.detile(&zeros, &every).ok();
             last.hash = buffer.is_some().then(|| blake3::hash(&zeros));
-            return (0, buffer.map(|(b, at)| (b, at, every)));
-        }
-        // SAFETY: committed memory of the texture's layout size.
-        let tiled = unsafe { std::slice::from_raw_parts(self.memory, size) };
+            return (0, buffer);
+        } else {
+            // SAFETY: committed memory of the texture's layout size.
+            unsafe { std::slice::from_raw_parts(self.memory, size) }
+        };
         let hash = blake3::hash(tiled);
         #[cfg(feature = "diagnostics")]
         crate::copystat::add(crate::copystat::C::TexHashed, size as u64);
@@ -657,18 +772,28 @@ impl Staging {
             return (size, None);
         }
         let every = all();
-        let buffer = self.detile(tiled, &every);
+        let buffer = self.detile(tiled, &every).ok();
         last.hash = buffer.is_some().then_some(hash);
         #[cfg(feature = "diagnostics")]
         crate::copystat::add(crate::copystat::C::TexChanged, size as u64);
-        (size, buffer.map(|(b, at)| (b, at, every)))
+        (size, buffer)
     }
 
     /// Detiles `subresources` of `tiled` (the texture's memory) into a
-    /// staging buffer (`None` if none could be had or a subresource could
-    /// not be read).
-    fn detile(&self, tiled: &[u8], subresources: &[u32]) -> Option<(ID3D12Resource, u64)> {
-        let (buffer, at, data) = staging_space(self.size)?;
+    /// staging buffer. Only a staging allocation failure can succeed on retry.
+    fn detile(&self, tiled: &[u8], subresources: &[u32]) -> Result<Upload, UploadError> {
+        let mut parts = Vec::with_capacity(subresources.len());
+        let mut size = 0;
+        for &index in subresources {
+            let i = index as usize;
+            let fp = self.footprints[i];
+            let end = self
+                .footprints
+                .get(i + 1)
+                .map_or(self.size, |next| next.Offset);
+            size = pack(&mut parts, size, index, 0, fp, end - fp.Offset);
+        }
+        let (buffer, at, data) = staging_space(size).ok_or(UploadError::NoStagingSpace)?;
         #[cfg(feature = "diagnostics")]
         // Scanned only when its message is wanted: a pass over every
         // texture read, in timing runs too.
@@ -683,26 +808,139 @@ impl Staging {
                 tracing::debug!(memory = ?self.memory, desc = ?self.layout.desc, "a sampled texture detiled");
             }
         }
-        for &i in subresources {
-            let (footprint, rows) = (&self.footprints[i as usize], self.rows[i as usize]);
+        for part in &mut parts {
+            let i = part.index;
+            let rows = self.rows[i as usize];
             let (mip, slice) = (i % self.mips, i / self.mips);
-            let f = footprint.Footprint;
+            let f = part.footprint.Footprint;
             let pitch = f.RowPitch as usize;
-            let len = subresource_len(footprint.Offset, pitch, rows, f.Depth, self.size);
-            // SAFETY: `subresource_len` clamps `len` to `self.size - footprint.Offset`,
-            // keeping the slice strictly inside the mapped staging buffer even when
-            // GetCopyableFootprints does not pad the final row of the last subresource.
-            let linear = unsafe { std::slice::from_raw_parts_mut(data.add(footprint.Offset as usize), len) };
+            let len = subresource_len(0, pitch, rows, f.Depth, part.len);
+            // SAFETY: the span belongs to this part and includes the driver's short last row.
+            let linear = unsafe {
+                std::slice::from_raw_parts_mut(data.add(part.footprint.Offset as usize), len)
+            };
+            part.footprint.Offset += at;
             if let Err(e) =
                 self.layout
                     .detile(tiled, mip, slice, linear, pitch, pitch * rows as usize)
             {
+                #[cfg(test)]
+                self.detile_errors.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 tracing::warn!(?e, mip, slice, "texture not detiled");
-                return None;
+                return Err(UploadError::InvalidLayout);
             }
         }
-        Some((buffer, at))
+        Ok((buffer, parts))
     }
+
+    /// Page tracking gives byte ranges. For ordinary 2D mips, each row of
+    /// swizzle blocks occupies consecutive bytes. Round out to those rows,
+    /// including everything between disjoint writes in the same mip.
+    fn upload_bands(
+        &self,
+        touched: &[usize],
+        ranges: &[(usize, usize)],
+    ) -> Option<(usize, Upload)> {
+        let l = &self.layout;
+        if !self.band_copies {
+            return None;
+        }
+        let mut bands = Vec::with_capacity(touched.len());
+        let mut parts = Vec::with_capacity(touched.len());
+        let mut size = 0;
+        for &i in touched {
+            let mip = i % self.mips as usize;
+            let m = l.mips[mip];
+            let mut fp = self.footprints[i];
+            if m.tail.is_some()
+                || fp.Footprint.Width != m.width
+                || fp.Footprint.Height != m.height
+                || fp.Footprint.Depth != 1
+            {
+                return None;
+            }
+            let bh = l.block[1] as usize;
+            let stride = (m.pitch / l.block[0]) as usize * l.alignment as usize;
+            let base = self.memory as usize
+                + (i / self.mips as usize) * l.slice_size as usize
+                + m.offset as usize;
+            let end = base + (m.height as usize).div_ceil(bh) * stride;
+            let mut first = end;
+            let mut last = base;
+            for &(a, b) in ranges {
+                if a < end && base < b {
+                    first = first.min(a.max(base));
+                    last = last.max(b.min(end));
+                }
+            }
+            if first >= last {
+                return None;
+            }
+            let first_row = (first - base) / stride;
+            let last_row = (last - base).div_ceil(stride);
+            let y = first_row * bh;
+            let height = (last_row * bh).min(m.height as usize) - y;
+            fp.Footprint.Height = height as u32;
+            let len = (height - 1) * fp.Footprint.RowPitch as usize
+                + m.width as usize * l.desc.element_bytes as usize;
+            size = pack(&mut parts, size, i as u32, y as u32, fp, len as u64);
+            bands.push((base + first_row * stride, stride, last_row - first_row, mip));
+        }
+        let (buffer, at, data) = staging_space(size)?;
+        let mut bytes = 0;
+        let bh = l.block[1] as usize;
+        for (part, (base, stride, rows, mip)) in parts.iter_mut().zip(bands) {
+            let pitch = part.footprint.Footprint.RowPitch as usize;
+            // Keep only a few rows of blocks hot in the CPU cache. Their
+            // swizzle repeats at every block boundary, independent of mip.
+            let step = ((512 << 10) / stride).max(1).min(rows);
+            let mut scratch = Scratch::take(step * stride);
+            for from in (0..rows).step_by(step) {
+                let n = step.min(rows - from);
+                let input = &mut scratch.0[..n * stride];
+                crate::host::copy_mapped(
+                    input.as_mut_ptr(),
+                    (base + from * stride) as *const u8,
+                    input.len(),
+                    false,
+                );
+                bytes += input.len();
+                let y = from * bh;
+                let height = (n * bh).min(part.footprint.Footprint.Height as usize - y);
+                let offset = y * pitch;
+                // SAFETY: each band has a disjoint placement, clamped to its last pixel.
+                let out = unsafe {
+                    std::slice::from_raw_parts_mut(
+                        data.add(part.footprint.Offset as usize + offset),
+                        part.len as usize - offset,
+                    )
+                };
+                l.detile_block_rows(mip as u32, input, height as u32, out, pitch)
+                    .ok()?;
+            }
+            part.footprint.Offset += at;
+        }
+        Some((bytes, (buffer, parts)))
+    }
+}
+
+fn pack(
+    parts: &mut Vec<CopyPart>,
+    used: u64,
+    index: u32,
+    y: u32,
+    mut footprint: D3D12_PLACED_SUBRESOURCE_FOOTPRINT,
+    len: u64,
+) -> u64 {
+    footprint.Offset = used.next_multiple_of(512);
+    let end = footprint.Offset + len;
+    parts.push(CopyPart {
+        index,
+        y,
+        footprint,
+        len,
+    });
+    end
 }
 
 /// A buffer for the title memory a refresh reads, kept by the thread for
@@ -807,6 +1045,7 @@ pub(crate) fn staging(resource: This, texture: &ID3D12Resource) -> Option<Arc<St
     };
     let mut footprints = vec![D3D12_PLACED_SUBRESOURCE_FOOTPRINT::default(); count as usize];
     let mut rows = vec![0u32; count as usize];
+    let mut row_bytes = vec![0u64; count as usize];
     let mut total = 0;
     // SAFETY: outputs for `count` subresources.
     unsafe {
@@ -817,25 +1056,58 @@ pub(crate) fn staging(resource: This, texture: &ID3D12Resource) -> Option<Arc<St
             0,
             Some(footprints.as_mut_ptr()),
             Some(rows.as_mut_ptr()),
-            None,
+            Some(row_bytes.as_mut_ptr()),
             Some(&mut total),
         );
     }
     tracing::debug!(?desc, total, "texture contents uploaded from title memory");
     let layout_size = layout.size as usize;
     let spans = spans(&layout, count, u32::from(d.MipLevels));
+    // Some guest depth formats are promoted on the host. In particular, a
+    // shortened final row must still hold all bytes D3D12 will read. Keep
+    // depth/stencil, multi-plane, and translated row sizes on native full
+    // footprints. A band uses one element per texel, one plane and one sample.
+    use victory_formats::texture::{Dimension, Swizzle};
+    let start = memory as usize;
+    let (tracked, mixed_memory) = match crate::watch::track(start, layout_size, true) {
+        Some(t) if !t.untracked(start, start + layout_size).is_empty() => (None, true),
+        tracked => (tracked, false),
+    };
+    let band_copies = tracked.is_some()
+        && layout.desc.dimension == Dimension::Tex2d
+        && layout.desc.block == 1
+        && layout.desc.samples == 1
+        && layout.addressable()
+        && layout.desc.swizzle != Swizzle::LINEAR
+        && !d.Flags.contains(D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+        && !matches!(d.Format.0, 19..=22 | 44..=47)
+        && row_bytes.iter().enumerate().all(|(i, &bytes)| {
+            layout.mips.get(i % usize::from(d.MipLevels)).is_some_and(|m| {
+                rows[i] == m.height
+                    && bytes == u64::from(m.width) * u64::from(layout.desc.element_bytes)
+            })
+        });
     let s = Arc::new(Staging {
         size: total,
         footprints,
         rows,
+        band_copies,
         layout,
         mips: u32::from(d.MipLevels),
         memory,
-        tracked: crate::watch::track(memory as usize, layout_size, true),
+        tracked,
+        mixed_memory,
         spans,
         last: Mutex::default(),
+        retry: Default::default(),
         uploads: Default::default(),
         copied: Default::default(),
+        #[cfg(test)]
+        copied_bytes: Default::default(),
+        #[cfg(test)]
+        detile_errors: Default::default(),
+        #[cfg(test)]
+        recorded_parts: Default::default(),
     });
     *held = Some(s.clone());
     Some(s)
@@ -879,3 +1151,7 @@ mod tests {
         unsafe { VirtualFree(rw, 0, MEM_RELEASE) };
     }
 }
+
+#[cfg(test)]
+#[path = "texture/readback_tests.rs"]
+mod readback_tests;

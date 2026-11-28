@@ -11,7 +11,7 @@ use windows::Win32::Graphics::Dxgi::Common::DXGI_FORMAT_R32G32B32A32_FLOAT;
 use windows::core::Interface;
 
 /// Synthetic compute shader storing four root constants at texel (0, 0).
-fn store_shader() -> Arc<Shader> {
+fn store_shader(salt: Option<u32>) -> Arc<Shader> {
     let words: [u32; 12] = [
         0xBE85_0380, // s_mov_b32 s5, 0: high word of the table address
         0xF40C_0202,
@@ -26,6 +26,13 @@ fn store_shader() -> Arc<Shader> {
         0x0002_0105, // image_store v[1:4], v[5:6], s[8:15], dim:2D, dmask:0xf
         0xBF81_0000, // s_endpgm
     ];
+    let mut words = words.to_vec();
+    if let Some(salt) = salt {
+        // Use the same instruction sequence as the salted blur, on four
+        // distinct bit patterns that can be read back after dispatch.
+        let transforms = (1..=4).flat_map(|dst| super::gfx10::salted_identity(dst, 7, salt));
+        words.splice(9..9, transforms);
+    }
     let native = NativeProgram {
         stage: HwStage::Cs,
         wave64: false,
@@ -74,7 +81,9 @@ fn store_shader() -> Arc<Shader> {
     let st = structure::structure(&p).unwrap();
     let res = resource::track(&p, &native.layout, native.stage, Some(&st)).unwrap();
     let io = io::raise(&p, &native).unwrap();
-    let host = emit::emit(&c, &native, &p, &st, &io, &res).unwrap();
+    // This hand-built shader runs against the production descriptor heap.
+    let options = emit::Options { view_pages: crate::descriptor::view_pages(), ..Default::default() };
+    let host = emit::emit_with(&c, &native, &p, &st, &io, &res, options).unwrap();
     Arc::new(Shader {
         stage: "compute",
         hash: blake3::hash(&native.code).to_hex()[..16].to_owned(),
@@ -103,6 +112,21 @@ fn placed_uav_dispatch_writes_its_texture() {
     let Some(host) = crate::host::host() else {
         return;
     };
+    run_store(host, |_| {});
+}
+
+pub(super) fn run_store(
+    host: &crate::host::Host,
+    mark: impl FnMut(&'static str),
+) -> Option<[[f32; 4]; 2]> {
+    run_store_with_salt(host, None, mark)
+}
+
+pub(super) fn run_store_with_salt(
+    host: &crate::host::Host,
+    salt: Option<u32>,
+    mut mark: impl FnMut(&'static str),
+) -> Option<[[f32; 4]; 2]> {
     let mut sm = D3D12_FEATURE_DATA_SHADER_MODEL {
         HighestShaderModel: D3D_SHADER_MODEL_6_6,
     };
@@ -116,12 +140,15 @@ fn placed_uav_dispatch_writes_its_texture() {
     };
     if shader_model.is_err() || sm.HighestShaderModel.0 < D3D_SHADER_MODEL_6_6.0 {
         eprintln!("placed UAV dispatch needs SM 6.6");
-        return;
+        return None;
     }
 
+    mark("begin");
+    let shader = store_shader(salt);
+    mark("shader_us");
     let mut pipeline = std::ptr::null();
     assert_eq!(
-        hand_out(vec![store_shader()], None, &PIPELINE_IIDS[0], &mut pipeline),
+        hand_out(vec![shader], None, &PIPELINE_IIDS[0], &mut pipeline),
         S_OK
     );
     let pipeline = Guest(pipeline);
@@ -129,6 +156,8 @@ fn placed_uav_dispatch_writes_its_texture() {
         host_pipeline(pipeline.0).is_some(),
         "synthetic host pipeline"
     );
+
+    mark("pso_ready_us");
 
     #[repr(C)]
     struct HeapDescWithPlacement(D3D12_DESCRIPTOR_HEAP_DESC, [u64; 2]);
@@ -210,4 +239,6 @@ fn placed_uav_dispatch_writes_its_texture() {
         texels
     };
     assert_eq!(texels, [expected, [0.0; 4]], "placed UAV dispatch readback");
+    mark("dispatch_readback_us");
+    Some(texels)
 }

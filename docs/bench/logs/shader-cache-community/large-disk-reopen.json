@@ -1,0 +1,15 @@
+{
+  "name": "large-disk-reopen",
+  "test": "pipeline::hot::cache_reopen::large_reopen",
+  "timings": [
+    "disk_cold_us",
+    "disk_prefix_us",
+    "disk_middle_us",
+    "disk_all_us"
+  ],
+  "workload": [
+    "shader_digest",
+    "shader_count",
+    "subset_count"
+  ]
+}

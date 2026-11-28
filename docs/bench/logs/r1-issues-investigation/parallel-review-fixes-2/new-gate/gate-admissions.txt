@@ -1,0 +1,28 @@
+Every admission under the new gate (mean <= 8 %, single <= 10 %, 10 samples, desktop background logged).
+
+| log | gpu-quiet windows | per-run gates | mean GPU, median (max) | max sample | gate time incl. the 10-sample window, median (max) s | waiting lines |
+|---|---:|---:|---:|---:|---:|---:|
+| mib-forward | 1 | 3 | 3.2% (4.1%) | 10% | 12.6 (19.8) | 2 |
+| mib-reverse | 1 | 3 | 3.6% (5.7%) | 10% | 30.7 (39.5) | 6 |
+| scn-default | 1 | 20 | 4.2% (6.2%) | 10% | 12.2 (30.3) | 8 |
+| scn-small | 1 | 24 | 3.5% (5.8%) | 10% | 12.0 (35.6) | 9 |
+| scn-medium | 1 | 16 | 3.0% (6.0%) | 10% | 12.2 (42.6) | 9 |
+| scn-large | 1 | 12 | 2.9% (4.8%) | 10% | 14.5 (53.6) | 9 |
+| scn-small-r | 1 | 24 | 3.7% (5.4%) | 10% | 12.2 (35.4) | 11 |
+| scn-large-r | 1 | 12 | 3.9% (5.3%) | 9% | 12.0 (1069.5) | 64 |
+| ci | 1 | 4 | 3.2% (4.6%) | 9% | 12.0 (29.1) | 1 |
+| validation | 1 | 1 | 2.7% (2.7%) | 6% | 12.1 (12.1) | 0 |
+
+All 129 admissions: mean GPU median 3.6% (max 6.2%), highest single sample 10%, gate time median 12.1 s (max 1069.5 s, total 55.7 min; at least ~11 s of each is the sampling window itself).
+
+Desktop background admitted (peak Windows engine counter per process over all admitted windows; the engine counters and nvidia-smi whole-GPU readings use different scales):
+  chrome 3D: 10%
+  cloudmusic 3D: 13%
+  dwm 3D: 9%
+  explorer 3D: 1%
+  msedgewebview2 3D: 5%
+
+Reasons in the waiting lines (one line per reason at most every 20 s):
+  72 x GPU=N% > single-sample limit N%
+  47 x mean of last 10 = N% > N%
+No process was stopped. No non-desktop 3D/Compute user appeared.

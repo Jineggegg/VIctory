@@ -1,0 +1,24 @@
+Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\opt-shadow-probe-snapshot\crates\victory-shader)
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\opt-shadow-probe-snapshot\crates\victory-gpu)
+    Finished `diag` profile [optimized + debuginfo] target(s) in 21.72s
+     Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe)
+
+running 1 test
+test shadow::tests::partial_snapshot_after_a_full_page_preserves_a_new_cpu_store ... review adapter=NVIDIA GeForce RTX 5090 software=false
+review first=[161, 162, 163, 164] second=[161, 162, 163, 164]
+
+thread 'shadow::tests::partial_snapshot_after_a_full_page_preserves_a_new_cpu_store' (32712) panicked at crates\victory-gpu\src\shadow.rs:1767:9:
+assertion `left == right` failed: partial snapshot replayed a completed page
+  left: [161, 162, 163, 164]
+ right: [161, 194, 163, 164]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    shadow::tests::partial_snapshot_after_a_full_page_preserves_a_new_cpu_store
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 249 filtered out; finished in 0.29s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`

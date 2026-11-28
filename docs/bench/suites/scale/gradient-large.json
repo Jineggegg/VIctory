@@ -1,0 +1,31 @@
+{
+  "name": "victory-gradient-large-v1",
+  "test": "pipeline::hot::scale::gradient",
+  "timings": [
+    "shadow_refresh_us",
+    "marked_writeback_frame_us",
+    "submit_256_us",
+    "submit_fence_wait_us",
+    "submit_prepare_us",
+    "submit_queue_and_fence_us",
+    "descriptors_100000_us",
+    "texture_full_us",
+    "texture_partial_us",
+    "shader_batch_translate_us",
+    "shader_batch_cold_us",
+    "shader_batch_hot_us",
+    "prebuild_1996_cold_us",
+    "prebuild_1996_hot_us"
+  ],
+  "workload": [
+    "submit_count",
+    "prebuild_count",
+    "shader_count",
+    "shadow_refresh_bytes",
+    "texture_title_patch_bytes",
+    "descriptors_100000_changed"
+  ],
+  "env": {
+    "VICTORY_BENCH_SCALE": "large"
+  }
+}

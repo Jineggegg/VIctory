@@ -1,0 +1,19 @@
+arm=A source=validation-A/results.json commit=6b1e408b9161b062f75ad10f2b06913f81ed6dee gpu=NVIDIA GeForce RTX 5090 driver=621.14
+validation_status=failed failed_runs=1 process_crashes=0
+Idle window: 11.9s, 10 samples, max GPU=2%, active 3D/Compute=none
+stage=validation-A SHA256=888ed490721961cfa2128e4343f91998d47625995a284b6eb2720ec60f21e4a6 profile=diag toolchain=../toolchain/env.ps1
+check exit=0 rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]] depth=[0.25, 0.5, 0.25, 0.25] errors=unmeasured
+validate exit=101 rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]] depth=[0.25, 0.5, 0.25, 0.25] errors=3
+D3D12 error 645: ID3D12Device::CreateDescriptorHeap: D3D12_DESCRIPTOR_HEAP_DESC.NumDescriptors 2359296, but the limit for shader visible view heaps is 1000000
+D3D12 error 1419: ID3D12CommandList::SetGraphicsRootSignature: SetDescriptorHeaps must be called to bind a CBV/SRV/UAV descriptor before setting a root signature with D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED flag.
+D3D12 error 1419: ID3D12CommandList::SetGraphicsRootSignature: SetDescriptorHeaps must be called to bind a CBV/SRV/UAV descriptor before setting a root signature with D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED flag.
+
+arm=B source=validation/results.json commit=54c8ae9409302b294b66b3cf768d1537985032e9 gpu=NVIDIA GeForce RTX 5090 driver=621.14
+validation_status=failed failed_runs=1 process_crashes=0
+Idle window: 11.9s, 10 samples, max GPU=0%, active 3D/Compute=none
+stage=validation SHA256=6d7d89464cdb397d2881c1ca1e08e53dbd6345ac583acded01302e48581cbdc4 profile=diag toolchain=../toolchain/env.ps1
+check exit=0 rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]] depth=[0.25, 0.5, 0.25, 0.25] errors=unmeasured
+validate exit=101 rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]] depth=[0.25, 0.5, 0.25, 0.25] errors=3
+D3D12 error 645: ID3D12Device::CreateDescriptorHeap: D3D12_DESCRIPTOR_HEAP_DESC.NumDescriptors 2359296, but the limit for shader visible view heaps is 1000000
+D3D12 error 1419: ID3D12CommandList::SetGraphicsRootSignature: SetDescriptorHeaps must be called to bind a CBV/SRV/UAV descriptor before setting a root signature with D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED flag.
+D3D12 error 1419: ID3D12CommandList::SetGraphicsRootSignature: SetDescriptorHeaps must be called to bind a CBV/SRV/UAV descriptor before setting a root signature with D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED flag.

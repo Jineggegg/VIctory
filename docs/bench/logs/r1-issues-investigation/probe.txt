@@ -1,0 +1,185 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 09:45:20Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=1% | VRAM=5833/32607 MiB | power=55.36 W | temp=40.27 C | graphics=900 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.9s, 10 samples, max GPU=3%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+stage=probe sha256=D4C6F6ABA2F432BBC76066056E13099F5E7B0B9A7CEA3FACBCE06FE6031B53FE
+pages=16 mode=legacy seconds=8
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=8.050
+BENCH soak_1_rounds=104
+BENCH soak_1_p50_us=87294.700
+BENCH soak_1_p95_us=100649.600
+BENCH soak_1_p99_us=106356.900
+BENCH soak_1_ws_bytes=233410560
+BENCH soak_1_handles=385
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE mean us cpu=201.72 record=509.80 submit=76609.03 verify=82.03 snapshot_store=75471.32 legacy_write_calls=263164.00
+BENCH soak_total_rounds=104
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 8.39s
+
+pages=16 mode=mask seconds=8
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=8.001
+BENCH soak_1_rounds=3368
+BENCH soak_1_p50_us=2318.100
+BENCH soak_1_p95_us=2884.900
+BENCH soak_1_p99_us=3242.600
+BENCH soak_1_ws_bytes=182448128
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE mean us cpu=197.26 record=159.95 submit=1945.56 verify=72.67 snapshot_store=1046.67 legacy_write_calls=0.00
+BENCH soak_total_rounds=3368
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 8.31s
+
+pages=16 mode=mask seconds=8
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=8.000
+BENCH soak_1_rounds=3426
+BENCH soak_1_p50_us=2303.500
+BENCH soak_1_p95_us=2729.300
+BENCH soak_1_p99_us=3338.500
+BENCH soak_1_ws_bytes=182267904
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE mean us cpu=198.15 record=149.01 submit=1916.32 verify=71.46 snapshot_store=1042.91 legacy_write_calls=0.00
+BENCH soak_total_rounds=3426
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 8.28s
+
+pages=16 mode=legacy seconds=8
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=8.009
+BENCH soak_1_rounds=105
+BENCH soak_1_p50_us=68399.800
+BENCH soak_1_p95_us=101152.300
+BENCH soak_1_p99_us=103346.900
+BENCH soak_1_ws_bytes=181424128
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE mean us cpu=199.31 record=500.96 submit=75501.06 verify=77.16 snapshot_store=74383.83 legacy_write_calls=263164.00
+BENCH soak_total_rounds=105
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 8.31s
+
+pages=4 mode=legacy seconds=6
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=6.004
+BENCH soak_1_rounds=323
+BENCH soak_1_p50_us=14568.600
+BENCH soak_1_p95_us=25771.400
+BENCH soak_1_p99_us=26322.700
+BENCH soak_1_ws_bytes=179294208
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=59.928576
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE mean us cpu=53.12 record=271.00 submit=18245.74 verify=18.17 snapshot_store=17522.36 legacy_write_calls=65791.00
+BENCH soak_total_rounds=323
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 6.30s
+
+pages=4 mode=mask seconds=6
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=6.000
+BENCH soak_1_rounds=6221
+BENCH soak_1_p50_us=926.000
+BENCH soak_1_p95_us=1164.600
+BENCH soak_1_p99_us=1450.800
+BENCH soak_1_ws_bytes=180658176
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=59.928576
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE mean us cpu=48.68 record=119.61 submit=778.17 verify=17.84 snapshot_store=263.10 legacy_write_calls=0.00
+BENCH soak_total_rounds=6221
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 6.32s
+
+pages=64 mode=legacy seconds=6
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=6.163
+BENCH soak_1_rounds=21
+BENCH soak_1_p50_us=224037.500
+BENCH soak_1_p95_us=406009.900
+BENCH soak_1_p99_us=412782.700
+BENCH soak_1_ws_bytes=125124608
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=21.938176
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=42.889216
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE mean us cpu=859.88 record=666.88 submit=291565.97 verify=404.87 snapshot_store=288739.37 legacy_write_calls=1052656.00
+BENCH soak_total_rounds=21
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 6.47s
+
+pages=64 mode=mask seconds=6
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=6.002
+BENCH soak_1_rounds=765
+BENCH soak_1_p50_us=7885.700
+BENCH soak_1_p95_us=8604.700
+BENCH soak_1_p99_us=9092.000
+BENCH soak_1_ws_bytes=191201280
+BENCH soak_1_handles=367
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=63.860736
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+PROBE mean us cpu=792.38 record=217.72 submit=6539.45 verify=296.33 snapshot_store=4181.45 legacy_write_calls=0.00
+BENCH soak_total_rounds=765
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 6.29s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

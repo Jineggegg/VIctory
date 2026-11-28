@@ -1,0 +1,61 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+2026-11-28 00:25:29Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=2% | VRAM=4383/32607 MiB | power=66.93 W | temp=43.77 C | graphics=1050 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=18724) 3D=1%, dwm(pid=2312) 3D=1%
+Idle window: 11.5s, 10 samples=0,3,1,4,2,2,2,2,2,2, mean GPU=2.0%, max GPU=4%, rule: mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none, waited=12.0s, busy samples=0, desktop background admitted: chrome(pid=18724) 3D max=1% in 8/10, dwm(pid=2312) 3D max=4% in 5/10
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+GPU gate samples=2,2,2,2,2,2,3,2,3,2 mean=2.2% max=3% busy=0 waited_s=12.1 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=chrome(pid=18724) 3D max=1% in 10/10, dwm(pid=2312) 3D max=1% in 9/10
+START workspace 2026-11-28T00:25:41.9390222+00:00
+   Compiling victory-gpu v0.1.0 (<worktree>\crates\victory-gpu)
+   Compiling victory-hle v0.1.0 (<worktree>\crates\victory-hle)
+   Compiling victory v0.1.0 (<worktree>\apps\victory)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.01s
+     Running unittests src\main.rs (target\debug\deps\victory-0ec53295fffbff09.exe)
+     Running tests\census.rs (target\debug\deps\census-c16a3181d222c2a2.exe)
+     Running tests\census_unreadable.rs (target\debug\deps\census_unreadable-cce3b6bb1982d5e7.exe)
+     Running tests\translate.rs (target\debug\deps\translate-650d78cf4efc04e6.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_core-51f8c46a2f8449d8.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_formats-0c7e51b8272807f7.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_game-4013e62613415e43.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-5c23fc70966601d0.exe)
+     Running unittests src\lib.rs (target\debug\deps\victory_hle-b1c1588dbded77e8.exe)
+error: test failed, to rerun pass `-p victory-hle --lib`
+test modules::xgamesave::tests::an_empty_configuration_id_is_the_default_one ... ok
+test modules::xgamesave::tests::saves_persist_across_providers ... ok
+test modules::xgamesave::tests::an_unreadable_newer_version_does_not_cost_the_save ... ok
+test modules::xasync::tests::terminate_cancels_delayed_callbacks ... ok
+test modules::xasync::tests::terminate_ends_a_waiting_dispatch ... ok
+test modules::lifecycle::tests::a_title_window_is_shown_through_a_stand_in_that_always_answers ... ok
+test modules::xgamesave::tests::a_kill_at_any_step_leaves_old_or_new ... ok
+test host::imp::tests::loading_a_host_dll_does_not_block_thread_attach ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 152 filtered out; finished in 0.51s
+
+test host::imp::tests::loading_a_host_dll_does_not_block_thread_attach ... ok
+test modules::xgamesave::tests::a_kept_blob_past_the_link_limit_is_copied ... ok
+
+failures:
+
+---- modules::xasync::tests::run_returns_the_work_result stdout ----
+
+thread 'modules::xasync::tests::run_returns_the_work_result' (37104) panicked at crates\victory-hle\src\modules\xasync.rs:1515:9:
+assertion `left == right` failed
+  left: -2147483638
+ right: -2147467260
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    modules::xasync::tests::run_returns_the_work_result
+
+test result: FAILED. 152 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s
+
+failed workspace
+At <worktree>\target\parallel-review4\final.ps1:12 char:53
++ ...     if($LASTEXITCODE){Get-Content $log -Tail 30;throw "failed $name"}
++                                                     ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (failed workspace:String) [], RuntimeException
+    + FullyQualifiedErrorId : failed workspace
+ 
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+Restored studio-comfy.service=active studio-swarm.service=active

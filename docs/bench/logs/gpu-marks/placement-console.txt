@@ -1,0 +1,73 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+    Finished `diag` profile [optimized + debuginfo] target(s) in 0.06s
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+2026-11-26 15:49:38Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=3721/32607 MiB | power=23.23 W | temp=38.58 C | graphics=240 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.8s, 10 samples, max GPU=0%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Sample A 1/12 P0 2880/14001 MHz
+Sample B 1/12 P0 2932/14001 MHz
+Sample B 2/12 P0 2932/14001 MHz
+Sample A 2/12 P0 2932/14001 MHz
+Sample A 3/12 P0 2932/14001 MHz
+Sample B 3/12 P0 2932/14001 MHz
+Sample B 4/12 P0 2932/14001 MHz
+Sample A 4/12 P0 2932/14001 MHz
+Sample A 5/12 P0 2932/14001 MHz
+Sample B 5/12 P0 2932/14001 MHz
+Sample B 6/12 P0 2932/14001 MHz
+Sample A 6/12 P0 2932/14001 MHz
+Sample A 7/12 P0 2932/14001 MHz
+Sample B 7/12 P0 2932/14001 MHz
+Sample B 8/12 P0 2932/14001 MHz
+Sample A 8/12 P0 2932/14001 MHz
+Sample A 9/12 P0 2932/14001 MHz
+Sample B 9/12 P0 2932/14001 MHz
+Sample B 10/12 P0 2932/14001 MHz
+Sample A 10/12 P0 2932/14001 MHz
+Sample A 11/12 P0 2932/14001 MHz
+Sample B 11/12 P0 2932/14001 MHz
+Sample B 12/12 P0 2932/14001 MHz
+Sample A 12/12 P0 2932/14001 MHz
+Correctness: A True, B True. Median paired change [pointwise 95%]:
+main_linear_clear_us: -99.78% [-99.78%, -99.78%]
+main_linear_set_us: -99.78% [-99.79%, -99.78%]
+main_per_lane_clear_us: -96.34% [-96.44%, -96.21%]
+main_per_lane_set_us: -96.33% [-96.39%, -96.23%]
+main_scattered_clear_us: -97.34% [-97.35%, -97.33%]
+main_scattered_set_us: -97.31% [-97.36%, -97.29%]
+main_shared_clear_us: -99.60% [-99.60%, -99.59%]
+main_shared_set_us: -99.60% [-99.60%, -99.59%]
+stores: 0.00% [0.00%, 0.00%]
+test_first_linear_clear_us: -96.93% [-96.97%, -96.84%]
+test_first_linear_set_us: -62.34% [-63.30%, -60.59%]
+test_first_per_lane_clear_us: +0.03% [-4.65%, 2.73%]
+test_first_per_lane_set_us: -0.13% [-4.73%, 1.08%]
+test_first_scattered_clear_us: -12.70% [-14.97%, -10.81%]
+test_first_scattered_set_us: -1.10% [-2.73%, -0.45%]
+test_first_shared_clear_us: -82.61% [-83.25%, -81.61%]
+test_first_shared_set_us: -75.53% [-75.99%, -74.67%]
+title_copy_clear_gpu_us: +0.68% [-1.24%, 1.72%]
+title_cpu_receive_us: +214.70% [184.61%, 230.55%]
+views_copy_clear_gpu_us: +0.31% [-0.56%, 1.30%]
+views_cpu_receive_us: +86.32% [80.06%, 96.12%]
+wave_linear_clear_us: -96.91% [-97.00%, -96.81%]
+wave_linear_set_us: -62.43% [-63.26%, -62.03%]
+wave_per_lane_clear_us: +0.42% [-4.22%, 3.48%]
+wave_per_lane_set_us: -1.27% [-4.60%, 1.70%]
+wave_scattered_clear_us: -9.88% [-12.27%, -8.73%]
+wave_scattered_set_us: -2.21% [-3.74%, -0.75%]
+wave_shared_clear_us: -77.03% [-77.25%, -76.41%]
+wave_shared_set_us: -57.76% [-59.03%, -56.99%]
+wave_test_first_linear_clear_us: -96.85% [-96.96%, -96.77%]
+wave_test_first_linear_set_us: -62.47% [-63.47%, -60.26%]
+wave_test_first_per_lane_clear_us: -1.20% [-5.90%, 1.83%]
+wave_test_first_per_lane_set_us: -1.82% [-4.88%, 1.69%]
+wave_test_first_scattered_clear_us: -9.19% [-11.06%, -8.53%]
+wave_test_first_scattered_set_us: -1.30% [-2.87%, 0.31%]
+wave_test_first_shared_clear_us: -75.16% [-75.71%, -74.89%]
+wave_test_first_shared_set_us: -58.28% [-59.66%, -57.18%]
+Paired bootstrap: 12 pairs; see paired.json
+PearlIdle mode=paused minerRunning=False reason=sensor_unavailable failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

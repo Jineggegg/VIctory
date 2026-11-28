@@ -1,0 +1,72 @@
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+exit=101
+   Compiling victory-shader v0.1.0 (<checkout>\crates\victory-shader)
+    Checking windows-core v0.62.2
+    Checking victory-core v0.1.0 (<checkout>\crates\victory-core)
+    Checking victory-loader v0.1.0 (<checkout>\crates\victory-loader)
+    Checking victory-pipeline v0.1.0 (<checkout>\crates\victory-pipeline)
+    Checking windows-collections v0.3.2
+    Checking windows-numerics v0.3.1
+    Checking windows-future v0.3.2
+    Checking windows v0.62.2
+    Checking victory-gpu v0.1.0 (<checkout>\crates\victory-gpu)
+    Checking victory-hle v0.1.0 (<checkout>\crates\victory-hle)
+    Checking victory v0.1.0 (<checkout>\apps\victory)
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\textures.rs:26:13
+   |
+26 |     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+   = note: `-D clippy::undocumented-unsafe-blocks` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::undocumented_unsafe_blocks)]`
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\textures.rs:45:9
+   |
+45 |         unsafe { std::ptr::write_bytes(base as *mut u8, k as u8 + 1, layout.size as usize) };
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\textures.rs:48:13
+   |
+48 |             unsafe { ((base + offset as usize) as *mut u32).write_unaligned(0x1234abcd + mip) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\textures.rs:153:9
+    |
+153 |         unsafe {
+    |         ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\texture\readback_tests.rs:187:39
+    |
+187 |     let memory = (0..16).find_map(|_| unsafe {
+    |                                       ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\texture\readback_tests.rs:210:5
+    |
+210 |     unsafe { ((memory + page) as *mut u8).write_bytes(0x37, page) };
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: could not compile `victory-gpu` (lib test) due to 6 previous errors
+warning: build failed, waiting for other jobs to finish...

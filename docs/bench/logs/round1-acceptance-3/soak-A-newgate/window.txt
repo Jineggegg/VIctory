@@ -1,0 +1,43 @@
+Local build-queue slots reserved: 4
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+2026-11-28 00:26:11Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=3% | VRAM=4363/32607 MiB | power=63.83 W | temp=41.30 C | graphics=1027 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=18724) 3D=1%, dwm(pid=2312) 3D=1%
+Idle window: 11.6s, 10 samples=3,3,2,2,2,2,2,2,2,3, mean GPU=2.3%, max GPU=3%, rule: mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none, waited=12.1s, busy samples=0, desktop background admitted: chrome(pid=18724) 3D max=1% in 10/10, dwm(pid=2312) 3D max=1% in 8/10
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+stage=soak-A-newgate SHA256=888ed490721961cfa2128e4343f91998d47625995a284b6eb2720ec60f21e4a6 profile=diag toolchain=../toolchain/env.ps1
+warm_ready=False stable_ms=0 pstate=P0 core_mhz=1027 mem_mhz=14001 pcie=5x16
+warm_ready=False stable_ms=0 pstate=P0 core_mhz=1027 mem_mhz=14001 pcie=5x16
+warm_ready=True stable_ms=3006 pstate=P0 core_mhz=2917 mem_mhz=14001 pcie=5x16
+soak minute 1 threads=14 observation_age_ms=230
+soak minute 2 threads=15 observation_age_ms=279
+soak minute 3 threads=13 observation_age_ms=136
+soak minute 4 threads=12 observation_age_ms=504
+soak minute 5 threads=15 observation_age_ms=6
+soak minute 6 threads=15 observation_age_ms=11
+soak minute 7 threads=12 observation_age_ms=519
+soak minute 8 threads=12 observation_age_ms=479
+soak minute 9 threads=12 observation_age_ms=514
+soak minute 10 threads=12 observation_age_ms=501
+soak minute 11 threads=14 observation_age_ms=508
+soak minute 12 threads=13 observation_age_ms=19
+soak minute 13 threads=12 observation_age_ms=0
+soak minute 14 threads=12 observation_age_ms=8
+soak minute 15 threads=12 observation_age_ms=0
+soak minute 16 threads=12 observation_age_ms=34
+soak minute 17 threads=12 observation_age_ms=518
+soak minute 18 threads=12 observation_age_ms=481
+soak minute 19 threads=12 observation_age_ms=0
+soak minute 20 threads=12 observation_age_ms=28
+soak minute 21 threads=12 observation_age_ms=509
+soak minute 22 threads=12 observation_age_ms=490
+soak minute 23 threads=12 observation_age_ms=492
+soak minute 24 threads=12 observation_age_ms=504
+soak minute 25 threads=12 observation_age_ms=495
+soak minute 26 threads=12 observation_age_ms=489
+soak minute 27 threads=12 observation_age_ms=0
+soak minute 28 threads=12 observation_age_ms=520
+soak minute 29 threads=12 observation_age_ms=496
+soak minute 30 threads=12 observation_age_ms=501
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+Restored studio-comfy.service=active studio-swarm.service=active

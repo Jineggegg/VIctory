@@ -1,0 +1,17 @@
+running 1 test
+test pipeline::hot::shadow_scale_pair ... BENCH shadow_refresh_us=143946.900
+BENCH marked_writeback_frame_us=361523.200
+
+thread 'pipeline::hot::shadow_scale_pair' (34780) panicked at crates\victory-gpu\src\pipeline\hot.rs:184:5:
+assertion `left == right` failed
+  left: 1065353216
+ right: 1006632960
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    pipeline::hot::shadow_scale_pair
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 289 filtered out; finished in 1.56s

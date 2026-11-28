@@ -1,0 +1,4 @@
+上游 #2614，缓存已解析资源元数据。固定容器散列后替换解析器返回的资源列表，再修改持久化记录里的资源槽。测试断言这两个问题都能复现。
+SIDECAR_CHECK old_parser_result_reused=true modified_slot_accepted=true
+test shader_meta::tests::verify_sidecar_identity_and_integrity ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 280 filtered out; finished in 0.01s

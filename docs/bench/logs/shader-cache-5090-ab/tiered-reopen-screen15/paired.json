@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "complete": true,
+  "suite": "large-disk-reopen",
+  "test": "pipeline::hot::cache_reopen::large_reopen",
+  "parameters": { },
+  "family_size": 4,
+  "pairs": 15,
+  "a_commit": "1c6af7d3ba040e2817b1e9637441f80b2b65bb71",
+  "b_commit": "1fe9afdca3476ce2e29a4f1e6027bc083bd6d077",
+  "a_correct": true,
+  "b_correct": true,
+  "quiet_window": {
+    "status_line": "2026-11-26 16:54:54Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=3516\/32607 MiB | power=22.93 W | temp=41.15 C | graphics=255 MHz | memory=405 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=none",
+    "tolerated_background": "none"
+  },
+  "same_binary": false,
+  "order": "alternating AB \/ BA by pair",
+  "bootstrap_draws": 5000,
+  "seed": 5090,
+  "undefined_percentages": [ ],
+  "pointwise_excludes_zero": [
+    "disk_cold_us",
+    "disk_prefix_us",
+    "disk_middle_us"
+  ],
+  "family_excludes_zero": [
+    "disk_cold_us",
+    "disk_middle_us"
+  ],
+  "family_pass": true,
+  "pass": true,
+  "metrics": {
+    "disk_all_commit_bytes": {
+      "a_median": 127438848,
+      "b_median": 130383872,
+      "change_pct": 1.6531276669722095,
+      "ci95_pct": [
+        -2.872850923189374,
+        2.641982451065461
+      ],
+      "family95_pct": [
+        -2.872850923189374,
+        2.9895802901937829
+      ]
+    },
+    "disk_all_us": {
+      "a_median": 72123.4,
+      "b_median": 72626.5,
+      "change_pct": 0.73911398466763867,
+      "ci95_pct": [
+        -1.6410762665098888,
+        1.918206289839719
+      ],
+      "family95_pct": [
+        -1.6410762665098888,
+        2.2522352638805643
+      ]
+    },
+    "disk_all_working_set_bytes": {
+      "a_median": 99233792,
+      "b_median": 103546880,
+      "change_pct": 3.2025788085569662,
+      "ci95_pct": [
+        -2.7439153888629275,
+        4.4066820276497776
+      ],
+      "family95_pct": [
+        -2.7439153888629275,
+        4.783918768316342
+      ]
+    },
+    "disk_cold_commit_bytes": {
+      "a_median": 122269696,
+      "b_median": 125022208,
+      "change_pct": 2.3731999597193854,
+      "ci95_pct": [
+        1.2294395497638222,
+        3.2944890351613632
+      ],
+      "family95_pct": [
+        1.2294395497638222,
+        3.2944890351613632
+      ]
+    },
+    "disk_cold_us": {
+      "a_median": 1168641.3,
+      "b_median": 521120.6,
+      "change_pct": -55.528991533763225,
+      "ci95_pct": [
+        -55.731435609118577,
+        -54.050974748299474
+      ],
+      "family95_pct": [
+        -55.731435609118577,
+        -54.050974748299474
+      ]
+    },
+    "disk_cold_working_set_bytes": {
+      "a_median": 93720576,
+      "b_median": 98439168,
+      "change_pct": 4.6559144459418444,
+      "ci95_pct": [
+        4.0024495866322507,
+        5.3434780707507956
+      ],
+      "family95_pct": [
+        2.6999956451683182,
+        5.3434780707507956
+      ]
+    },
+    "disk_middle_commit_bytes": {
+      "a_median": 122400768,
+      "b_median": 122363904,
+      "change_pct": -0.053424154395809165,
+      "ci95_pct": [
+        -0.3170153835886147,
+        0.14389452196901242
+      ],
+      "family95_pct": [
+        -0.3170153835886147,
+        0.29272231755324007
+      ]
+    },
+    "disk_middle_us": {
+      "a_median": 1421.6,
+      "b_median": 6385.3,
+      "change_pct": 347.11941464800742,
+      "ci95_pct": [
+        315.22931907709619,
+        375.40019358201181
+      ],
+      "family95_pct": [
+        315.22931907709619,
+        375.40019358201181
+      ]
+    },
+    "disk_middle_working_set_bytes": {
+      "a_median": 93765632,
+      "b_median": 93904896,
+      "change_pct": 0.14852350165996953,
+      "ci95_pct": [
+        0.034968091616405239,
+        1.2419924173094454
+      ],
+      "family95_pct": [
+        0.034968091616405239,
+        1.2419924173094454
+      ]
+    },
+    "disk_prefix_commit_bytes": {
+      "a_median": 121823232,
+      "b_median": 121741312,
+      "change_pct": -0.17406440382942145,
+      "ci95_pct": [
+        -0.37983193277311145,
+        0.42159937940571268
+      ],
+      "family95_pct": [
+        -0.53914674167838683,
+        0.42159937940571268
+      ]
+    },
+    "disk_prefix_us": {
+      "a_median": 1438,
+      "b_median": 1396.8,
+      "change_pct": -4.4175084175084089,
+      "ci95_pct": [
+        -8.4570400359873954,
+        -2.6536831933397842
+      ],
+      "family95_pct": [
+        -8.4570400359873954,
+        1.6342141863699533
+      ]
+    },
+    "disk_prefix_working_set_bytes": {
+      "a_median": 93831168,
+      "b_median": 93769728,
+      "change_pct": -0.0087469932210759715,
+      "ci95_pct": [
+        -0.209223258652258,
+        0.048072720916003675
+      ],
+      "family95_pct": [
+        -0.209223258652258,
+        0.048072720916003675
+      ]
+    },
+    "shader_count": {
+      "a_median": 2000,
+      "b_median": 2000,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    },
+    "subset_count": {
+      "a_median": 20,
+      "b_median": 20,
+      "change_pct": 0,
+      "ci95_pct": [
+        0,
+        0
+      ],
+      "family95_pct": [
+        0,
+        0
+      ]
+    }
+  }
+}

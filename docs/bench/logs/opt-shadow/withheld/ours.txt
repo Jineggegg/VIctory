@@ -1,0 +1,17 @@
+running 1 test
+test shadow::tests::publish_valid_declaration_beside_a_withheld_write_on_one_page ...
+thread 'shadow::tests::publish_valid_declaration_beside_a_withheld_write_on_one_page' (33360) panicked at crates\victory-gpu\src\shadow.rs:2560:9:
+assertion `left == right` failed: valid shader write must reach title memory
+  left: [0, 0, 0, 0]
+ right: [90, 90, 90, 90]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    shadow::tests::publish_valid_declaration_beside_a_withheld_write_on_one_page
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 294 filtered out; finished in 0.47s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`

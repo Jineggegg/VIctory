@@ -1,0 +1,759 @@
+{
+  "system": {
+    "cpu": "Intel(R) Core(TM) Ultra 9 285K",
+    "ram_bytes": 136871063552,
+    "os": "10.0.26300"
+  },
+  "schema": 1,
+  "suite": "victory-hot-v1",
+  "test": "pipeline::hot::hot_paths",
+  "parameters": { },
+  "timing_keys": [
+    "pso_cold_us",
+    "pso_hot_us",
+    "prebuild_16_cold_us",
+    "prebuild_16_hot_us",
+    "shader_batch_translate_us",
+    "shader_batch_cold_us",
+    "shader_batch_hot_us",
+    "descriptors_1300_us",
+    "descriptors_14400_us",
+    "submit_32_us",
+    "submit_fence_wait_us",
+    "submit_prepare_us",
+    "submit_queue_and_fence_us",
+    "texture_full_us",
+    "texture_partial_us",
+    "wave_page_marks_gpu_us",
+    "loop_page_lookup_gpu_us",
+    "shadow_refresh_us",
+    "marked_writeback_frame_us"
+  ],
+  "workload_keys": [
+    "shader_count",
+    "prebuild_count",
+    "submit_count",
+    "shadow_refresh_bytes",
+    "descriptors_1300_changed",
+    "descriptors_14400_changed",
+    "wave_page_marks_lanes",
+    "loop_global_loads",
+    "texture_title_patch_bytes"
+  ],
+  "timeout_seconds": 180,
+  "formal": false,
+  "complete": true,
+  "debug_layer": "pending: Windows Graphics Tools unavailable",
+  "binary": {
+    "commit": "880594398da67cecec7032d44c070cd4b6831c48",
+    "source_delta_sha256": null,
+    "executable": "target\/diag\/deps\/victory_gpu-b3e12a1e6b92b6a6.exe",
+    "sha256": "dfd247af893548796b1bed6539a3ff8928eba2fab67e3bdfbf55ea96bdc6013d",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\u000abinary: rustc\u000acommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\u000acommit-date: 2026-09-01\u000ahost: x86_64-pc-windows-msvc\u000arelease: 1.98.1\u000aLLVM version: 22.1.8"
+  },
+  "requested": 3,
+  "utc": "2026-11-26T20:18:15.812875+00:00",
+  "gpu": {
+    "utc": "2026-11-26T20:18:15.784844+00:00",
+    "name": "NVIDIA GeForce RTX 5090",
+    "driver_version": "621.14",
+    "memory.total": "32607",
+    "utilization.gpu": "7",
+    "memory.used": "4691",
+    "temperature.gpu": "37.97",
+    "clocks.gr": "2692",
+    "clocks.mem": "13801",
+    "power.draw": "89.33",
+    "pstate": "P1",
+    "clocks.max.gr": "3090",
+    "clocks.max.mem": "14001",
+    "pcie.link.gen.current": "5",
+    "pcie.link.gen.max": "5",
+    "pcie.link.width.current": "16",
+    "pcie.link.width.max": "16"
+  },
+  "profile": "diag",
+  "runs": [
+    {
+      "index": 1,
+      "position": 1,
+      "utc": "2026-11-26T20:18:15.969297+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T20:18:16.047534+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "6",
+          "memory.used": "4686",
+          "temperature.gpu": "37.88",
+          "clocks.gr": "2692",
+          "clocks.mem": "13801",
+          "power.draw": "92.14",
+          "pstate": "P1",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T20:18:16.047534+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "6",
+        "memory.used": "4686",
+        "temperature.gpu": "37.88",
+        "clocks.gr": "2692",
+        "clocks.mem": "13801",
+        "power.draw": "92.14",
+        "pstate": "P1",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": false,
+      "post": {
+        "utc": "2026-11-26T20:18:17.832224+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "7",
+        "memory.used": "4692",
+        "temperature.gpu": "37.97",
+        "clocks.gr": "2715",
+        "clocks.mem": "13801",
+        "power.draw": "97.83",
+        "pstate": "P1",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "pso_cold_us": 969.7,
+        "pso_hot_us": 55.6,
+        "shader_batch_translate_us": 3492.7,
+        "shader_batch_cold_us": 13302.4,
+        "shader_batch_hot_us": 1137.7,
+        "prebuild_16_cold_us": 293082.1,
+        "prebuild_16_hot_us": 134,
+        "prebuild_count": 16,
+        "shader_digest": "5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2",
+        "shader_count": 20,
+        "shader_dxil_bytes": 94025,
+        "descriptors_1300_us": 761.6,
+        "descriptors_1300_scanned": 22528,
+        "descriptors_1300_changed": 1300,
+        "descriptors_14400_us": 7321.7,
+        "descriptors_14400_scanned": 32768,
+        "descriptors_14400_changed": 14400,
+        "submit_32_us": 4099.1,
+        "submit_count": 32,
+        "submit_fence_wait_us": 1268.4,
+        "submit_prepare_us": 23,
+        "submit_queue_and_fence_us": 1998,
+        "texture_full_us": 30928.3,
+        "texture_full_bytes": 178257920,
+        "texture_full_subresources": 32,
+        "texture_partial_us": 9151.8,
+        "texture_partial_bytes": 33554432,
+        "texture_partial_subresources": 8,
+        "texture_title_patch_bytes": 8192,
+        "wave_page_marks_gpu_us": 2315.296,
+        "wave_page_marks_lanes": 262144,
+        "loop_page_lookup_gpu_us": 5638.88,
+        "loop_page_lookup_lanes": 262144,
+        "loop_global_loads": 2097152,
+        "shadow_refresh_us": 16561.1,
+        "marked_writeback_frame_us": 38176.2,
+        "shadow_refresh_bytes": 268435456,
+        "writeback_bytes": 251658240,
+        "writeback_withheld_bytes": 16777216,
+        "sampled_local_peak_mb": 232.476672,
+        "peak_working_set_bytes": 1241698304,
+        "verified": 1
+      }
+    },
+    {
+      "index": 2,
+      "position": 1,
+      "utc": "2026-11-26T20:18:17.997229+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T20:18:18.084501+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "7",
+          "memory.used": "4687",
+          "temperature.gpu": "37.97",
+          "clocks.gr": "2715",
+          "clocks.mem": "13801",
+          "power.draw": "97.41",
+          "pstate": "P1",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T20:18:18.084501+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "7",
+        "memory.used": "4687",
+        "temperature.gpu": "37.97",
+        "clocks.gr": "2715",
+        "clocks.mem": "13801",
+        "power.draw": "97.41",
+        "pstate": "P1",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": false,
+      "post": {
+        "utc": "2026-11-26T20:18:19.463132+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "8",
+        "memory.used": "4687",
+        "temperature.gpu": "38.03",
+        "clocks.gr": "2700",
+        "clocks.mem": "13801",
+        "power.draw": "99.29",
+        "pstate": "P1",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "pso_cold_us": 929.8,
+        "pso_hot_us": 54.4,
+        "shader_batch_translate_us": 4801.4,
+        "shader_batch_cold_us": 14338.7,
+        "shader_batch_hot_us": 1173.4,
+        "prebuild_16_cold_us": 7161.3,
+        "prebuild_16_hot_us": 168.9,
+        "prebuild_count": 16,
+        "shader_digest": "5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2",
+        "shader_count": 20,
+        "shader_dxil_bytes": 94025,
+        "descriptors_1300_us": 848.9,
+        "descriptors_1300_scanned": 22528,
+        "descriptors_1300_changed": 1300,
+        "descriptors_14400_us": 7006,
+        "descriptors_14400_scanned": 32768,
+        "descriptors_14400_changed": 14400,
+        "submit_32_us": 6248.8,
+        "submit_count": 32,
+        "submit_fence_wait_us": 3045.2,
+        "submit_prepare_us": 56,
+        "submit_queue_and_fence_us": 3958,
+        "texture_full_us": 38833.2,
+        "texture_full_bytes": 178257920,
+        "texture_full_subresources": 32,
+        "texture_partial_us": 9533.5,
+        "texture_partial_bytes": 33554432,
+        "texture_partial_subresources": 8,
+        "texture_title_patch_bytes": 8192,
+        "wave_page_marks_gpu_us": 2785.184,
+        "wave_page_marks_lanes": 262144,
+        "loop_page_lookup_gpu_us": 6774.592,
+        "loop_page_lookup_lanes": 262144,
+        "loop_global_loads": 2097152,
+        "shadow_refresh_us": 16195.5,
+        "marked_writeback_frame_us": 40738.7,
+        "shadow_refresh_bytes": 268435456,
+        "writeback_bytes": 251658240,
+        "writeback_withheld_bytes": 16777216,
+        "sampled_local_peak_mb": 232.542208,
+        "peak_working_set_bytes": 1121374208,
+        "verified": 1
+      }
+    },
+    {
+      "index": 3,
+      "position": 1,
+      "utc": "2026-11-26T20:18:19.583184+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T20:18:19.674353+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "9",
+          "memory.used": "4678",
+          "temperature.gpu": "38.09",
+          "clocks.gr": "2700",
+          "clocks.mem": "13801",
+          "power.draw": "97.87",
+          "pstate": "P1",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T20:18:19.674353+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "9",
+        "memory.used": "4678",
+        "temperature.gpu": "38.09",
+        "clocks.gr": "2700",
+        "clocks.mem": "13801",
+        "power.draw": "97.87",
+        "pstate": "P1",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": false,
+      "post": {
+        "utc": "2026-11-26T20:18:21.029234+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4655",
+        "temperature.gpu": "37.82",
+        "clocks.gr": "2722",
+        "clocks.mem": "13801",
+        "power.draw": "97.40",
+        "pstate": "P1",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "pso_cold_us": 922.9,
+        "pso_hot_us": 79.4,
+        "shader_batch_translate_us": 3159.9,
+        "shader_batch_cold_us": 15192,
+        "shader_batch_hot_us": 1575,
+        "prebuild_16_cold_us": 8439.9,
+        "prebuild_16_hot_us": 108.9,
+        "prebuild_count": 16,
+        "shader_digest": "5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2",
+        "shader_count": 20,
+        "shader_dxil_bytes": 94025,
+        "descriptors_1300_us": 808.1,
+        "descriptors_1300_scanned": 22528,
+        "descriptors_1300_changed": 1300,
+        "descriptors_14400_us": 7837.2,
+        "descriptors_14400_scanned": 32768,
+        "descriptors_14400_changed": 14400,
+        "submit_32_us": 4351,
+        "submit_count": 32,
+        "submit_fence_wait_us": 1397.6,
+        "submit_prepare_us": 43,
+        "submit_queue_and_fence_us": 2175,
+        "texture_full_us": 31945,
+        "texture_full_bytes": 178257920,
+        "texture_full_subresources": 32,
+        "texture_partial_us": 8791.8,
+        "texture_partial_bytes": 33554432,
+        "texture_partial_subresources": 8,
+        "texture_title_patch_bytes": 8192,
+        "wave_page_marks_gpu_us": 2985.696,
+        "wave_page_marks_lanes": 262144,
+        "loop_page_lookup_gpu_us": 4827.392,
+        "loop_page_lookup_lanes": 262144,
+        "loop_global_loads": 2097152,
+        "shadow_refresh_us": 17429.4,
+        "marked_writeback_frame_us": 40234.9,
+        "shadow_refresh_bytes": 268435456,
+        "writeback_bytes": 251658240,
+        "writeback_withheld_bytes": 16777216,
+        "sampled_local_peak_mb": 232.542208,
+        "peak_working_set_bytes": 1137864704,
+        "verified": 1
+      }
+    }
+  ],
+  "summary": {
+    "pso_cold_us": {
+      "n": 3,
+      "median": 929.8,
+      "p95": 969.7,
+      "p99": 969.7,
+      "sample_stddev": 25.264797644153063
+    },
+    "pso_hot_us": {
+      "n": 3,
+      "median": 55.6,
+      "p95": 79.4,
+      "p99": 79.4,
+      "sample_stddev": 14.100118202814238
+    },
+    "shader_batch_translate_us": {
+      "n": 3,
+      "median": 3492.7,
+      "p95": 4801.4,
+      "p99": 4801.4,
+      "sample_stddev": 867.75320800328916
+    },
+    "shader_batch_cold_us": {
+      "n": 3,
+      "median": 14338.7,
+      "p95": 15192,
+      "p99": 15192,
+      "sample_stddev": 946.27574733795245
+    },
+    "shader_batch_hot_us": {
+      "n": 3,
+      "median": 1173.4,
+      "p95": 1575,
+      "p99": 1575,
+      "sample_stddev": 242.82652930298477
+    },
+    "prebuild_16_cold_us": {
+      "n": 3,
+      "median": 8439.9,
+      "p95": 293082.1,
+      "p99": 293082.1,
+      "sample_stddev": 164708.59151414456
+    },
+    "prebuild_16_hot_us": {
+      "n": 3,
+      "median": 134,
+      "p95": 168.9,
+      "p99": 168.9,
+      "sample_stddev": 30.133093656863931
+    },
+    "prebuild_count": {
+      "n": 3,
+      "median": 16,
+      "p95": 16,
+      "p99": 16,
+      "sample_stddev": 0
+    },
+    "shader_count": {
+      "n": 3,
+      "median": 20,
+      "p95": 20,
+      "p99": 20,
+      "sample_stddev": 0
+    },
+    "shader_dxil_bytes": {
+      "n": 3,
+      "median": 94025,
+      "p95": 94025,
+      "p99": 94025,
+      "sample_stddev": 0
+    },
+    "descriptors_1300_us": {
+      "n": 3,
+      "median": 808.1,
+      "p95": 848.9,
+      "p99": 848.9,
+      "sample_stddev": 43.681002735743121
+    },
+    "descriptors_1300_scanned": {
+      "n": 3,
+      "median": 22528,
+      "p95": 22528,
+      "p99": 22528,
+      "sample_stddev": 0
+    },
+    "descriptors_1300_changed": {
+      "n": 3,
+      "median": 1300,
+      "p95": 1300,
+      "p99": 1300,
+      "sample_stddev": 0
+    },
+    "descriptors_14400_us": {
+      "n": 3,
+      "median": 7321.7,
+      "p95": 7837.2,
+      "p99": 7837.2,
+      "sample_stddev": 419.58316219791271
+    },
+    "descriptors_14400_scanned": {
+      "n": 3,
+      "median": 32768,
+      "p95": 32768,
+      "p99": 32768,
+      "sample_stddev": 0
+    },
+    "descriptors_14400_changed": {
+      "n": 3,
+      "median": 14400,
+      "p95": 14400,
+      "p99": 14400,
+      "sample_stddev": 0
+    },
+    "submit_32_us": {
+      "n": 3,
+      "median": 4351,
+      "p95": 6248.8,
+      "p99": 6248.8,
+      "sample_stddev": 1175.1814427284551
+    },
+    "submit_count": {
+      "n": 3,
+      "median": 32,
+      "p95": 32,
+      "p99": 32,
+      "sample_stddev": 0
+    },
+    "submit_fence_wait_us": {
+      "n": 3,
+      "median": 1397.6,
+      "p95": 3045.2,
+      "p99": 3045.2,
+      "sample_stddev": 990.64765347389437
+    },
+    "submit_prepare_us": {
+      "n": 3,
+      "median": 43,
+      "p95": 56,
+      "p99": 56,
+      "sample_stddev": 16.623276853055579
+    },
+    "submit_queue_and_fence_us": {
+      "n": 3,
+      "median": 2175,
+      "p95": 3958,
+      "p99": 3958,
+      "sample_stddev": 1084.129297331888
+    },
+    "texture_full_us": {
+      "n": 3,
+      "median": 31945,
+      "p95": 38833.2,
+      "p99": 38833.2,
+      "sample_stddev": 4300.55078139223
+    },
+    "texture_full_bytes": {
+      "n": 3,
+      "median": 178257920,
+      "p95": 178257920,
+      "p99": 178257920,
+      "sample_stddev": 0
+    },
+    "texture_full_subresources": {
+      "n": 3,
+      "median": 32,
+      "p95": 32,
+      "p99": 32,
+      "sample_stddev": 0
+    },
+    "texture_partial_us": {
+      "n": 3,
+      "median": 9151.8,
+      "p95": 9533.5,
+      "p99": 9533.5,
+      "sample_stddev": 370.9029028375669
+    },
+    "texture_partial_bytes": {
+      "n": 3,
+      "median": 33554432,
+      "p95": 33554432,
+      "p99": 33554432,
+      "sample_stddev": 0
+    },
+    "texture_partial_subresources": {
+      "n": 3,
+      "median": 8,
+      "p95": 8,
+      "p99": 8,
+      "sample_stddev": 0
+    },
+    "texture_title_patch_bytes": {
+      "n": 3,
+      "median": 8192,
+      "p95": 8192,
+      "p99": 8192,
+      "sample_stddev": 0
+    },
+    "wave_page_marks_gpu_us": {
+      "n": 3,
+      "median": 2785.184,
+      "p95": 2985.696,
+      "p99": 2985.696,
+      "sample_stddev": 344.10171817065964
+    },
+    "wave_page_marks_lanes": {
+      "n": 3,
+      "median": 262144,
+      "p95": 262144,
+      "p99": 262144,
+      "sample_stddev": 0
+    },
+    "loop_page_lookup_gpu_us": {
+      "n": 3,
+      "median": 5638.88,
+      "p95": 6774.592,
+      "p99": 6774.592,
+      "sample_stddev": 978.0884725735873
+    },
+    "loop_page_lookup_lanes": {
+      "n": 3,
+      "median": 262144,
+      "p95": 262144,
+      "p99": 262144,
+      "sample_stddev": 0
+    },
+    "loop_global_loads": {
+      "n": 3,
+      "median": 2097152,
+      "p95": 2097152,
+      "p99": 2097152,
+      "sample_stddev": 0
+    },
+    "shadow_refresh_us": {
+      "n": 3,
+      "median": 16561.1,
+      "p95": 17429.4,
+      "p99": 17429.4,
+      "sample_stddev": 633.78722244404275
+    },
+    "marked_writeback_frame_us": {
+      "n": 3,
+      "median": 40234.9,
+      "p95": 40738.7,
+      "p99": 40738.7,
+      "sample_stddev": 1357.5999889510908
+    },
+    "shadow_refresh_bytes": {
+      "n": 3,
+      "median": 268435456,
+      "p95": 268435456,
+      "p99": 268435456,
+      "sample_stddev": 0
+    },
+    "writeback_bytes": {
+      "n": 3,
+      "median": 251658240,
+      "p95": 251658240,
+      "p99": 251658240,
+      "sample_stddev": 0
+    },
+    "writeback_withheld_bytes": {
+      "n": 3,
+      "median": 16777216,
+      "p95": 16777216,
+      "p99": 16777216,
+      "sample_stddev": 0
+    },
+    "sampled_local_peak_mb": {
+      "n": 3,
+      "median": 232.542208,
+      "p95": 232.542208,
+      "p99": 232.542208,
+      "sample_stddev": 0.037837227241599929
+    },
+    "peak_working_set_bytes": {
+      "n": 3,
+      "median": 1137864704,
+      "p95": 1241698304,
+      "p99": 1241698304,
+      "sample_stddev": 65231946.449449688
+    }
+  },
+  "invalid_count": 0,
+  "max_invalid": 0,
+  "invalid_runs": [ ],
+  "telemetry": {
+    "pre": {
+      "pstate": [
+        "P1"
+      ],
+      "clocks.gr": [
+        2692,
+        2715
+      ],
+      "clocks.mem": [
+        13801,
+        13801
+      ],
+      "pcie.link.gen.current": [
+        5,
+        5
+      ],
+      "pcie.link.width.current": [
+        16,
+        16
+      ],
+      "temperature.gpu": [
+        37.88,
+        38.09
+      ],
+      "power.draw": [
+        92.14,
+        97.87
+      ]
+    },
+    "post": {
+      "pstate": [
+        "P1"
+      ],
+      "clocks.gr": [
+        2700,
+        2722
+      ],
+      "clocks.mem": [
+        13801,
+        13801
+      ],
+      "pcie.link.gen.current": [
+        5,
+        5
+      ],
+      "pcie.link.width.current": [
+        16,
+        16
+      ],
+      "temperature.gpu": [
+        37.82,
+        38.03
+      ],
+      "power.draw": [
+        97.4,
+        99.29
+      ]
+    }
+  }
+}

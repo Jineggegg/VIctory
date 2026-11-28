@@ -1,0 +1,70 @@
+配置	B 文件:行	Clippy 诊断	当前行源提交	起始基线同一诊断
+default	crates/victory-shader/src/emit/lower/marks/tests.rs:85	unsafe block missing a safety comment	613335bf	否
+default	crates/victory-shader/src/emit/lower/marks/tests.rs:87	unsafe block missing a safety comment	613335bf	否
+default	crates/victory-shader/src/emit/lower/marks/tests.rs:90	unsafe block missing a safety comment	613335bf	否
+default	crates/victory-shader/src/emit/lower/marks/tests.rs:95	unsafe block missing a safety comment	613335bf	否
+default	crates/victory-gpu/src/pipeline/library.rs:154	unsafe block missing a safety comment	a3b5d80a	否
+default	crates/victory-gpu/src/pipeline/library.rs:192	unsafe block missing a safety comment	311bacad	否
+default	crates/victory-gpu/src/shader_cache.rs:199	this `if` statement can be collapsed	671e508c	否
+default	crates/victory-gpu/src/descriptor/host.rs:3438	using `chunks_exact` with a constant chunk size	ef1cdc7f	否
+default	crates/victory-gpu/src/descriptor/host.rs:3686	manual implementation of `.is_multiple_of()`	9df07328	否
+default	crates/victory-gpu/src/texture/readback_tests.rs:187	unsafe block missing a safety comment	bfee2123	否
+default	crates/victory-gpu/src/texture/readback_tests.rs:210	unsafe block missing a safety comment	bfee2123	否
+all	crates/victory-shader/src/emit/lower/marks/tests.rs:85	unsafe block missing a safety comment	613335bf	否
+all	crates/victory-shader/src/emit/lower/marks/tests.rs:87	unsafe block missing a safety comment	613335bf	否
+all	crates/victory-shader/src/emit/lower/marks/tests.rs:90	unsafe block missing a safety comment	613335bf	否
+all	crates/victory-shader/src/emit/lower/marks/tests.rs:95	unsafe block missing a safety comment	613335bf	否
+all	crates/victory-gpu/src/pipeline/library.rs:154	unsafe block missing a safety comment	a3b5d80a	否
+all	crates/victory-gpu/src/pipeline/library.rs:192	unsafe block missing a safety comment	311bacad	否
+all	crates/victory-gpu/src/shader_cache.rs:199	this `if` statement can be collapsed	671e508c	否
+all	crates/victory-gpu/src/descriptor/host.rs:2581	items after a test module	28494774	是
+all	crates/victory-gpu/src/descriptor/host.rs:3438	using `chunks_exact` with a constant chunk size	ef1cdc7f	否
+all	crates/victory-gpu/src/descriptor/host.rs:3686	manual implementation of `.is_multiple_of()`	9df07328	否
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:27	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:54	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:75	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:149	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:164	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:182	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:183	using `chunks_exact` with a constant chunk size	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:187	using `chunks_exact` with a constant chunk size	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:259	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/contention.rs:290	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/pressure.rs:13	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/pressure.rs:123	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/pressure.rs:140	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/pressure.rs:170	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/pressure.rs:183	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/pressure.rs:216	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/scale.rs:24	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/soak.rs:13	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/soak.rs:57	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/soak.rs:62	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/soak.rs:71	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/soak.rs:87	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/soak.rs:174	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/soak.rs:201	unsafe block missing a safety comment	3eed7c72	是
+all	crates/victory-gpu/src/pipeline/hot/textures.rs:26	unsafe block missing a safety comment	da7f303e	否
+all	crates/victory-gpu/src/pipeline/hot/textures.rs:45	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot/textures.rs:48	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot/textures.rs:153	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:89	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:101	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:131	unsafe block missing a safety comment	392f7785	否
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:206	unsafe block missing a safety comment	392f7785	否
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:225	unsafe block missing a safety comment	392f7785	否
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:249	unsafe block missing a safety comment	cb1d22da	否
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:262	unsafe block missing a safety comment	cb1d22da	否
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:264	unsafe block missing a safety comment	cb1d22da	否
+all	crates/victory-gpu/src/pipeline/hot/waves.rs:272	unsafe block missing a safety comment	cb1d22da	否
+all	crates/victory-gpu/src/pipeline/hot.rs:60	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot.rs:117	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot.rs:134	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot.rs:148	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot.rs:189	using `chunks_exact` with a constant chunk size	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot.rs:420	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/pipeline/hot.rs:424	unsafe block missing a safety comment	490cf3e9	是
+all	crates/victory-gpu/src/queue.rs:756	items after a test module	754619f3	是
+all	crates/victory-gpu/src/shadow.rs:1936	items after a test module	80d8cf53	是
+all	crates/victory-gpu/src/texture/readback_tests.rs:187	unsafe block missing a safety comment	bfee2123	否
+all	crates/victory-gpu/src/texture/readback_tests.rs:210	unsafe block missing a safety comment	bfee2123	否

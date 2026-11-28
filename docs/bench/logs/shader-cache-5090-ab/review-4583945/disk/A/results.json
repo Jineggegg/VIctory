@@ -1,0 +1,1449 @@
+{
+  "system": {
+    "cpu": "Intel(R) Core(TM) Ultra 9 285K",
+    "ram_bytes": 136871063552,
+    "os": "10.0.26300"
+  },
+  "schema": 1,
+  "suite": "disk-pipelines",
+  "test": "pipeline::hot::shader_bench::disk",
+  "parameters": {
+    "VICTORY_BENCH_DISK": "pipelines"
+  },
+  "timing_keys": [
+    "pso_fresh_us",
+    "pso_disk_hit_us",
+    "early_only_save_us"
+  ],
+  "workload_keys": [
+    "prebuild_count"
+  ],
+  "timeout_seconds": 180,
+  "formal": true,
+  "complete": true,
+  "debug_layer": "pending: Windows Graphics Tools unavailable",
+  "binary": {
+    "commit": "b07380476e29e59ab8c0d2a741465ad45aaf3b88",
+    "source_delta_sha256": "18f8cd439b2d60c49c4697c127b6874a995038eef5c98ec6c4b7e25f7fce88da",
+    "executable": "target\/diag\/deps\/victory_gpu-c324b3e76f1e7291.exe",
+    "sha256": "237d421caf289412659641d2f1ac779210be1783dde6e38b39751059b8c41a18",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\u000abinary: rustc\u000acommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\u000acommit-date: 2026-09-01\u000ahost: x86_64-pc-windows-msvc\u000arelease: 1.98.1\u000aLLVM version: 22.1.8"
+  },
+  "requested": 15,
+  "utc": "2026-11-26T22:13:42.151470+00:00",
+  "gpu": {
+    "utc": "2026-11-26T22:13:42.013428+00:00",
+    "name": "NVIDIA GeForce RTX 5090",
+    "driver_version": "621.14",
+    "memory.total": "32607",
+    "utilization.gpu": "0",
+    "memory.used": "4456",
+    "temperature.gpu": "33.16",
+    "clocks.gr": "195",
+    "clocks.mem": "7001",
+    "power.draw": "44.07",
+    "pstate": "P3",
+    "clocks.max.gr": "3090",
+    "clocks.max.mem": "14001",
+    "pcie.link.gen.current": "5",
+    "pcie.link.gen.max": "5",
+    "pcie.link.width.current": "16",
+    "pcie.link.width.max": "16"
+  },
+  "profile": "diag",
+  "runs": [
+    {
+      "index": 1,
+      "position": 1,
+      "utc": "2026-11-26T22:13:42.435649+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:13:42.503712+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "4465",
+          "temperature.gpu": "33.21",
+          "clocks.gr": "255",
+          "clocks.mem": "7001",
+          "power.draw": "44.27",
+          "pstate": "P3",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        },
+        {
+          "utc": "2026-11-26T22:13:47.882568+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "7",
+          "memory.used": "4456",
+          "temperature.gpu": "35.34",
+          "clocks.gr": "2880",
+          "clocks.mem": "14001",
+          "power.draw": "123.77",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:13:47.882568+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "7",
+        "memory.used": "4456",
+        "temperature.gpu": "35.34",
+        "clocks.gr": "2880",
+        "clocks.mem": "14001",
+        "power.draw": "123.77",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": false,
+      "warm_trace": [
+        [
+          98,
+          "P0",
+          "240",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          403,
+          "P0",
+          "240",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          712,
+          "P0",
+          "240",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          1025,
+          "P0",
+          "240",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          1320,
+          "P0",
+          "240",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          1612,
+          "P0",
+          "2887",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          1886,
+          "P0",
+          "2887",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          2169,
+          "P0",
+          "2887",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          2437,
+          "P0",
+          "2887",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          2714,
+          "P0",
+          "2887",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          3010,
+          "P0",
+          "2887",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          3304,
+          "P0",
+          "2887",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          3581,
+          "P0",
+          "2887",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          3875,
+          "P0",
+          "2880",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          4161,
+          "P0",
+          "2880",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          4433,
+          "P0",
+          "2880",
+          "14001",
+          "5",
+          "16"
+        ],
+        [
+          4709,
+          "P0",
+          "2880",
+          "14001",
+          "5",
+          "16"
+        ]
+      ],
+      "warm_stable_ms": 3097,
+      "post": {
+        "utc": "2026-11-26T22:13:48.779771+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4456",
+        "temperature.gpu": "34.53",
+        "clocks.gr": "2437",
+        "clocks.mem": "14001",
+        "power.draw": "84.28",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 926.4,
+        "early_only_save_us": 650.8,
+        "pso_disk_hit_us": 1107.6,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 2,
+      "position": 2,
+      "utc": "2026-11-26T22:13:55.010285+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:13:55.082541+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "4",
+          "memory.used": "4456",
+          "temperature.gpu": "35.02",
+          "clocks.gr": "2550",
+          "clocks.mem": "14001",
+          "power.draw": "81.30",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:13:55.082541+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "4",
+        "memory.used": "4456",
+        "temperature.gpu": "35.02",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "81.30",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:13:55.951829+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "3",
+        "memory.used": "4456",
+        "temperature.gpu": "35.11",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "81.33",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 796.1,
+        "early_only_save_us": 632.5,
+        "pso_disk_hit_us": 1096.8,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 3,
+      "position": 1,
+      "utc": "2026-11-26T22:13:56.051503+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:13:56.118451+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "1",
+          "memory.used": "4456",
+          "temperature.gpu": "35.02",
+          "clocks.gr": "2550",
+          "clocks.mem": "14001",
+          "power.draw": "81.50",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:13:56.118451+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "1",
+        "memory.used": "4456",
+        "temperature.gpu": "35.02",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "81.50",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:13:56.984793+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4456",
+        "temperature.gpu": "35.14",
+        "clocks.gr": "2565",
+        "clocks.mem": "14001",
+        "power.draw": "81.57",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 1059.7,
+        "early_only_save_us": 620.2,
+        "pso_disk_hit_us": 1111,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 4,
+      "position": 2,
+      "utc": "2026-11-26T22:13:59.127207+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:13:59.196254+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "4456",
+          "temperature.gpu": "35.14",
+          "clocks.gr": "2557",
+          "clocks.mem": "14001",
+          "power.draw": "81.65",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:13:59.196254+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "0",
+        "memory.used": "4456",
+        "temperature.gpu": "35.14",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "81.65",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:00.062836+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "1",
+        "memory.used": "4456",
+        "temperature.gpu": "35.05",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "81.85",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 876.8,
+        "early_only_save_us": 601.2,
+        "pso_disk_hit_us": 1068.3,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 5,
+      "position": 1,
+      "utc": "2026-11-26T22:14:00.162841+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:00.235885+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "1",
+          "memory.used": "4456",
+          "temperature.gpu": "35.17",
+          "clocks.gr": "2557",
+          "clocks.mem": "14001",
+          "power.draw": "81.86",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:00.235885+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "1",
+        "memory.used": "4456",
+        "temperature.gpu": "35.17",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "81.86",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:01.083757+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "1",
+        "memory.used": "4456",
+        "temperature.gpu": "35.17",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "81.72",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 838,
+        "early_only_save_us": 850.7,
+        "pso_disk_hit_us": 1064,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 6,
+      "position": 2,
+      "utc": "2026-11-26T22:14:03.268707+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:03.346267+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "4",
+          "memory.used": "4456",
+          "temperature.gpu": "35.31",
+          "clocks.gr": "2550",
+          "clocks.mem": "14001",
+          "power.draw": "81.56",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:03.346267+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "4",
+        "memory.used": "4456",
+        "temperature.gpu": "35.31",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "81.56",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:04.214986+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "4",
+        "memory.used": "4456",
+        "temperature.gpu": "35.37",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "82.04",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 982.5,
+        "early_only_save_us": 658.4,
+        "pso_disk_hit_us": 1217.8,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 7,
+      "position": 1,
+      "utc": "2026-11-26T22:14:04.330041+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:04.397340+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "4456",
+          "temperature.gpu": "35.25",
+          "clocks.gr": "2557",
+          "clocks.mem": "14001",
+          "power.draw": "81.78",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:04.397340+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "0",
+        "memory.used": "4456",
+        "temperature.gpu": "35.25",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "81.78",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:05.267871+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4456",
+        "temperature.gpu": "35.37",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "82.00",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 828.5,
+        "early_only_save_us": 623.3,
+        "pso_disk_hit_us": 1075.8,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 8,
+      "position": 2,
+      "utc": "2026-11-26T22:14:07.466656+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:07.539268+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "2",
+          "memory.used": "4456",
+          "temperature.gpu": "35.43",
+          "clocks.gr": "2550",
+          "clocks.mem": "14001",
+          "power.draw": "81.89",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:07.539268+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4456",
+        "temperature.gpu": "35.43",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "81.89",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:08.390580+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "5",
+        "memory.used": "4456",
+        "temperature.gpu": "35.55",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "82.29",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 844.7,
+        "early_only_save_us": 568.1,
+        "pso_disk_hit_us": 1234.3,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 9,
+      "position": 1,
+      "utc": "2026-11-26T22:14:08.485112+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:08.545006+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "5",
+          "memory.used": "4456",
+          "temperature.gpu": "35.55",
+          "clocks.gr": "2550",
+          "clocks.mem": "14001",
+          "power.draw": "82.29",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:08.545006+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "5",
+        "memory.used": "4456",
+        "temperature.gpu": "35.55",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "82.29",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:09.401337+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "5",
+        "memory.used": "4456",
+        "temperature.gpu": "35.55",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "82.43",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 889.8,
+        "early_only_save_us": 772.4,
+        "pso_disk_hit_us": 1006.2,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 10,
+      "position": 2,
+      "utc": "2026-11-26T22:14:11.566406+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:11.630557+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "4456",
+          "temperature.gpu": "35.58",
+          "clocks.gr": "2565",
+          "clocks.mem": "14001",
+          "power.draw": "81.84",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:11.630557+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "0",
+        "memory.used": "4456",
+        "temperature.gpu": "35.58",
+        "clocks.gr": "2565",
+        "clocks.mem": "14001",
+        "power.draw": "81.84",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:12.482616+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4456",
+        "temperature.gpu": "35.70",
+        "clocks.gr": "2565",
+        "clocks.mem": "14001",
+        "power.draw": "82.00",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 881.9,
+        "early_only_save_us": 588.7,
+        "pso_disk_hit_us": 1198,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 11,
+      "position": 1,
+      "utc": "2026-11-26T22:14:12.588574+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:12.653732+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "4456",
+          "temperature.gpu": "35.55",
+          "clocks.gr": "2565",
+          "clocks.mem": "14001",
+          "power.draw": "82.28",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:12.653732+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "0",
+        "memory.used": "4456",
+        "temperature.gpu": "35.55",
+        "clocks.gr": "2565",
+        "clocks.mem": "14001",
+        "power.draw": "82.28",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:13.535962+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4456",
+        "temperature.gpu": "35.75",
+        "clocks.gr": "2565",
+        "clocks.mem": "14001",
+        "power.draw": "82.24",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 878.4,
+        "early_only_save_us": 598.6,
+        "pso_disk_hit_us": 1378.1,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 12,
+      "position": 2,
+      "utc": "2026-11-26T22:14:15.724145+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:15.801973+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "1",
+          "memory.used": "4456",
+          "temperature.gpu": "35.75",
+          "clocks.gr": "2550",
+          "clocks.mem": "14001",
+          "power.draw": "81.87",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:15.801973+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "1",
+        "memory.used": "4456",
+        "temperature.gpu": "35.75",
+        "clocks.gr": "2550",
+        "clocks.mem": "14001",
+        "power.draw": "81.87",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:16.654262+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4456",
+        "temperature.gpu": "35.93",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "81.89",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 1187.3,
+        "early_only_save_us": 617.1,
+        "pso_disk_hit_us": 1350.6,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 13,
+      "position": 1,
+      "utc": "2026-11-26T22:14:16.762265+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:16.837536+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "2",
+          "memory.used": "4456",
+          "temperature.gpu": "35.93",
+          "clocks.gr": "2557",
+          "clocks.mem": "14001",
+          "power.draw": "81.89",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:16.837536+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "2",
+        "memory.used": "4456",
+        "temperature.gpu": "35.93",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "81.89",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:17.686532+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "4",
+        "memory.used": "4456",
+        "temperature.gpu": "35.90",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "82.66",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 868.9,
+        "early_only_save_us": 617.6,
+        "pso_disk_hit_us": 1094.6,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 14,
+      "position": 2,
+      "utc": "2026-11-26T22:14:19.873927+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:19.959439+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "0",
+          "memory.used": "4456",
+          "temperature.gpu": "35.93",
+          "clocks.gr": "2565",
+          "clocks.mem": "14001",
+          "power.draw": "81.76",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:19.959439+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "0",
+        "memory.used": "4456",
+        "temperature.gpu": "35.93",
+        "clocks.gr": "2565",
+        "clocks.mem": "14001",
+        "power.draw": "81.76",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:20.829514+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "1",
+        "memory.used": "4456",
+        "temperature.gpu": "35.90",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "81.96",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 888.1,
+        "early_only_save_us": 595.5,
+        "pso_disk_hit_us": 1112.8,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    },
+    {
+      "index": 15,
+      "position": 1,
+      "utc": "2026-11-26T22:14:20.919071+00:00",
+      "ok": true,
+      "polls": [
+        {
+          "utc": "2026-11-26T22:14:21.000118+00:00",
+          "name": "NVIDIA GeForce RTX 5090",
+          "driver_version": "621.14",
+          "memory.total": "32607",
+          "utilization.gpu": "1",
+          "memory.used": "4456",
+          "temperature.gpu": "35.93",
+          "clocks.gr": "2557",
+          "clocks.mem": "14001",
+          "power.draw": "82.06",
+          "pstate": "P0",
+          "clocks.max.gr": "3090",
+          "clocks.max.mem": "14001",
+          "pcie.link.gen.current": "5",
+          "pcie.link.gen.max": "5",
+          "pcie.link.width.current": "16",
+          "pcie.link.width.max": "16"
+        }
+      ],
+      "pre": {
+        "utc": "2026-11-26T22:14:21.000118+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "1",
+        "memory.used": "4456",
+        "temperature.gpu": "35.93",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "82.06",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "warm_reused": true,
+      "post": {
+        "utc": "2026-11-26T22:14:21.853400+00:00",
+        "name": "NVIDIA GeForce RTX 5090",
+        "driver_version": "621.14",
+        "memory.total": "32607",
+        "utilization.gpu": "1",
+        "memory.used": "4456",
+        "temperature.gpu": "35.98",
+        "clocks.gr": "2557",
+        "clocks.mem": "14001",
+        "power.draw": "82.52",
+        "pstate": "P0",
+        "clocks.max.gr": "3090",
+        "clocks.max.mem": "14001",
+        "pcie.link.gen.current": "5",
+        "pcie.link.gen.max": "5",
+        "pcie.link.width.current": "16",
+        "pcie.link.width.max": "16"
+      },
+      "exit": 0,
+      "values": {
+        "pso_fresh_us": 787.3,
+        "early_only_save_us": 617,
+        "pso_disk_hit_us": 1042.8,
+        "prebuild_count": 64,
+        "verified": 1
+      }
+    }
+  ],
+  "summary": {
+    "pso_fresh_us": {
+      "n": 15,
+      "median": 878.4,
+      "p95": 1187.3,
+      "p99": 1187.3,
+      "sample_stddev": 104.71928780360969
+    },
+    "early_only_save_us": {
+      "n": 15,
+      "median": 617.6,
+      "p95": 850.7,
+      "p99": 850.7,
+      "sample_stddev": 74.475781937741985
+    },
+    "pso_disk_hit_us": {
+      "n": 15,
+      "median": 1107.6,
+      "p95": 1378.1,
+      "p99": 1378.1,
+      "sample_stddev": 109.56746041116577
+    },
+    "prebuild_count": {
+      "n": 15,
+      "median": 64,
+      "p95": 64,
+      "p99": 64,
+      "sample_stddev": 0
+    }
+  },
+  "invalid_count": 0,
+  "max_invalid": 1,
+  "invalid_runs": [ ],
+  "quiet_window": {
+    "status_line": "2026-11-26 22:13:37Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=4466\/32607 MiB | power=45.15 W | temp=33.27 C | graphics=292 MHz | memory=7001 MHz | 3D\/Compute=none | krig-miner=none | other engines=none | tolerated background=none",
+    "tolerated_background": "none"
+  },
+  "warmup": {
+    "binary": {
+      "commit": "4583945c0b68ddf2fb4be85c61a19b7639182126",
+      "source_delta_sha256": "18f8cd439b2d60c49c4697c127b6874a995038eef5c98ec6c4b7e25f7fce88da",
+      "executable": "target\/diag\/deps\/victory_gpu-c324b3e76f1e7291.exe",
+      "sha256": "a749aa0617077614f0442e57cf157d0a4eecffd8f588751a1682836c2b6f2005",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\u000abinary: rustc\u000acommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\u000acommit-date: 2026-09-01\u000ahost: x86_64-pc-windows-msvc\u000arelease: 1.98.1\u000aLLVM version: 22.1.8"
+    },
+    "reuse": "previous post and current pre both qualified",
+    "stable_ms": 3000,
+    "timeout_ms": 12000,
+    "pstate": [
+      "P0",
+      "P1"
+    ],
+    "min_graphics_mhz": 2500,
+    "min_memory_mhz": 13000,
+    "pcie_gen": 5,
+    "pcie_width": 16,
+    "trace_fields": [
+      "elapsed_ms",
+      "pstate",
+      "graphics_mhz",
+      "memory_mhz",
+      "pcie_gen",
+      "pcie_width"
+    ]
+  },
+  "telemetry": {
+    "pre": {
+      "pstate": [
+        "P0"
+      ],
+      "clocks.gr": [
+        2550,
+        2880
+      ],
+      "clocks.mem": [
+        14001,
+        14001
+      ],
+      "pcie.link.gen.current": [
+        5,
+        5
+      ],
+      "pcie.link.width.current": [
+        16,
+        16
+      ],
+      "temperature.gpu": [
+        35.02,
+        35.93
+      ],
+      "power.draw": [
+        81.3,
+        123.77
+      ]
+    },
+    "post": {
+      "pstate": [
+        "P0"
+      ],
+      "clocks.gr": [
+        2437,
+        2565
+      ],
+      "clocks.mem": [
+        14001,
+        14001
+      ],
+      "pcie.link.gen.current": [
+        5,
+        5
+      ],
+      "pcie.link.width.current": [
+        16,
+        16
+      ],
+      "temperature.gpu": [
+        34.53,
+        35.98
+      ],
+      "power.draw": [
+        81.33,
+        84.28
+      ]
+    }
+  }
+}

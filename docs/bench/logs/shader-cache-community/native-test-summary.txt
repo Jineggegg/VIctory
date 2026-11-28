@@ -1,0 +1,33 @@
+构建集成候选 be6990d。Windows 原生 diag，单测试线程。
+cargo test --locked --profile diag --no-fail-fast -p victory -p victory-shader -p victory-game -p victory-gpu -p victory-pipeline --features victory-gpu/diagnostics -- --test-threads=1
+
+Running unittests src\main.rs (target\diag\deps\victory-f81222bb29c2e156.exe)
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+Running tests\census.rs (target\diag\deps\census-61efaaace73502f4.exe)
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+Running tests\census_unreadable.rs (target\diag\deps\census_unreadable-27966dcfc78e69fe.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+Running tests\translate.rs (target\diag\deps\translate-cc3974f7206c517e.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+Running unittests src\lib.rs (target\diag\deps\victory_game-544d65f4a8ce3bcc.exe)
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running unittests src\lib.rs (target\diag\deps\victory_gpu-5d4d482d85aa51af.exe)
+test result: ok. 278 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 3.20s
+Running unittests src\lib.rs (target\diag\deps\victory_pipeline-c13af4ee3fccc893.exe)
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+Running unittests src\lib.rs (target\diag\deps\victory_shader-c772efafb1a32816.exe)
+test result: ok. 307 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 447.71s
+Running tests\resource_tracking.rs (target\diag\deps\resource_tracking-cdcf59290bcc77e9.exe)
+test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_game
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_gpu
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_pipeline
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_shader
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+按真实文件共享方式阻止替换缓存条目，使用项目分支 7567ee7。
+test shader_cache::tests::a_busy_destination_only_yields_hits_for_valid_content ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 280 filtered out; finished in 0.01s

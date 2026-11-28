@@ -1,0 +1,22 @@
+Finished `diag` profile [optimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe)
+
+running 1 test
+test shadow::tests::readable_partial_snapshot_retries_after_a_full_page_read_fails ... review adapter=NVIDIA GeForce RTX 5090 software=false
+review full_read_failed=true actual=[0, 0, 0, 0]
+
+thread 'shadow::tests::readable_partial_snapshot_retries_after_a_full_page_read_fails' (44164) panicked at crates\victory-gpu\src\shadow.rs:2611:9:
+assertion `left == right` failed: readable subrange after a failed full-page read
+  left: [0, 0, 0, 0]
+ right: [161, 162, 163, 164]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    shadow::tests::readable_partial_snapshot_retries_after_a_full_page_read_fails
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.30s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`

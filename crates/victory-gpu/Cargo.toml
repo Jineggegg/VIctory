@@ -13,11 +13,9 @@ miniz_oxide.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
 victory-formats.workspace = true
-victory-pipeline.workspace = true
-victory-shader = { workspace = true, features = ["host"] }
-
-[dev-dependencies]
+victory-core.workspace = true
 tempfile.workspace = true
+victory-shader = { workspace = true, features = ["host"] }
 
 [features]
 # Debugging switches (frame capture, the host debug layer, per-draw data).
@@ -29,6 +27,7 @@ workspace = true
 [target.'cfg(windows)'.dependencies]
 windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_Security", "Win32_System_Diagnostics_Debug", "Win32_System_Kernel", "Win32_System_LibraryLoader", "Win32_System_Memory", "Win32_System_Performance", "Win32_System_ProcessStatus", "Win32_System_Registry", "Win32_System_SystemInformation", "Win32_System_Threading"] }
 windows = { workspace = true, features = [
+    "Wdk_Graphics_Direct3D",
     "Win32_Graphics_Direct3D",
     "Win32_Graphics_Direct3D_Fxc",
     "Win32_Graphics_Direct3D12",

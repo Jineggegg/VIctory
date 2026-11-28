@@ -452,6 +452,251 @@ pub(crate) mod tests {
         assert!(crate::shadow::take_reads().contains(&memory), "read again after it was forgotten");
     }
 
+    /// Paged view heaps: a page no shader used lately is taken back where
+    /// room runs low (its slot holds nothing, its table entry names the null
+    /// page); a shader's read mark of it places it again after the
+    /// submission, with its slot made from the title's record, and the
+    /// texture viewed there made once a shader reads the slot.
+    #[test]
+    fn view_heap_pages_taken_back_are_placed_again_when_read() {
+        let Some(host) = host() else { return };
+        let null = std::ptr::null();
+        let page = victory_shader::emit::VIEW_PAGE_SLOTS;
+        let heap_desc: [u32; 8] = [0, 3 * page, 1, 0, 0, 0, 0, 0];
+        let mut heap = null;
+        let iid = crate::object::guid(0x8efb471d, 0x616c, 0x4f49, [0x90, 0xf7, 0x12, 0x7b, 0xb7, 0x63, 0xfa, 0x51]);
+        assert_eq!(crate::descriptor::create_heap(null, heap_desc.as_ptr().cast(), &iid, &mut heap), 0);
+        let title_heap = crate::descriptor::heap(heap);
+        // A 4x1 RGBA8 texture, linear, in memory of its own, viewed in page 1.
+        let memory = vec![0u8; 1 << 16];
+        let address = memory.as_ptr() as u64;
+        let words: [u32; 14] = [3, 0, 0, 0, 4, 0, 1, 1 | 1 << 16, 28, 1, 0, 0x100, 0, 0];
+        let mut view = [0u32; 16];
+        view[..6].copy_from_slice(&[28, 4, 0x1688, 0, 0, 1]);
+        (view[10], view[11]) = (address as u32, (address >> 32) as u32);
+        let slot = page + 5;
+        let at = title_heap.start + u64::from(slot) * 32;
+        crate::descriptor::create_placed_srv(null, &words, &view, at);
+        let heap_host = title_heap.host().expect("a host view heap");
+        if heap_host.host_page_of(slot).is_none() {
+            eprintln!("view heaps are not paged here (VICTORY_VIEW_PAGES=1 pages them); skipped");
+            return;
+        }
+        assert!(heap_host.mirror(slot, at, true).is_some());
+        assert!(heap_host.kept(slot), "made for the draw");
+        let placed = heap_host.host_page_of(slot).unwrap();
+        assert_ne!(placed, 0, "placed on the write");
+        assert_eq!(heap_host.page_table_entry(1), placed);
+        // No submission meanwhile.
+        let _one = host.submitted.lock().unwrap_or_else(|e| e.into_inner());
+        heap_host.set_page_water(u32::MAX, u32::MAX);
+        let mut t = std::time::Instant::now();
+        for _ in 0..400 {
+            t += std::time::Duration::from_secs(1);
+            heap_host.take_back_pages(t);
+        }
+        heap_host.set_page_water(0, 0);
+        assert_eq!(heap_host.host_page_of(slot), Some(0), "taken back");
+        assert_eq!(heap_host.page_table_entry(1), 0, "the null page");
+        assert!(!heap_host.kept(slot), "the slot holds nothing");
+        assert!(heap_host.made_from(slot, at), "its record stays noted");
+        heap_host.sync_slots(page, 2 * page, title_heap.start, 32);
+        assert_eq!(heap_host.host_page_of(slot), Some(0), "heap syncs pass it by");
+        // A shader reads the page.
+        crate::shadow::tests::mark_page_read(false, 1);
+        let read = crate::shadow::take_page_reads();
+        assert!(read.contains(&1), "its read mark");
+        assert!(!crate::shadow::take_page_reads().contains(&1), "cleared");
+        crate::descriptor::turn_pages(&read, std::time::Instant::now());
+        let again = heap_host.host_page_of(slot).unwrap();
+        assert_ne!(again, 0, "placed again");
+        assert_eq!(heap_host.page_table_entry(1), again);
+        assert!(heap_host.made_from(slot, at), "made from the title's record");
+        // Read: its texture is made, as for any placed texture's view (once
+        // its record is new to the read marks).
+        crate::shadow::take_reads();
+        crate::shadow::tests::mark_read(false, slot);
+        crate::descriptor::make_read(&crate::shadow::take_reads());
+        assert!(heap_host.kept(slot), "its texture made");
+    }
+
+    /// A view heap of `pages` pages of slots, if view heaps are paged here.
+    pub(crate) fn paged_view_heap(
+        pages: u32,
+    ) -> Option<(&'static crate::descriptor::Heap, &'static crate::descriptor::host::HostHeap)> {
+        let null = std::ptr::null();
+        let heap_desc: [u32; 8] = [0, pages * victory_shader::emit::VIEW_PAGE_SLOTS, 1, 0, 0, 0, 0, 0];
+        let mut heap = null;
+        let iid = crate::object::guid(0x8efb471d, 0x616c, 0x4f49, [0x90, 0xf7, 0x12, 0x7b, 0xb7, 0x63, 0xfa, 0x51]);
+        assert_eq!(crate::descriptor::create_heap(null, heap_desc.as_ptr().cast(), &iid, &mut heap), 0);
+        let title_heap = crate::descriptor::heap(heap);
+        let heap_host = title_heap.host().expect("a host view heap");
+        if heap_host.host_page_of(0).is_none() {
+            eprintln!("view heaps are not paged here (VICTORY_VIEW_PAGES=1 pages them); skipped");
+            return None;
+        }
+        Some((title_heap, heap_host))
+    }
+
+    /// Runs `f` with no submission meanwhile.
+    pub(crate) fn without_submissions<R>(f: impl FnOnce() -> R) -> R {
+        let host = host().expect("a host GPU");
+        let _one = host.submitted.lock().unwrap_or_else(|e| e.into_inner());
+        f()
+    }
+
+    /// Takes back every page of `heap_host` unused lately: 400 submissions
+    /// a second apart from `*t` on.
+    pub(crate) fn take_back_all(heap_host: &crate::descriptor::host::HostHeap, t: &mut std::time::Instant) {
+        heap_host.set_page_water(u32::MAX, u32::MAX);
+        for _ in 0..400 {
+            *t += std::time::Duration::from_secs(1);
+            heap_host.take_back_pages(*t);
+        }
+        heap_host.set_page_water(0, 0);
+    }
+
+    /// A 64 KiB buffer at title memory of its own: the memory, the buffer.
+    pub(crate) fn title_buffer() -> (usize, crate::object::This) {
+        let memory = crate::watch::tests::pool(1);
+        let bytes = crate::watch::PAGE as u64;
+        let desc: [u32; 14] = [1, 0, 0, 0, bytes as u32, (bytes >> 32) as u32, 1, 1 | 1 << 16, 0, 1, 0, 1, 0, 0];
+        let mut buffer = std::ptr::null();
+        let iid = crate::object::guid(0x696442be, 0xa72e, 0x4059, [0xbc, 0x79, 0x5b, 0x5c, 0x98, 0x04, 0x0f, 0xad]);
+        let at = memory as u64;
+        let made = crate::resource::create_at_address(std::ptr::null(), at, desc.as_ptr().cast(), 0, std::ptr::null(), &iid, &mut buffer);
+        assert_eq!(made, 0);
+        (memory, buffer)
+    }
+
+    /// Paged view heaps: a placed texture's slot in a page taken back that
+    /// a shader read again is made by `make_read`, which places the page,
+    /// and stays made when `turn_pages` makes the page's other slots from
+    /// the title's records after it (as a slot made for a draw does at the
+    /// heap sync).
+    #[test]
+    fn view_heap_pages_placed_by_a_read_keep_the_texture_made_for_it() {
+        let Some(host) = host() else { return };
+        // No submission meanwhile.
+        let _one = host.submitted.lock().unwrap_or_else(|e| e.into_inner());
+        let Some((title_heap, heap_host)) = paged_view_heap(3) else { return };
+        let null = std::ptr::null();
+        let page = victory_shader::emit::VIEW_PAGE_SLOTS;
+        // A 4x1 RGBA8 texture, linear, in memory of its own, viewed in page 1.
+        let memory = vec![0u8; 1 << 16];
+        let address = memory.as_ptr() as u64;
+        let words: [u32; 14] = [3, 0, 0, 0, 4, 0, 1, 1 | 1 << 16, 28, 1, 0, 0x100, 0, 0];
+        let mut view = [0u32; 16];
+        view[..6].copy_from_slice(&[28, 4, 0x1688, 0, 0, 1]);
+        (view[10], view[11]) = (address as u32, (address >> 32) as u32);
+        let slot = page + 77;
+        let at = title_heap.start + u64::from(slot) * 32;
+        crate::descriptor::create_placed_srv(null, &words, &view, at);
+        assert!(heap_host.mirror(slot, at, true).is_some());
+        assert!(heap_host.kept(slot), "made for the draw");
+        let mut t = std::time::Instant::now();
+        take_back_all(heap_host, &mut t);
+        assert_eq!(heap_host.host_page_of(slot), Some(0), "taken back");
+        assert!(!heap_host.kept(slot), "the slot holds nothing");
+        // A shader reads the slot (its read new to the marks), so its page.
+        crate::shadow::forget_read(slot);
+        crate::shadow::take_reads();
+        crate::shadow::tests::mark_read(false, slot);
+        crate::shadow::tests::mark_page_read(false, 1);
+        let read = crate::shadow::take_reads();
+        assert!(read.contains(&slot), "its read mark");
+        crate::descriptor::make_read(&read);
+        crate::descriptor::turn_pages(&crate::shadow::take_page_reads(), std::time::Instant::now());
+        let again = heap_host.host_page_of(slot).unwrap();
+        assert_ne!(again, 0, "placed again");
+        assert_eq!(heap_host.page_table_entry(1), again);
+        assert!(heap_host.made_from(slot, at), "made from the title's record");
+        assert!(heap_host.kept(slot), "its texture stays made");
+    }
+
+    /// Paged view heaps: buffer views (a constant buffer, a shader and an
+    /// unordered access view of a buffer) in a page taken back, their
+    /// records unchanged, are made again when a shader's read places the
+    /// page again; taken back again, a draw binding one of them places the
+    /// page at once, its views made by the heap sync before the submission.
+    #[test]
+    fn view_heap_pages_taken_back_make_their_buffer_views_again() {
+        let Some(host) = host() else { return };
+        // No submission meanwhile.
+        let _one = host.submitted.lock().unwrap_or_else(|e| e.into_inner());
+        let Some((title_heap, heap_host)) = paged_view_heap(3) else { return };
+        let null = std::ptr::null();
+        let page = victory_shader::emit::VIEW_PAGE_SLOTS;
+        let (memory, buffer) = title_buffer();
+        let (cbv, srv, uav) = (page + 1, page + 2, page + 3);
+        let at = |s: u32| title_heap.start + u64::from(s) * 32;
+        crate::descriptor::create_cbv(null, &[memory as u32, (memory as u64 >> 32) as u32, 256, 0], at(cbv));
+        // Raw views of 64 dwords.
+        let srv_desc: [u32; 10] = [39, 1, 0x1688, 0, 0, 0, 64, 0, 1, 0];
+        let uav_desc: [u32; 10] = [39, 1, 0, 0, 64, 0, 0, 0, 1, 0];
+        crate::descriptor::create_srv(null, buffer, &srv_desc, at(srv));
+        crate::descriptor::create_uav(null, buffer, null, &uav_desc, at(uav));
+        let slots = [cbv, srv, uav];
+        for s in slots {
+            assert!(heap_host.mirror(s, at(s), true).is_some());
+            assert!(heap_host.kept(s), "slot {s} made for the draw");
+        }
+        let mut t = std::time::Instant::now();
+        take_back_all(heap_host, &mut t);
+        assert_eq!(heap_host.host_page_of(cbv), Some(0), "taken back");
+        for s in slots {
+            assert!(!heap_host.kept(s), "slot {s} holds nothing");
+            assert!(heap_host.made_from(s, at(s)), "slot {s}'s record stays noted");
+        }
+        // A shader reads the page: placed again, its views made again.
+        crate::shadow::tests::mark_page_read(false, 1);
+        crate::descriptor::turn_pages(&crate::shadow::take_page_reads(), std::time::Instant::now());
+        assert_ne!(heap_host.host_page_of(cbv), Some(0), "placed again");
+        for s in slots {
+            assert!(heap_host.kept(s), "slot {s} made again");
+        }
+        // Taken back again: a draw binding the constant buffer places it.
+        take_back_all(heap_host, &mut t);
+        assert_eq!(heap_host.host_page_of(cbv), Some(0), "taken back again");
+        assert!(heap_host.mirror(cbv, at(cbv), true).is_some());
+        let again = heap_host.host_page_of(cbv).unwrap();
+        assert_ne!(again, 0, "placed again for the draw");
+        assert_eq!(heap_host.page_table_entry(1), again);
+        // The heap sync before the submission makes the page's slots.
+        crate::descriptor::sync_heaps();
+        for s in slots {
+            assert!(heap_host.kept(s), "slot {s} made again");
+        }
+    }
+
+    /// Paged view heaps: a view written where its page found no room is
+    /// made in the scratch page and its slot holds nothing; once a shader's
+    /// read places the page, the slot is made there from the title's record.
+    #[test]
+    fn view_heap_slots_written_with_no_room_are_made_when_their_page_is_placed() {
+        let Some(host) = host() else { return };
+        // No submission meanwhile.
+        let _one = host.submitted.lock().unwrap_or_else(|e| e.into_inner());
+        let Some((title_heap, heap_host)) = paged_view_heap(3) else { return };
+        let page = victory_shader::emit::VIEW_PAGE_SLOTS;
+        let (_, buffer) = title_buffer();
+        let slot = page + 2;
+        let at = title_heap.start + u64::from(slot) * 32;
+        // A raw view of 64 dwords.
+        let desc: [u32; 10] = [39, 1, 0x1688, 0, 0, 0, 64, 0, 1, 0];
+        heap_host.hold_page_room(true);
+        crate::descriptor::create_srv(std::ptr::null(), buffer, &desc, at);
+        assert!(heap_host.mirror(slot, at, true).is_some());
+        heap_host.hold_page_room(false);
+        assert_eq!(heap_host.host_page_of(slot), Some(0), "no room for its page");
+        assert!(heap_host.made_from(slot, at), "its record noted");
+        assert!(!heap_host.kept(slot), "made in the scratch page: the slot holds nothing");
+        crate::shadow::tests::mark_page_read(false, 1);
+        crate::descriptor::turn_pages(&crate::shadow::take_page_reads(), std::time::Instant::now());
+        assert_ne!(heap_host.host_page_of(slot), Some(0), "placed");
+        assert!(heap_host.kept(slot), "made in its page");
+    }
+
     /// The textures shaders read through the heap since the last eviction
     /// pass are named again at each pass (a slot's read is reported as new
     /// only once), and the marks are cleared for the next.
@@ -1249,6 +1494,9 @@ impl Host {
             lists.push(list.list.cast().ok());
         }
         batch.flush();
+        // Read marks of slots left null since the last submission: cleared
+        // before this one runs, so its reads of them are taken after it.
+        crate::shadow::forget_reads_now();
         let prepared = std::time::Instant::now();
         #[cfg(feature = "diagnostics")]
         crate::copystat::add(crate::copystat::C::FaultsPrep, crate::copystat::page_faults().saturating_sub(faults));
@@ -1280,7 +1528,11 @@ impl Host {
                     .and_then(|()| self.fence.SetEventOnCompletion(*submitted, self.event));
                 match waited {
                     Ok(()) => {
+                        #[cfg(all(test, feature = "diagnostics"))]
+                        let wait_start = std::time::Instant::now();
                         WaitForSingleObject(self.event, INFINITE);
+                        #[cfg(all(test, feature = "diagnostics"))]
+                        BENCH_FENCE_NS.fetch_add(wait_start.elapsed().as_nanos() as u64, Ordering::Relaxed);
                     }
                     Err(e) => tracing::warn!(error = %e, "host submission not waited for"),
                 }
@@ -1388,14 +1640,14 @@ impl Host {
         }
         // Pages shaders marked first: the copy-backs below end what the
         // copies keep for them.
-        let withheld: Vec<(std::sync::Arc<crate::shadow::Shadow>, usize, usize)> = back
-            .iter()
-            .filter(|b| !b.3)
-            .map(|(s, a, n, _)| (s.clone(), *a, *n))
-            .collect();
-        crate::shadow::copy_back_marks(&withheld, withholding);
-        // Texture views left null that shaders read: made for what follows.
+        crate::shadow::copy_back_marks(&back, withholding);
+        // Texture views left null that shaders read, taken before pages turn
+        // (a page placed again forgets its slots' marks).
         let read = crate::shadow::take_reads();
+        // Paged view heaps: pages read are kept (placed again if taken back),
+        // pages unused lately taken back where room runs low.
+        crate::descriptor::turn_pages(&crate::shadow::take_page_reads(), std::time::Instant::now());
+        // The views read made for what follows, in the pages placed above.
         if !read.is_empty() {
             crate::descriptor::make_read(&read);
         }
@@ -1426,7 +1678,7 @@ impl Host {
         // The submission has run and the next waits for our lock. Host
         // copies the title gave up meanwhile may have their last holder here.
         release_retired();
-        release_later(Box::new((batch, back, withheld, heaps)));
+        release_later(Box::new((batch, back, heaps)));
         self.log_messages();
         // A listed frame: what this submission's lists drew, as it is now
         // (the dumps submit lists of their own).
@@ -2382,28 +2634,28 @@ impl HostList {
     }
 }
 
-/// A submission's refreshes not done yet, merged per buffer copy into the
-/// range that covers them: done before a step that writes title memory or
-/// gives a range to shaders, and before the lists run.
-///
-/// Also the textures brought up to date in the submission so far: most
-/// lists of a world submission sample the same textures, and a texture in
-/// physical-page memory is hashed whole each time it is checked. Checked
-/// once, it is checked again only after a step that writes title memory.
+/// A submission's refreshes not done yet, merged per buffer copy into
+/// disjoint ranges: what a range overlaps, or lies within a page of,
+/// coalesces, and distant ranges of one copy are copied apart instead of
+/// copying the span between them. Done before a step that writes title
+/// memory or gives a range to shaders, and before the lists run.
 ///
 /// A copy's range brought up to date is not copied again in the submission
-/// until a step writes title memory: every list of a world submission using
-/// title memory asks for every copy whole. What the title's threads write
+/// until a step writes title memory. What the title's threads write
 /// meanwhile is for later submissions (on the console it would race the
 /// GPU).
+///
+/// A copy's disjoint ranges: the copy held, so that its address names no
+/// other.
+type Ranges = std::collections::HashMap<usize, (std::sync::Arc<crate::shadow::Shadow>, Vec<(usize, usize)>)>;
+
 #[derive(Default)]
 struct Batch {
-    refreshes: Vec<(std::sync::Arc<crate::shadow::Shadow>, usize, usize)>,
-    /// Where each copy's refresh is in `refreshes`, by copy.
-    pending: std::collections::HashMap<usize, usize>,
-    /// The range of each copy brought up to date since the last title
-    /// write, by copy (held, so that its address names no other).
-    current: std::collections::HashMap<usize, (std::sync::Arc<crate::shadow::Shadow>, usize, usize)>,
+    /// The disjoint ranges each copy is to be brought up to date in.
+    pending: Ranges,
+    /// The ranges of each copy brought up to date since the last title
+    /// write.
+    current: Ranges,
 }
 
 impl Batch {
@@ -2413,20 +2665,20 @@ impl Batch {
         if shadow.clean() {
             return;
         }
-        let (key, end) = (std::sync::Arc::as_ptr(shadow) as usize, address + len);
-        if self.current.get(&key).is_some_and(|&(_, a, b)| a <= address && end <= b) {
+        let key = std::sync::Arc::as_ptr(shadow) as usize;
+        let end = address + len;
+        if self
+            .current
+            .get(&key)
+            .is_some_and(|(_, ranges)| covered(ranges, address, end))
+        {
             return;
         }
-        match self.pending.get(&key) {
-            Some(&i) => {
-                let (_, from, to) = &mut self.refreshes[i];
-                (*from, *to) = ((*from).min(address), (*to).max(end));
-            }
-            None => {
-                self.pending.insert(key, self.refreshes.len());
-                self.refreshes.push((shadow.clone(), address, end));
-            }
-        }
+        let (_, ranges) = self
+            .pending
+            .entry(key)
+            .or_insert_with(|| (shadow.clone(), vec![]));
+        push_range(ranges, COALESCE, address, end);
     }
 
     /// Before a step that writes title memory: pending refreshes are done
@@ -2440,29 +2692,84 @@ impl Batch {
     fn flush(&mut self) -> usize {
         #[cfg(feature = "diagnostics")]
         let _timed = crate::watch::Timed(std::time::Instant::now(), crate::copystat::C::FlushUs);
-        self.pending.clear();
         let mut total = 0;
-        for (shadow, from, to) in self.refreshes.drain(..) {
-            let started = std::time::Instant::now();
-            let copied = shadow.update(from, to - from);
-            let us = started.elapsed().as_micros() as u64;
-            #[cfg(feature = "diagnostics")]
-            crate::copystat::range(from, to - from, us, 0);
-            PREPARING[0].fetch_add(us, Ordering::Relaxed);
-            PREPARING[1].fetch_add(copied as u64, Ordering::Relaxed);
-            total += copied;
-            // Kept: the union with what was current if they touch, else
-            // the larger.
-            let key = std::sync::Arc::as_ptr(&shadow) as usize;
-            let (_, a, b) = self.current.entry(key).or_insert((shadow, from, to));
-            if from <= *b && *a <= to {
-                (*a, *b) = ((*a).min(from), (*b).max(to));
-            } else if to - from > *b - *a {
-                (*a, *b) = (from, to);
+        for (key, (shadow, ranges)) in self.pending.drain() {
+            for (from, to) in ranges {
+                let started = std::time::Instant::now();
+                let copied = shadow.update(from, to - from);
+                let us = started.elapsed().as_micros() as u64;
+                #[cfg(feature = "diagnostics")]
+                crate::copystat::range(from, to - from, us, 0);
+                PREPARING[0].fetch_add(us, Ordering::Relaxed);
+                PREPARING[1].fetch_add(copied as u64, Ordering::Relaxed);
+                total += copied;
+                let (_, current) = self
+                    .current
+                    .entry(key)
+                    .or_insert_with(|| (shadow.clone(), vec![]));
+                push_copied(current, from, to);
             }
         }
         total
     }
+}
+
+/// Refreshes whose gap is at most a page: coalesced, one kernel copy is
+/// cheaper than two.
+const COALESCE: usize = crate::watch::PAGE;
+
+/// Adds `[address, end)` to `ranges`, kept disjoint: what the range
+/// overlaps, or lies within `gap` of, merges into it — and ranges it now
+/// bridges merge together. The ranges to copy take [`COALESCE`] (one
+/// kernel copy is cheaper than two across a page's gap); the ranges
+/// copied take no gap, so coverage never claims a byte no flush copied
+/// (a request inside a gap would be wrongly skipped).
+fn push_range(ranges: &mut Vec<(usize, usize)>, gap: usize, address: usize, end: usize) {
+    let (mut from, mut to) = (address, end);
+    let mut i = 0;
+    while i < ranges.len() {
+        let (a, e) = ranges[i];
+        if a <= to.saturating_add(gap) && from <= e.saturating_add(gap) {
+            ranges.remove(i);
+            from = from.min(a);
+            to = to.max(e);
+        } else {
+            i += 1;
+        }
+    }
+    ranges.push((from, to));
+    ranges.sort_unstable();
+}
+
+/// Whether `[address, end)` lies inside one of `ranges`.
+fn covered(ranges: &[(usize, usize)], address: usize, end: usize) -> bool {
+    ranges.iter().any(|&(a, e)| a <= address && end <= e)
+}
+
+/// Adds the range a flush copied to `ranges`, the ranges already copied:
+/// joined only where they overlap by a whole page, or meet across a page
+/// boundary. A flush guards only pages its range covers whole, so a
+/// union of ranges meeting or overlapping inside a page could claim a
+/// page none of them guarded, and a later request for it would be
+/// skipped — the split page of #2473. Joined with the rule of #2474:
+/// the ranges join when their intersection contains a whole page.
+fn push_copied(ranges: &mut Vec<(usize, usize)>, from: usize, to: usize) {
+    let (mut f, mut t) = (from, to);
+    let mut i = 0;
+    while i < ranges.len() {
+        let (a, e) = ranges[i];
+        let (lo, hi) = (a.max(f), e.min(t));
+        let joins = lo.div_ceil(crate::watch::PAGE) <= hi / crate::watch::PAGE;
+        if joins {
+            ranges.remove(i);
+            f = f.min(a);
+            t = t.max(e);
+        } else {
+            i += 1;
+        }
+    }
+    ranges.push((f, t));
+    ranges.sort_unstable();
 }
 
 /// Copies title memory at submission. The ranges were checked against their
@@ -2549,6 +2856,12 @@ fn read(src: *const u8, dst: *mut u8, len: usize) -> bool {
     unsafe { ReadProcessMemory(GetCurrentProcess(), src.cast(), dst.cast(), len, &mut done) != 0 }
 }
 
+#[cfg(test)]
+thread_local! {
+    /// Kernel destination writes attempted by this test thread, including retries.
+    pub(crate) static MAPPED_WRITE_CALLS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
 /// Copies host memory into title memory after a submission (what shaders
 /// wrote), leaving pages that are not mapped alone.
 ///
@@ -2558,7 +2871,11 @@ fn read(src: *const u8, dst: *mut u8, len: usize) -> bool {
 /// [`copy_mapped`]): 0.35 ms for each piece of the world's copy-back, 39 ms
 /// per frame.
 pub(crate) fn write_mapped(dst: *mut u8, src: *const u8, len: usize) {
-    let write = |at: usize, n: usize| read(src.wrapping_add(at - dst as usize), at as *mut u8, n);
+    let write = |at: usize, n: usize| {
+        #[cfg(test)]
+        MAPPED_WRITE_CALLS.set(MAPPED_WRITE_CALLS.get() + 1);
+        read(src.wrapping_add(at - dst as usize), at as *mut u8, n)
+    };
     if len == 0 || write(dst as usize, len) {
         return;
     }
@@ -3925,7 +4242,152 @@ fn pump() {
 
 #[cfg(test)]
 mod batch {   // `mod tests` is already taken at the top of this file
-    use super::Batch;
+    use super::*;
+
+    /// Ranges of one copy stay disjoint: what a range overlaps, or lies
+    /// within a page of, coalesces; distant ranges do not copy the span
+    /// between them.
+    #[test]
+    fn ranges_of_a_copy_stay_disjoint() {
+        let mut rs = vec![];
+        push_range(&mut rs, COALESCE, 0x1_0000, 0x1_1000);
+        push_range(&mut rs, COALESCE, 0x40_0000, 0x40_1000);
+        assert_eq!(rs, [(0x1_0000, 0x1_1000), (0x40_0000, 0x40_1000)]);
+        assert!(covered(&rs, 0x1_0000, 0x1_1000));
+        assert!(!covered(&rs, 0x1_0000, 0x2_0000));
+        // A page's gap coalesces ...
+        push_range(&mut rs, COALESCE, 0x1_1000 + crate::watch::PAGE, 0x1_2000 + crate::watch::PAGE);
+        assert_eq!(
+            rs,
+            [
+                (0x1_0000, 0x1_2000 + crate::watch::PAGE),
+                (0x40_0000, 0x40_1000),
+            ]
+        );
+        // ... a page and one byte more stays apart.
+        push_range(
+            &mut rs,
+            COALESCE,
+            0x1_2000 + 2 * crate::watch::PAGE + 1,
+            0x1_2900 + 2 * crate::watch::PAGE + 1,
+        );
+        assert_eq!(rs.len(), 3);
+        // A range bridging all of them coalesces them into one.
+        push_range(&mut rs, COALESCE, 0x1_3000 + crate::watch::PAGE, 0x50_0000);
+        assert_eq!(rs, [(0x1_0000, 0x50_0000)]);
+        assert!(covered(&rs, 0x2_0000, 0x4f_0000));
+    }
+
+    /// The ranges a flush copied join only where they meet across a page
+    /// boundary, and a request is covered only inside one range: a page's
+    /// gap coalesces what to copy, never what has been copied (a missed
+    /// refresh found on hardware: pages 0, 2 and 1 flushed in that order
+    /// copied pages 0 and 2 and skipped 1).
+    #[test]
+    fn the_gap_between_copied_ranges_is_not_covered() {
+        let mut copied = vec![(0x1_0000, 0x1_1000)];
+        push_copied(&mut copied, 0x2_1000, 0x2_2000);
+        // A page apart: not joined, the gap between them stays pending.
+        assert_eq!(copied, [(0x1_0000, 0x1_1000), (0x2_1000, 0x2_2000)]);
+        assert!(!covered(&copied, 0x1_1000, 0x2_1000));
+        // Meeting inside a page: not joined either — a flush guards only
+        // pages its range covers whole, so ranges meeting there together
+        // must not claim the page none of them guarded.
+        push_copied(&mut copied, 0x1_1000, 0x2_1000);
+        assert_eq!(copied, [(0x1_0000, 0x1_1000), (0x1_1000, 0x2_1000), (0x2_1000, 0x2_2000)]);
+        assert!(!covered(&copied, 0x1_1000 - 4, 0x1_1000 + 4));
+        // Overlapping without a whole page between them: not joined either,
+        // a union of page-flanking ranges would claim a page left unguarded.
+        let mut flanks = vec![(0x1_0000, 0x1_8000)];
+        push_copied(&mut flanks, 0x1_4000, 0x3_0000);
+        assert_eq!(flanks, [(0x1_0000, 0x1_8000), (0x1_4000, 0x3_0000)]);
+        assert!(!covered(&flanks, 0x1_0000, 0x2_0000));
+        // Meeting at a page boundary, or overlapping by a whole page: joined.
+        let mut whole = vec![(0x1_0000, 0x2_0000)];
+        push_copied(&mut whole, 0x2_0000, 0x3_0000);
+        assert_eq!(whole, [(0x1_0000, 0x3_0000)]);
+        assert!(covered(&whole, 0x1_1000, 0x2_1000));
+        let mut spans = vec![(0x1_0000, 0x3_0000)];
+        push_copied(&mut spans, 0x2_4000, 0x4_0000);
+        assert_eq!(spans, [(0x1_0000, 0x4_0000)]);
+        assert!(covered(&spans, 0x2_4000, 0x3_0000));
+    }
+
+    /// A submission asking for distant parts of one copy refreshes them
+    /// apart, not the span between them.
+    #[test]
+    fn distant_refreshes_of_a_copy_are_copied_apart() {
+        use crate::watch::PAGE;
+        let p = crate::watch::tests::pool(8);
+        let len = 8 * PAGE;
+        crate::shadow::register(p, p as u64, len as u64);
+        let Some(copy) = crate::shadow::find(p as u64, len as u64) else {
+            crate::shadow::unregister(p, p as u64);
+            return; // no host GPU here
+        };
+        let mut batch = Batch::default();
+        batch.add(&copy, p, PAGE / 2);
+        batch.add(&copy, p + 6 * PAGE, PAGE / 2);
+        let ranges = &batch.pending.values().next().unwrap().1;
+        assert_eq!(ranges, &[(p, p + PAGE / 2), (p + 6 * PAGE, p + 6 * PAGE + PAGE / 2)]);
+        crate::shadow::unregister(p, p as u64);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
+
+    /// Two flushes that each copy part of one page do not make the page
+    /// current: the page is guarded only by a flush covering it whole, so
+    /// what the halves copied must not join, and a later whole-page
+    /// request in the same submission still refreshes (the split page
+    /// of #2473).
+    #[test]
+    fn a_page_copied_in_two_halves_is_refreshed_whole() {
+        use crate::watch::PAGE;
+        let p = crate::watch::tests::pool(2);
+        let len = 2 * PAGE;
+        crate::shadow::register(p, p as u64, len as u64);
+        let Some(copy) = crate::shadow::find(p as u64, len as u64) else {
+            crate::shadow::unregister(p, p as u64);
+            return; // no host GPU here
+        };
+        let mut batch = Batch::default();
+        batch.add(&copy, p, PAGE / 2);
+        assert_eq!(batch.flush(), PAGE / 2, "the first half is copied");
+        batch.add(&copy, p + PAGE / 2, PAGE / 2);
+        assert_eq!(batch.flush(), PAGE / 2, "the other half is copied");
+        // Neither flush guarded the page, so the two halves must not join
+        // into a current range covering it: the page is still refreshed.
+        batch.add(&copy, p, PAGE);
+        assert_eq!(batch.flush(), PAGE, "the whole page is refreshed");
+        crate::shadow::unregister(p, p as u64);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
+
+    /// The pages between two flushed ranges of one copy are refreshed
+    /// when asked for (pages 0, 2 and 1, in that order).
+    #[test]
+    fn a_page_between_flushed_ranges_is_refreshed_when_asked_for() {
+        use crate::watch::PAGE;
+        let p = crate::watch::tests::pool(4);
+        let len = 4 * PAGE;
+        crate::shadow::register(p, p as u64, len as u64);
+        let Some(copy) = crate::shadow::find(p as u64, len as u64) else {
+            crate::shadow::unregister(p, p as u64);
+            return; // no host GPU here
+        };
+        let mut batch = Batch::default();
+        batch.add(&copy, p, PAGE);
+        assert_eq!(batch.flush(), PAGE, "page 0");
+        batch.add(&copy, p + 2 * PAGE, PAGE);
+        assert_eq!(batch.flush(), PAGE, "page 2");
+        // The middle page has not been copied: asking for it refreshes it.
+        batch.add(&copy, p + PAGE, PAGE);
+        assert_eq!(batch.flush(), PAGE, "page 1");
+        crate::shadow::unregister(p, p as u64);
+        drop(copy);
+        crate::watch::tests::free(p);
+    }
 
     /// A host copy of tracked title memory: a submission whose lists all ask
     /// for it whole copies the one page the title wrote, once, and again
@@ -4131,3 +4593,17 @@ mod present_plane_tests {
         assert_eq!(composite, Some((64, 64, [127, 0, 128, 255])));
     }
 }
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn bench_submission_us() -> [u64; 2] {
+    SUBMISSION_US.each_ref().map(|v| v.load(Ordering::Relaxed))
+}
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) fn bench_timestamp_frequency() -> u64 {
+    // SAFETY: a live queue and a plain query.
+    unsafe { host().unwrap().queue.GetTimestampFrequency().unwrap() }
+}
+
+#[cfg(all(test, feature = "diagnostics"))]
+pub(crate) static BENCH_FENCE_NS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);

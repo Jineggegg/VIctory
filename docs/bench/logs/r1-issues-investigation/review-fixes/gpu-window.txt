@@ -1,0 +1,55 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 10:43:24Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5298/32607 MiB | power=42.38 W | temp=41.44 C | graphics=195 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.9s, 10 samples, max GPU=0%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+CheckOnly GPU percent: 0,0,0,0,0,0,0,0,0,0; busy samples before gate: 0
+Results: <worktree>\target\r1-review\validation-20261127-104324
+commit=8d39f2c0d100339e1aee1136d9b6796404bf5c90 sha256=422315D5E17123CE83AF19A09A6E60308C26809A5E3DA5ED1222AB78FAE835F6
+before-mask-reuse commit=7b6a7af0d904118ebe2410b20416d0674737f753 sha256=3F37CF5FB1D0CBD980FF7A66FDE71DFDE4E72E1C5CB51931E00976F5D5598A2A
+Before-soak GPU percent: 0,0,0,0,0,2,3,0,0,0; busy samples before gate: 1
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.001
+BENCH soak_1_rounds=27247
+BENCH soak_1_p50_us=2161.500
+BENCH soak_1_p95_us=2421.400
+BENCH soak_1_p99_us=2665.100
+BENCH soak_1_ws_bytes=224030720
+BENCH soak_1_handles=388
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=27247
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 60.32s
+
+after-mask-reuse commit=8d39f2c0d100339e1aee1136d9b6796404bf5c90 sha256=422315D5E17123CE83AF19A09A6E60308C26809A5E3DA5ED1222AB78FAE835F6
+Soak GPU percent: 1,0,3,0,1,0,0,0,0,0; busy samples before gate: 2
+
+running 1 test
+test pipeline::hot::soak::mixed ... BENCH soak_1_elapsed_s=60.002
+BENCH soak_1_rounds=27366
+BENCH soak_1_p50_us=2158.200
+BENCH soak_1_p95_us=2385.600
+BENCH soak_1_p99_us=2591.000
+BENCH soak_1_ws_bytes=184979456
+BENCH soak_1_handles=370
+BENCH soak_1_local_mb=22.03648
+BENCH soak_1_budget_mb=32945.209344
+BENCH soak_1_nonlocal_mb=60.715008
+BENCH soak_1_failures=0
+BENCH soak_1_removed_hresult=0
+BENCH soak_total_rounds=27366
+BENCH verified=1
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 346 filtered out; finished in 60.30s
+
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

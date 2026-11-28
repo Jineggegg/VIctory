@@ -1,0 +1,46 @@
+Windows 原生 diag 受影响五个 crate，7e4e6a74，集成基线 177ee686。
+cargo test --locked --profile diag --no-fail-fast -p victory -p victory-shader -p victory-game -p victory-gpu -p victory-pipeline --features victory-gpu/diagnostics -- --test-threads=1
+
+Running unittests src\main.rs (target\diag\deps\victory-148603fc773da6ba.exe)
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+Running tests\census.rs (target\diag\deps\census-3e5db517d21e3d49.exe)
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+Running tests\census_unreadable.rs (target\diag\deps\census_unreadable-b31cbced51795153.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+Running tests\translate.rs (target\diag\deps\translate-d6a35e843d2cf34b.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+Running unittests src\lib.rs (target\diag\deps\victory_game-544d65f4a8ce3bcc.exe)
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3632b8b7173ed6f.exe)
+test result: ok. 280 passed; 0 failed; 16 ignored; 0 measured; 0 filtered out; finished in 3.43s
+Running unittests src\lib.rs (target\diag\deps\victory_pipeline-c13af4ee3fccc893.exe)
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+Running unittests src\lib.rs (target\diag\deps\victory_shader-15273abedac861e6.exe)
+test result: ok. 308 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 730.94s
+Running tests\resource_tracking.rs (target\diag\deps\resource_tracking-efe59c35d907d68c.exe)
+test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_game
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_gpu
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_pipeline
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_shader
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+636 项通过，0 项失败，20 项默认忽略。
+
+hardware reopened_library_loads_then_recovers_a_rejected_blob 通过，包含 7 个原生测试进程。
+hardware wave_mark_capability_selects_its_cached_dxil 通过，包含 1 个原生测试进程。
+warp reopened_library_loads_then_recovers_a_rejected_blob 通过，包含 7 个原生测试进程。
+warp wave_mark_capability_selects_its_cached_dxil 通过，包含 1 个原生测试进程。
+
+3/3 个独立 Windows smoke 进程通过。
+run.ps1 -CheckOnly -SkipValidation 通过，requested_run_complete=True，complete=False，零崩溃，零失败。
+本机没有图形工具，D3D12 Debug Layer 与 GPU-based validation 待补。
+
+未优化基线 177ee686ddd84526936b5849bd8f090ce9e0344d，SHA-256 da8be58cb7f2f9458e8b9492b6a1a23580575be85412cd28d516ff3479566bf5
+集成候选 7e4e6a7444ca9a7d3f7203f60a6bd4146dd85ad6，SHA-256 7b1c2d8841bcfd5f9c627eafbb7a55e3f0562f2a0bda0bddde8665b7cf76c35d
+两臂输入数量、DXIL 总字节数、集合 BLAKE3、实际预建/库命中数量逐项相同。
+prebuild_count=16 shader_digest=5f1614fabbcaa1b0fc0784e7a184e3ce0ad26948ec42a3b685d429e5f226fad2 shader_count=20 shader_dxil_bytes=94025 verified=1
+prebuild_count=1996 shader_digest=20473c42839d9df07d82a5489a8d023920ae7fb2d74ebe660a8f6591f065ef8b shader_count=2000 shader_dxil_bytes=9186185 verified=1

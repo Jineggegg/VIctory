@@ -1,0 +1,107 @@
+{
+  "started_utc": "2026-11-27T10:19:42.7615820Z",
+  "commit": "fde27957db939813be15dad052ee6d320d7c3009",
+  "source_changes": "",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "profile": "diag (release code generation), diagnostics; debug layer off during timings",
+  "cpu": "Intel(R) Core(TM) Ultra 9 285K",
+  "ram_bytes": 136871063552,
+  "os": "10.0.26300",
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 5090",
+    "uuid": "GPU-REDACTED",
+    "driver": "621.14",
+    "memory_mib": "32607"
+  },
+  "max_pre_sample_gpu_utilization_pct": 3,
+  "requested_samples": 0,
+  "validation_status": "passed",
+  "process_crashes": 0,
+  "failed_runs": 0,
+  "runs": [
+    {
+      "mode": "check",
+      "index": 0,
+      "utc": "2026-11-27T10:19:44.6862983Z",
+      "pre_run": {
+        "uuid": "GPU-REDACTED",
+        "gpu_pct": "13",
+        "used_mib": "5811",
+        "temp_c": "41.79"
+      },
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "compute_local_mb": 54.157312,
+        "compute_working_set_bytes": 155082752,
+        "rgba": [
+          [
+            1.0,
+            0.5,
+            -0.25,
+            2.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "depth_local_mb": 22.13888,
+        "depth_working_set_bytes": 154828800,
+        "depth": [
+          0.25,
+          0.5,
+          0.25,
+          0.25
+        ]
+      },
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "mode": "validate",
+      "index": 0,
+      "utc": "2026-11-27T10:19:45.3439706Z",
+      "pre_run": {
+        "uuid": "GPU-REDACTED",
+        "gpu_pct": "3",
+        "used_mib": "5811",
+        "temp_c": "41.44"
+      },
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "compute_local_mb": 60.145664,
+        "compute_working_set_bytes": 460791808,
+        "rgba": [
+          [
+            1.0,
+            0.5,
+            -0.25,
+            2.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "depth_local_mb": 27.99616,
+        "depth_working_set_bytes": 314109952,
+        "depth": [
+          0.25,
+          0.5,
+          0.25,
+          0.25
+        ],
+        "validation_errors": 0
+      },
+      "exit_code": 0,
+      "status": "passed"
+    }
+  ],
+  "summary": {},
+  "complete": true,
+  "requested_run_complete": true
+}

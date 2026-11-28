@@ -31,8 +31,13 @@
 //! the addresses showing them as written.
 //!
 //! shortcut: a system call writing into a guarded block fails; the known
-//! ones (file reads, DirectStorage) open their blocks first. Memory freed
-//! and allocated again while a tracker holds it is not seen.
+//! ones (file reads, DirectStorage) open their blocks first. New trackers
+//! and alias registrations check the guards they inherit; an existing
+//! tracker sees an address reused in place only when the runtime reports
+//! it (its mappings of physical pages, `XMemVirtualAlloc` commits at an
+//! address, `XMemFreeDefault`'s releases). A title freeing and committing
+//! its memory through the host's `VirtualFree` and `VirtualAlloc` directly
+//! goes unseen by a tracker holding it then.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -185,8 +190,11 @@ pub(crate) struct Tracked {
 }
 
 struct Guards {
-    /// Blocks (pages) we made read-only.
-    protected: BTreeSet<usize>,
+    /// Guarded page to the generation that installed its current protection.
+    protected: BTreeMap<usize, u64>,
+    /// Counts the calls installing guards: a guard opened and installed
+    /// again while the lock was released has a different one.
+    generation: u64,
     /// The trackers holding each page.
     holders: BTreeMap<usize, Vec<Arc<Changed>>>,
     /// Pages `[first, last)` of writes the guards do not see that are under
@@ -205,7 +213,8 @@ struct Guards {
 }
 
 static GUARDS: Mutex<Guards> = Mutex::new(Guards {
-    protected: BTreeSet::new(),
+    protected: BTreeMap::new(),
+    generation: 0,
     holders: BTreeMap::new(),
     busy: Vec::new(),
     alias_of: BTreeMap::new(),
@@ -216,7 +225,12 @@ static GUARDS: Mutex<Guards> = Mutex::new(Guards {
 });
 
 #[cfg(not(feature = "diagnostics"))]
-fn guards() -> std::sync::MutexGuard<'static, Guards> {
+type GuardLock = std::sync::MutexGuard<'static, Guards>;
+#[cfg(feature = "diagnostics")]
+type GuardLock = Held;
+
+#[cfg(not(feature = "diagnostics"))]
+fn guards() -> GuardLock {
     GUARDS.lock().unwrap_or_else(|e| e.into_inner())
 }
 
@@ -352,7 +366,7 @@ fn track_as(start: usize, len: usize, views: bool, copy: bool) -> Option<Tracked
     let bit = if untracked.is_empty() { dirty_bit() } else { None };
     set_dirty(bit, true);
     let changed = Arc::new(Changed(Mutex::new(pages.iter().copied().collect()), Mutex::default(), bit, copy));
-    let mut g = guards();
+    let mut g = guards_for_mapping(pages.iter().copied());
     for &page in &pages {
         g.holders.entry(page).or_default().push(changed.clone());
     }
@@ -363,6 +377,106 @@ fn track_as(start: usize, len: usize, views: bool, copy: bool) -> Option<Tracked
         changed,
         untracked,
     })
+}
+
+/// The guard lock, once the guards `pages` inherit from earlier trackers
+/// are known to still be in place.
+///
+/// A guard recorded for a page can outlive its mapping: a completed list's
+/// page table keeps the last tracker of a released buffer alive, and the
+/// title decommits and recommits the address for another buffer. Windows
+/// hands the new page out read-write, while the record says read-only, so
+/// the first take would skip it and the next write would go unseen.
+///
+/// `VirtualQuery` can take milliseconds in a large pool, and every title
+/// thread that faults on a guard waits for this lock, so the records are
+/// read under the lock and the protections queried without it. That is
+/// sound because a title finishes recommitting an address before it hands
+/// the memory to the GPU: the recommit happens before the new tracker
+/// joins, so the query sees the mapping the tracker covers. (A later
+/// remap in place is the caller's to report, [`title_memory_remapped`].)
+/// While the lock is released, our record of a page only changes by
+/// being opened and installed again, which bumps its generation; a stale
+/// observation then applies to nothing ([`clear_stale_guard`]).
+fn guards_for_mapping(pages: impl Iterator<Item = usize>) -> GuardLock {
+    let g = guards();
+    let inherited = pages.filter_map(|p| g.protected.get(&p).map(|&generation| (p, generation))).collect();
+    check_inherited(g, inherited)
+}
+
+/// [`guards_for_mapping`] for recorded guards `inherited` (page and
+/// generation), found under `g`.
+fn check_inherited(g: GuardLock, inherited: Vec<(usize, u64)>) -> GuardLock {
+    if inherited.is_empty() {
+        return g;
+    }
+    drop(g);
+    let mut intact = 0..0;
+    let mut stale = Vec::new();
+    for (page, generation) in inherited {
+        if !intact.contains(&page) {
+            match inherited_protection(page) {
+                Ok(end) => intact = page..end,
+                Err(readonly) => stale.push((page, generation, readonly)),
+            }
+        }
+    }
+    let mut g = guards();
+    for (page, generation, readonly) in stale {
+        clear_stale_guard(&mut g, page, generation, readonly);
+    }
+    g
+}
+
+/// Drops our record of the guard on `page` that `generation` installed and
+/// a query found gone, unless a later one replaced it meanwhile: opens the
+/// read-only fragments `readonly` the query found of it and marks the page
+/// changed in its holders.
+fn clear_stale_guard(g: &mut Guards, page: usize, generation: u64, readonly: Vec<(usize, usize)>) {
+    use windows_sys::Win32::System::Memory::{PAGE_READWRITE, VirtualProtect};
+    if g.protected.get(&page) != Some(&generation) {
+        return;
+    }
+    // A partial decommit can leave fragments of our guard around a hole.
+    // Open those fragments without changing the hole itself.
+    for (at, len) in readonly {
+        let mut old = 0;
+        // SAFETY: committed read-only fragments of the same inherited guard.
+        unsafe { VirtualProtect(at as _, len, PAGE_READWRITE, &mut old) };
+    }
+    g.protected.remove(&page);
+    // Mapping notifications own the alias links, including any already
+    // reported for this replacement.
+    changed(g, page, page + 1, false);
+}
+
+/// End of the intact read-only run, or the surviving (address, length)
+/// fragments of a stale guard. VirtualQuery may scan a large uniform pool.
+fn inherited_protection(page: usize) -> Result<usize, Vec<(usize, usize)>> {
+    use windows_sys::Win32::System::Memory::{MEM_COMMIT, MEMORY_BASIC_INFORMATION, PAGE_READONLY, VirtualQuery};
+    let start = page * PAGE;
+    let end = start + PAGE;
+    let mut at = start;
+    let mut readonly = Vec::new();
+    let mut readonly_bytes = 0;
+    while at < end {
+        let mut info = MEMORY_BASIC_INFORMATION::default();
+        // SAFETY: queries mapping metadata into the sized output, without reading the page.
+        if unsafe { VirtualQuery(at as _, &mut info, size_of_val(&info)) } == 0 {
+            break;
+        }
+        let region_end = info.BaseAddress as usize + info.RegionSize;
+        let next = region_end.min(end);
+        if info.State == MEM_COMMIT && info.Protect == PAGE_READONLY {
+            if at == start && region_end >= end {
+                return Ok(region_end / PAGE);
+            }
+            readonly.push((at, next - at));
+            readonly_bytes += next - at;
+        }
+        at = next;
+    }
+    if readonly_bytes == PAGE { Ok(page + 1) } else { Err(readonly) }
 }
 
 /// The pages of `[start, end)` that are the runtime's GPU memory: a
@@ -442,7 +556,7 @@ impl Drop for Tracked {
 /// Gives write access back to page `page` if we guarded it.
 fn open(g: &mut Guards, page: usize) -> bool {
     use windows_sys::Win32::System::Memory::{PAGE_READWRITE, VirtualProtect};
-    if !g.protected.remove(&page) {
+    if g.protected.remove(&page).is_none() {
         return false;
     }
     let mut old = 0;
@@ -670,19 +784,21 @@ fn protect_noting(g: &mut Guards, pages: &[usize], unmapped_pages: &mut Vec<usiz
         let n = unsafe { VirtualQuery((page * PAGE) as *const _, &mut info, size_of_val(&info)) };
         n == 0 || info.State != MEM_COMMIT
     };
+    g.generation = g.generation.wrapping_add(1);
+    let generation = g.generation;
     let mut taken = Vec::with_capacity(pages.len());
     let busy = |page: usize| g.busy.iter().any(|&(a, b)| (a..b).contains(&page));
     let pages: Vec<usize> = pages.iter().copied().filter(|&p| !busy(p)).collect();
     let mut i = 0;
     while i < pages.len() {
-        if g.protected.contains(&pages[i]) {
+        if g.protected.contains_key(&pages[i]) {
             taken.push(pages[i]);
             i += 1;
             continue;
         }
         // A run of consecutive pages not guarded yet.
         let first = i;
-        while i + 1 < pages.len() && pages[i + 1] == pages[i] + 1 && !g.protected.contains(&pages[i + 1]) {
+        while i + 1 < pages.len() && pages[i + 1] == pages[i] + 1 && !g.protected.contains_key(&pages[i + 1]) {
             i += 1;
         }
         let run = &pages[first..=i];
@@ -690,13 +806,13 @@ fn protect_noting(g: &mut Guards, pages: &[usize], unmapped_pages: &mut Vec<usiz
         #[cfg(feature = "diagnostics")]
         counted(1, run.len() as u64);
         if set(run[0], run[run.len() - 1] + 1) {
-            g.protected.extend(run);
+            g.protected.extend(run.iter().map(|&page| (page, generation)));
             taken.extend(run);
             continue;
         }
         for &page in run {
             if set(page, page + 1) {
-                g.protected.insert(page);
+                g.protected.insert(page, generation);
                 taken.push(page);
             } else if unmapped(page) {
                 taken.push(page);
@@ -735,7 +851,7 @@ fn changed(g: &mut Guards, first: usize, last: usize, save: bool) -> bool {
 
 /// Gives write access back to the pages of `[first, last)` we guarded.
 fn open_guarded(g: &mut Guards, first: usize, last: usize) {
-    let guarded: Vec<usize> = g.protected.range(first..last).copied().collect();
+    let guarded: Vec<usize> = g.protected.range(first..last).map(|(&page, _)| page).collect();
     for page in guarded {
         open(g, page);
     }
@@ -781,6 +897,94 @@ pub(crate) fn frame_done() {
 pub struct Writing {
     first: usize,
     last: usize,
+    /// Made by [`Writing::before_remap`]: holds a [`Remapping`] until the
+    /// release or commit and its report are done.
+    _remap: Option<Remapping>,
+}
+
+/// Remaps under way and parallel write-backs holding mappings:
+/// (remaps, holders).
+static REMAPS: Mutex<(usize, usize)> = Mutex::new((0, 0));
+static REMAPS_DONE: std::sync::Condvar = std::sync::Condvar::new();
+
+fn remaps() -> std::sync::MutexGuard<'static, (usize, usize)> {
+    REMAPS.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// A release, commit in place or view mapping of title memory the runtime
+/// is making: it waits for every parallel write-back holding its mappings
+/// ([`hold_mappings`]) and keeps new ones from starting until dropped.
+/// Remaps do not wait for each other.
+#[must_use = "the remap must happen while this lives"]
+pub struct Remapping(());
+
+/// Before the runtime releases memory or maps a view: see [`Remapping`].
+pub fn remapping() -> Remapping {
+    let mut state = remaps();
+    state.0 += 1;
+    while state.1 != 0 {
+        state = REMAPS_DONE.wait(state).unwrap_or_else(|e| e.into_inner());
+    }
+    Remapping(())
+}
+
+impl Drop for Remapping {
+    fn drop(&mut self) {
+        remaps().0 -= 1;
+    }
+}
+
+/// Held while several threads store into one private allocation at once
+/// (`crate::shadow`'s parallel snapshot write-back): no release or mapping
+/// the runtime makes completes meanwhile, so the allocation that a
+/// write-watch query found stays the memory at those addresses, and no two of
+/// them come to show one physical page. None while a remap is under way: the
+/// caller writes in address order instead of waiting.
+pub(crate) fn hold_mappings() -> Option<MappingsHeld> {
+    let mut state = remaps();
+    if state.0 != 0 {
+        return None;
+    }
+    state.1 += 1;
+    Some(MappingsHeld(()))
+}
+
+/// See [`hold_mappings`].
+pub(crate) struct MappingsHeld(());
+
+impl Drop for MappingsHeld {
+    fn drop(&mut self) {
+        let mut state = remaps();
+        state.1 -= 1;
+        if state.1 == 0 {
+            REMAPS_DONE.notify_all();
+        }
+    }
+}
+
+impl Writing {
+    /// Before the runtime commits or releases title memory `[at, at + len)`
+    /// in place (a resident tracker, such as a loose window's, would never
+    /// see the new mapping): opens our guards there and keeps the pages
+    /// from being guarded until the result is dropped, as [`writing`]. The
+    /// guards are opened *before* Windows installs the title's protection,
+    /// which opening them after would override, and fragments of a guard a
+    /// partial decommit left are opened alone ([`guards_for_mapping`]). On
+    /// success the caller reports [`title_memory_remapped`] while this
+    /// lives; on failure the alias links and the bytes saved before the
+    /// write stay. Waits for parallel write-backs into the memory to finish
+    /// first, and holds off new ones while it lives ([`Remapping`]).
+    pub fn before_remap(at: usize, len: usize) -> Self {
+        // Before the guard lock: a write-back holding mappings takes it.
+        let remap = remapping();
+        let (first, last) = (at / PAGE, at.saturating_add(len).div_ceil(PAGE));
+        let g = guards();
+        let inherited = g.protected.range(first..last).map(|(&p, &generation)| (p, generation)).collect();
+        let mut g = check_inherited(g, inherited);
+        g.busy.push((first, last));
+        changed(&mut g, first, last, true);
+        Self { first, last, _remap: Some(remap) }
+    }
 }
 
 impl Drop for Writing {
@@ -805,7 +1009,7 @@ pub fn writing(at: usize, len: usize) -> Writing {
     let mut g = guards();
     g.busy.push((first, last));
     changed(&mut g, first, last, true);
-    Writing { first, last }
+    Writing { first, last, _remap: None }
 }
 
 /// The runtime mapped or unmapped title memory `[at, at + len)`: what it
@@ -864,8 +1068,13 @@ fn mark(g: &Guards, first: usize, last: usize) {
 /// too (a write through the new mapping must not go unseen by the trackers
 /// there).
 pub fn title_memory_aliased(at: usize, others: &[usize]) {
-    let mut g = guards();
+    // Defensive: the runtime's one caller (mapping physical pages) reports
+    // the remap at `at` first, which drops any guard recorded there, and
+    // the views at `others` are live and guarded by us if recorded. The
+    // check finds nothing then; it keeps a caller linking a view that
+    // inherited a stale guard, at either end, from trusting it.
     let page = at / PAGE;
+    let mut g = guards_for_mapping(std::iter::once(page).chain(others.iter().map(|a| a / PAGE)));
     for &other in others {
         for (x, y) in [(other / PAGE, page), (page, other / PAGE)] {
             let links = g.alias_of.entry(x).or_default();
@@ -877,7 +1086,7 @@ pub fn title_memory_aliased(at: usize, others: &[usize]) {
     // If the new mapping cannot be guarded (a write the guards do not see is
     // under way through it), the page is changed; its bytes now may hold that
     // write already, so nothing is saved of them.
-    if others.iter().any(|&o| g.protected.contains(&(o / PAGE)))
+    if others.iter().any(|&o| g.protected.contains_key(&(o / PAGE)))
         && protect(&mut g, &[page]).is_empty()
     {
         changed(&mut g, page, page + 1, false);
@@ -978,6 +1187,148 @@ pub(crate) mod tests {
     pub(crate) fn free(p: usize) {
         // SAFETY: an allocation of ours.
         unsafe { VirtualFree(p as *mut _, 0, MEM_RELEASE) };
+    }
+
+    /// Remaps counted in at [`remapping`]: each counts itself in under the
+    /// gate's lock and only then waits there, so while a write-back holds
+    /// its mappings a counted remap is waiting at the gate.
+    pub(crate) fn remaps_at_gate() -> usize {
+        remaps().0
+    }
+
+    /// Trackers joining pages a neighbour guarded: how long they hold the
+    /// guard lock. Run alone (held_times drains process-wide counters).
+    #[cfg(feature = "diagnostics")]
+    #[test]
+    #[ignore = "isolated guard-lock timing probe"]
+    fn joining_a_guarded_pool_held_times() {
+        const PAGES: usize = 4096;
+        const JOINS: usize = 512;
+        let p = pool(PAGES);
+        let owner = track(p, PAGES * PAGE, true).unwrap();
+        assert_eq!(owner.take(p, p + PAGES * PAGE), [(p, p + PAGES * PAGE)]);
+        let mut neighbors = Vec::with_capacity(JOINS);
+        held_times();
+        let started = std::time::Instant::now();
+        for i in 0..JOINS {
+            // Every other page: each join queries a guard of its own.
+            let base = p + 2 * i * PAGE;
+            neighbors.push(track(base, PAGE, true).unwrap());
+        }
+        let wall = started.elapsed().as_secs_f64() * 1e3;
+        let holds = held_times();
+        let total: f64 = holds.iter().map(|&(_, sum, _)| sum).sum();
+        let longest = holds.iter().map(|&(_, _, longest)| longest).fold(0.0, f64::max);
+        println!("guards_join joins={JOINS} wall_ms={wall:.3} held_ms={total:.3} max_hold_ms={longest:.3}");
+        for (line, sum, max) in holds {
+            println!("guards_join line={line} held_ms={sum:.3} max_ms={max:.3}");
+        }
+        assert!(owner.clean());
+        drop((neighbors, owner));
+        free(p);
+    }
+
+    #[test]
+    fn a_new_tracker_rearms_a_recommitted_page_with_a_live_predecessor() {
+        use windows_sys::Win32::System::Memory::MEM_DECOMMIT;
+        let p = pool(1);
+        let old = track(p, PAGE, true).unwrap();
+        assert_eq!(old.take(p, p + PAGE), [(p, p + PAGE)]);
+        // SAFETY: the reservation stays ours while its only page is replaced.
+        unsafe {
+            assert_ne!(VirtualFree(p as _, PAGE, MEM_DECOMMIT), 0);
+            assert_eq!(VirtualAlloc(p as _, PAGE, MEM_COMMIT, PAGE_READWRITE) as usize, p);
+        }
+        let new = track(p, PAGE, true).unwrap();
+        assert_eq!(new.take(p, p + PAGE), [(p, p + PAGE)]);
+        assert!(new.clean());
+        // SAFETY: a live writable title page; its guard reports the first write.
+        unsafe { (p as *mut u8).write_volatile(0x7b) };
+        assert_eq!(new.take(p, p + PAGE), [(p, p + PAGE)]);
+        assert_eq!(old.take(p, p + PAGE), [(p, p + PAGE)]);
+        drop((new, old));
+        free(p);
+    }
+
+    #[test]
+    fn a_stale_query_does_not_open_a_guard_reinstalled_before_registration() {
+        let p = pool(1);
+        let page = p / PAGE;
+        let old = track(p, PAGE, true).unwrap();
+        old.take(p, p + PAGE);
+        let generation = guards().protected[&page];
+        // SAFETY: replace our guarded page at the same reserved address.
+        unsafe {
+            use windows_sys::Win32::System::Memory::MEM_DECOMMIT;
+            assert_ne!(VirtualFree(p as _, PAGE, MEM_DECOMMIT), 0);
+            assert_eq!(VirtualAlloc(p as _, PAGE, MEM_COMMIT, PAGE_READWRITE) as usize, p);
+        }
+        let fragments = inherited_protection(page).unwrap_err();
+        let new = track(p, PAGE, true).unwrap();
+        new.take(p, p + PAGE);
+        // Resume the first registrar after the second one installed a guard.
+        clear_stale_guard(&mut guards(), page, generation, fragments);
+        assert!(new.clean());
+        // SAFETY: a write the replacement's current guard must still see.
+        unsafe { (p as *mut u8).write_volatile(42) };
+        assert_eq!(new.take(p, p + PAGE), [(p, p + PAGE)]);
+        drop((old, new));
+        free(p);
+    }
+
+    #[test]
+    fn a_live_tracker_observes_a_reported_recommit_without_registering_again() {
+        use windows_sys::Win32::System::Memory::MEM_DECOMMIT;
+        let p = pool(1);
+        let active = track(p, PAGE, true).unwrap();
+        assert_eq!(active.take(p, p + PAGE), [(p, p + PAGE)]);
+        let part = p + 4096;
+        // SAFETY: the live tracker keeps its address while a native subpage
+        // is decommitted. The HLE will commit that subpage again.
+        assert_ne!(unsafe { VirtualFree(part as _, 4096, MEM_DECOMMIT) }, 0);
+        {
+            let _remapping = Writing::before_remap(part, 4096);
+            active.take(p, p + PAGE);
+            assert!(!active.clean(), "a take during remapping must leave the page dirty");
+            // SAFETY: our reservation, including both surviving fragments.
+            assert_eq!(unsafe { VirtualAlloc(part as _, 4096, MEM_COMMIT, PAGE_READWRITE) } as usize, part);
+            title_memory_remapped(part, 4096);
+            active.take(p, p + PAGE);
+            assert!(!active.clean(), "a take during remapping must leave the page dirty");
+        }
+        assert_eq!(active.take(p, p + PAGE), [(p, p + PAGE)]);
+        // SAFETY: a committed title page, watched by the original tracker.
+        unsafe { (part as *mut u8).write_volatile(0x42) };
+        assert_eq!(active.take(p, p + PAGE), [(p, p + PAGE)]);
+        drop(active);
+        free(p);
+    }
+
+    #[test]
+    fn a_new_tracker_recognizes_a_hole_in_an_inherited_guard() {
+        use windows_sys::Win32::System::Memory::{MEM_DECOMMIT, MEMORY_BASIC_INFORMATION, VirtualQuery};
+        const BLOCK: usize = 4096;
+        let p = pool(1);
+        let old = track(p, PAGE, true).unwrap();
+        old.take(p, p + PAGE);
+        let overlapping = track(p, PAGE, true).unwrap();
+        overlapping.take(p, p + PAGE);
+        assert!(old.clean(), "joining an intact guard preserves the first copy");
+        drop(overlapping);
+
+        // SAFETY: the fixture retains the reservation and both surrounding blocks.
+        assert_ne!(unsafe { VirtualFree((p + BLOCK) as _, BLOCK, MEM_DECOMMIT) }, 0);
+        let new = track(p, PAGE, true).unwrap();
+        new.take(p, p + PAGE);
+        assert!(!new.clean() && !old.clean(), "a partially committed page cannot be taken whole");
+        for at in [p, p + 2 * BLOCK] {
+            let mut info = MEMORY_BASIC_INFORMATION::default();
+            // SAFETY: VirtualQuery fills the supplied output without reading the test memory.
+            assert_ne!(unsafe { VirtualQuery(at as _, &mut info, size_of_val(&info)) }, 0);
+            assert_eq!(info.Protect, PAGE_READWRITE, "a surviving fragment of the old guard");
+        }
+        drop((new, old));
+        free(p);
     }
 
     /// Everything is changed at first; after taking, only what is written
@@ -1300,6 +1651,31 @@ pub(crate) mod tests {
             title_memory_aliased(b + k, &[a + k]);
         }
         (a, b)
+    }
+
+    #[test]
+    fn a_reported_alias_with_an_inherited_guard_observes_the_next_write() {
+        use windows_sys::Win32::System::Memory::{MEMORY_MAPPED_VIEW_ADDRESS, UnmapViewOfFile, VirtualProtect};
+        let (a, b) = twin_views(1);
+        let t = track(a, PAGE, true).unwrap();
+        t.take(a, a + PAGE);
+        for replaced in [a, b] {
+            let mut old = 0;
+            // SAFETY: emulate the read-write protection of a replacement view
+            // at either address, while retaining a real pair of aliased mappings.
+            assert_ne!(unsafe { VirtualProtect(replaced as _, PAGE, PAGE_READWRITE, &mut old) }, 0);
+            title_memory_aliased(b, &[a]);
+            t.take(a, a + PAGE);
+            // SAFETY: the two live views show the same physical page.
+            unsafe { (replaced as *mut u8).write_volatile(42) };
+            assert_eq!(t.take(a, a + PAGE), [(a, a + PAGE)]);
+        }
+        drop(t);
+        for at in [a, b] {
+            title_memory_remapped(at, PAGE);
+            // SAFETY: this test is finished with its pagefile view.
+            assert_ne!(unsafe { UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS { Value: at as _ }) }, 0);
+        }
     }
 
     /// A write through another mapping of the same pages marks the tracker

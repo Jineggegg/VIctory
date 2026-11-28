@@ -1,0 +1,245 @@
+target\debug\deps\victory_gpu-8ebaa53529946053.exe
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.51s
+
+peer=alone trial=1 code=0
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.47s
+
+peer=alone trial=2 code=0
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.44s
+
+peer=alone trial=3 code=0
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.45s
+
+peer=alone trial=4 code=0
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.45s
+
+peer=alone trial=5 code=0
+
+running 2 tests
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... FAILED
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+
+failures:
+
+---- texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows stdout ----
+
+thread 'texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows' (58636) panicked at crates\victory-gpu\src\texture\readback_tests.rs:357:13:
+subresource 0, row 0, format DXGI_FORMAT(39)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.57s
+
+peer=texture::readback_tests::array_mips_match_full_detile_after_repeated_updates trial=1 code=101
+
+running 2 tests
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.57s
+
+peer=texture::readback_tests::array_mips_match_full_detile_after_repeated_updates trial=2 code=0
+
+running 2 tests
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... FAILED
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+
+failures:
+
+---- texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows stdout ----
+
+thread 'texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows' (30168) panicked at crates\victory-gpu\src\texture\readback_tests.rs:357:13:
+subresource 3, row 0, format DXGI_FORMAT(28)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.54s
+
+peer=texture::readback_tests::array_mips_match_full_detile_after_repeated_updates trial=3 code=101
+
+running 2 tests
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... FAILED
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+
+failures:
+
+---- texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows stdout ----
+
+thread 'texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows' (17508) panicked at crates\victory-gpu\src\texture\readback_tests.rs:357:13:
+subresource 0, row 0, format DXGI_FORMAT(39)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.56s
+
+peer=texture::readback_tests::array_mips_match_full_detile_after_repeated_updates trial=4 code=101
+
+running 2 tests
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... FAILED
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+
+failures:
+
+---- texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows stdout ----
+
+thread 'texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows' (42812) panicked at crates\victory-gpu\src\texture\readback_tests.rs:357:13:
+subresource 3, row 0, format DXGI_FORMAT(28)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.57s
+
+peer=texture::readback_tests::array_mips_match_full_detile_after_repeated_updates trial=5 code=101
+
+running 2 tests
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.42s
+
+peer=texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone trial=1 code=0
+
+running 2 tests
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.43s
+
+peer=texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone trial=2 code=0
+
+running 2 tests
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.45s
+
+peer=texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone trial=3 code=0
+
+running 2 tests
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.45s
+
+peer=texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone trial=4 code=0
+
+running 2 tests
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.48s
+
+peer=texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone trial=5 code=0
+
+running 2 tests
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.46s
+
+peer=texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write trial=1 code=0
+
+running 2 tests
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.47s
+
+peer=texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write trial=2 code=0
+
+running 2 tests
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.47s
+
+peer=texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write trial=3 code=0
+
+running 2 tests
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.46s
+
+peer=texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write trial=4 code=0
+
+running 2 tests
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.47s
+
+peer=texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write trial=5 code=0
+
+running 2 tests
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.46s
+
+peer=texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once trial=1 code=0
+
+running 2 tests
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.45s
+
+peer=texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once trial=2 code=0
+
+running 2 tests
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.45s
+
+peer=texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once trial=3 code=0
+
+running 2 tests
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.45s
+
+peer=texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once trial=4 code=0
+
+running 2 tests
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 332 filtered out; finished in 0.44s
+
+peer=texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once trial=5 code=0
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04"><Obj S="progress" RefId="0"><TN RefId="0"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N="SourceId">1</I64><PR N="Record"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj><Obj S="progress" RefId="1"><TNRef RefId="0" /><MS><I64 N="SourceId">1</I64><PR N="Record"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj></Objs>

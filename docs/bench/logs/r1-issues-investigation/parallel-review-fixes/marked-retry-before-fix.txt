@@ -1,0 +1,30 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 14:23:28Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=3% | VRAM=4978/32607 MiB | power=64.20 W | temp=34.82 C | graphics=1162 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=60252) 3D=1%, dwm(pid=61556) 3D=1%
+Idle window: 12.1s, 10 samples, max GPU=4%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+RUN pre2 sha256=EBF07808AE247BCBEE2B5AB9A909796859D26680C97CA226A9555FEE7FB32AF6 filter=marked_retry_after_a_failed_half_keeps_the_bytes_saved_mid_read round=1
+
+running 1 test
+test shadow::tests::marked_retry_after_a_failed_half_keeps_the_bytes_saved_mid_read ... FAILED
+
+failures:
+
+---- shadow::tests::marked_retry_after_a_failed_half_keeps_the_bytes_saved_mid_read stdout ----
+
+thread 'shadow::tests::marked_retry_after_a_failed_half_keeps_the_bytes_saved_mid_read' (29552) panicked at crates\victory-gpu\src\shadow.rs:2490:9:
+assertion `left == right` failed
+  left: 0
+ right: 65536
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shadow::tests::marked_retry_after_a_failed_half_keeps_the_bytes_saved_mid_read
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 319 filtered out; finished in 0.35s
+
+EXIT pre2 round=1 code=101
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

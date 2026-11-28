@@ -1,0 +1,3040 @@
+2026-11-26 11:07:43Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5415/32607 MiB | power=30.41 W | temp=48.97 C | graphics=240 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none
+WSL CUDA contexts: none
+
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=name,uuid,driver_version,memory.total --format=csv,noheader,nounits
+NVIDIA GeForce RTX 5090, GPU-REDACTED, 621.14, 32607
+
+
+exit 0
+> git.exe rev-parse HEAD
+2ff062e2b75503e9064e7231c15f7aee73ab2504
+
+
+exit 0
+> git.exe status --porcelain -- . ":(exclude)docs/bench"
+
+
+exit 0
+> rustc.exe -Vv
+rustc 1.98.1 (48a229cea 2026-09-01)
+binary: rustc
+commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985
+commit-date: 2026-09-01
+host: x86_64-pc-windows-msvc
+release: 1.98.1
+LLVM version: 22.1.8
+
+
+exit 0
+> C:\Users\USER\.cargo\bin\cargo.exe test --locked --profile diag -p victory-gpu --lib --features diagnostics --no-run --message-format=json
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.107","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\proc-macro2-1.0.107\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\proc-macro2-1.0.107\\build.rs","edition":"2021","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","proc-macro"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\proc-macro2-82e8e139c26588eb\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\proc-macro2-82e8e139c26588eb\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.107","linked_libs":[],"linked_paths":[],"cfgs":["wrap_proc_macro","proc_macro_span_location","proc_macro_span_file"],"env":[],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\proc-macro2-17fd4aab01413553\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#unicode-ident@1.0.27","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\unicode-ident-1.0.27\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"unicode_ident","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\unicode-ident-1.0.27\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libunicode_ident-6d88dae926554861.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libunicode_ident-6d88dae926554861.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#quote@1.0.47","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\quote-1.0.47\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\quote-1.0.47\\build.rs","edition":"2021","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","proc-macro"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\quote-e73b5f2689e0b73c\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\quote-e73b5f2689e0b73c\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-link@0.2.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-link-0.2.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_link","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-link-0.2.1\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_link-cfbb9ac96b60add8.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_link-cfbb9ac96b60add8.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde_core-1.0.229\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde_core-1.0.229\\build.rs","edition":"2021","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","result","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\serde_core-ee0e7d80bd357c52\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\serde_core-ee0e7d80bd357c52\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#cfg-if@1.0.5","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\cfg-if-1.0.5\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"cfg_if","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\cfg-if-1.0.5\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libcfg_if-eeaa548a86e22a4d.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libcfg_if-eeaa548a86e22a4d.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#once_cell@1.21.4","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\once_cell-1.21.4\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"once_cell","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\once_cell-1.21.4\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","default","race","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libonce_cell-df2e7f235dc825e4.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libonce_cell-df2e7f235dc825e4.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#regex-syntax@0.8.12","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\regex-syntax-0.8.12\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"regex_syntax","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\regex-syntax-0.8.12\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libregex_syntax-da373b438ae690e0.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libregex_syntax-da373b438ae690e0.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#thiserror@2.0.21","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\thiserror-2.0.21\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\thiserror-2.0.21\\build.rs","edition":"2021","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\thiserror-2369937aa4b2fabc\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\thiserror-2369937aa4b2fabc\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#find-msvc-tools@0.1.15","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\find-msvc-tools-0.1.15\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"find_msvc_tools","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\find-msvc-tools-0.1.15\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libfind_msvc_tools-90caa425f5b83461.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libfind_msvc_tools-90caa425f5b83461.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#shlex@2.0.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\shlex-2.0.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"shlex","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\shlex-2.0.1\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libshlex-7f30ccad4154f946.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libshlex-7f30ccad4154f946.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#serde@1.0.229","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde-1.0.229\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde-1.0.229\\build.rs","edition":"2021","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","derive","serde_derive","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\serde-9eaa9d5f64b348df\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\serde-9eaa9d5f64b348df\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#pin-project-lite@0.2.18","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\pin-project-lite-0.2.18\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"pin_project_lite","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\pin-project-lite-0.2.18\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libpin_project_lite-a398f25499a49eb7.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libpin_project_lite-a398f25499a49eb7.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#anyhow@1.0.104","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\anyhow-1.0.104\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\anyhow-1.0.104\\build.rs","edition":"2021","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\anyhow-096f98619e0cd921\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\anyhow-096f98619e0cd921\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#winnow@1.0.5","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\winnow-1.0.5\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"winnow","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\winnow-1.0.5\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwinnow-ea95354ece35db4a.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwinnow-ea95354ece35db4a.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#lazy_static@1.5.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\lazy_static-1.5.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"lazy_static","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\lazy_static-1.5.1\\src\\lib.rs","edition":"2015","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\liblazy_static-ad92672949a042e1.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\liblazy_static-ad92672949a042e1.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#log@0.4.35","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\log-0.4.35\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"log","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\log-0.4.35\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\liblog-9e7d1062c0f9b7e2.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\liblog-9e7d1062c0f9b7e2.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#getrandom@0.4.3","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\getrandom-0.4.3\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\getrandom-0.4.3\\build.rs","edition":"2024","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\getrandom-837d566b28e08098\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\getrandom-837d566b28e08098\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#smallvec@1.16.6","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\smallvec-1.16.6\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"smallvec","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\smallvec-1.16.6\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libsmallvec-4f559cabcdf4dd01.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libsmallvec-4f559cabcdf4dd01.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#toml_writer@1.2.0+spec-1.1.0","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\toml_writer-1.2.0+spec-1.1.0\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"toml_writer","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\toml_writer-1.2.0+spec-1.1.0\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtoml_writer-64c5920e83fdb1ed.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtoml_writer-64c5920e83fdb1ed.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#arrayvec@0.7.8","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\arrayvec-0.7.8\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"arrayvec","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\arrayvec-0.7.8\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libarrayvec-da99f7d3d9e75877.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libarrayvec-da99f7d3d9e75877.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#cpufeatures@0.3.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\cpufeatures-0.3.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"cpufeatures","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\cpufeatures-0.3.1\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libcpufeatures-9446699fedac956b.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libcpufeatures-9446699fedac956b.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"path+file:///E:/Projects/GTA-build/VIctory/crates/victory-shader#0.1.0","manifest_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-shader\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-shader\\build.rs","edition":"2024","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["host"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\victory-shader-b80c9b6c3adbab96\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\victory-shader-b80c9b6c3adbab96\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#constant_time_eq@0.4.2","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\constant_time_eq-0.4.2\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"constant_time_eq","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\constant_time_eq-0.4.2\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libconstant_time_eq-d0e4b3588db87d43.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libconstant_time_eq-d0e4b3588db87d43.rmeta"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#quote@1.0.47","linked_libs":[],"linked_paths":[],"cfgs":[],"env":[],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\quote-a4a804296b35b740\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#proc-macro2@1.0.107","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\proc-macro2-1.0.107\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"proc_macro2","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\proc-macro2-1.0.107\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","proc-macro"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libproc_macro2-5950b97255e137aa.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libproc_macro2-5950b97255e137aa.rmeta"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229","linked_libs":[],"linked_paths":[],"cfgs":[],"env":[],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\serde_core-11e244451a96d806\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-strings@0.5.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-strings-0.5.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_strings","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-strings-0.5.1\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_strings-3130b983f7b2a163.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_strings-3130b983f7b2a163.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-sys@0.61.2","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-sys-0.61.2\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_sys","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-sys-0.61.2\\src\\lib.rs","edition":"2021","doc":true,"doctest":false,"test":false},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["Win32","Win32_Foundation","Win32_Security","Win32_Storage","Win32_Storage_FileSystem","Win32_System","Win32_System_Console","Win32_System_Diagnostics","Win32_System_Diagnostics_Debug","Win32_System_Kernel","Win32_System_LibraryLoader","Win32_System_Memory","Win32_System_Performance","Win32_System_ProcessStatus","Win32_System_Registry","Win32_System_SystemInformation","Win32_System_Threading","default"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_sys-901e43d5f0f36890.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_sys-901e43d5f0f36890.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-result@0.4.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-result-0.4.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_result","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-result-0.4.1\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_result-724f439eee1ef93f.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_result-724f439eee1ef93f.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#tracing-core@0.1.36","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-core-0.1.36\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"tracing_core","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-core-0.1.36\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","once_cell","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtracing_core-341fa30a9d264fe2.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtracing_core-341fa30a9d264fe2.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#regex-automata@0.4.19","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\regex-automata-0.4.19\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"regex_automata","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\regex-automata-0.4.19\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","dfa-build","dfa-search","nfa-thompson","std","syntax"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libregex_automata-5b149fb457d5aaef.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libregex_automata-5b149fb457d5aaef.rmeta"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#thiserror@2.0.21","linked_libs":[],"linked_paths":[],"cfgs":[],"env":[],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\thiserror-17d56dfd6dfc3b17\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#cc@1.11.3","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\cc-1.11.3\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"cc","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\cc-1.11.3\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libcc-8e522585b7105736.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libcc-8e522585b7105736.rmeta"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#anyhow@1.0.104","linked_libs":[],"linked_paths":[],"cfgs":[],"env":[],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\anyhow-39dac733dbee6b87\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-threading@0.2.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-threading-0.2.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_threading","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-threading-0.2.1\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_threading-0f930302ab5ea21a.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_threading-0f930302ab5ea21a.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#thread_local@1.1.10","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\thread_local-1.1.10\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"thread_local","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\thread_local-1.1.10\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libthread_local-5a01bf512993cb1e.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libthread_local-5a01bf512993cb1e.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#sharded-slab@0.1.7","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\sharded-slab-0.1.7\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"sharded_slab","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\sharded-slab-0.1.7\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libsharded_slab-42cd626ce97e813b.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libsharded_slab-42cd626ce97e813b.rmeta"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#serde@1.0.229","linked_libs":[],"linked_paths":[],"cfgs":["if_docsrs_then_no_serde_core"],"env":[],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\serde-cb7f8f6a62804a2b\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#toml_parser@1.1.6+spec-1.1.0","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\toml_parser-1.1.6+spec-1.1.0\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"toml_parser","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\toml_parser-1.1.6+spec-1.1.0\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtoml_parser-d3ff9d1d6494ad45.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtoml_parser-d3ff9d1d6494ad45.rmeta"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#getrandom@0.4.3","linked_libs":[],"linked_paths":[],"cfgs":[],"env":[],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\getrandom-038599cb154d4c1a\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#adler2@2.0.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\adler2-2.0.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"adler2","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\adler2-2.0.1\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libadler2-42ee806386acfe29.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libadler2-42ee806386acfe29.rmeta"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"path+file:///E:/Projects/GTA-build/VIctory/crates/victory-shader#0.1.0","linked_libs":[],"linked_paths":[],"cfgs":[],"env":[["VICTORY_SHADER_SOURCE_HASH","d60fbd4fbd9abcb0"]],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\victory-shader-aae581b1efcae7ea\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#fastrand@2.5.0","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\fastrand-2.5.0\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"fastrand","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\fastrand-2.5.0\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libfastrand-08156f01e4986519.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libfastrand-08156f01e4986519.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"path+file:///E:/Projects/GTA-build/VIctory/crates/victory-formats#0.1.0","manifest_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-formats\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"victory_formats","src_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-formats\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libvictory_formats-c26bd50812b3d0a1.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libvictory_formats-c26bd50812b3d0a1.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#quote@1.0.47","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\quote-1.0.47\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"quote","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\quote-1.0.47\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","proc-macro"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libquote-758e45cc64c65ba6.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libquote-758e45cc64c65ba6.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#serde_core@1.0.229","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde_core-1.0.229\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"serde_core","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde_core-1.0.229\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","result","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libserde_core-31398b5a852ff4ef.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libserde_core-31398b5a852ff4ef.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#tracing-log@0.2.0","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-log-0.2.0\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"tracing_log","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-log-0.2.0\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["log-tracer","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtracing_log-cfec17be1ea1cf63.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtracing_log-cfec17be1ea1cf63.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#nu-ansi-term@0.50.3","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\nu-ansi-term-0.50.3\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"nu_ansi_term","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\nu-ansi-term-0.50.3\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libnu_ansi_term-fc58399b477c2fc1.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libnu_ansi_term-fc58399b477c2fc1.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#matchers@0.2.0","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\matchers-0.2.0\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"matchers","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\matchers-0.2.0\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libmatchers-a7e84dbf32a5888d.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libmatchers-a7e84dbf32a5888d.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#blake3@1.8.7","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\blake3-1.8.7\\Cargo.toml","target":{"kind":["custom-build"],"crate_types":["bin"],"name":"build-script-build","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\blake3-1.8.7\\build.rs","edition":"2024","doc":false,"doctest":false,"test":false},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\blake3-b03d35fd0f51e051\\build-script-build.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\blake3-b03d35fd0f51e051\\build_script_build.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#anyhow@1.0.104","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\anyhow-1.0.104\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"anyhow","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\anyhow-1.0.104\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libanyhow-648ffb369a8e46a1.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libanyhow-648ffb369a8e46a1.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#miniz_oxide@0.9.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\miniz_oxide-0.9.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"miniz_oxide","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\miniz_oxide-0.9.1\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","with-alloc"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libminiz_oxide-3f5a22d803c59148.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libminiz_oxide-3f5a22d803c59148.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#getrandom@0.4.3","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\getrandom-0.4.3\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"getrandom","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\getrandom-0.4.3\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libgetrandom-d726447bed66817e.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libgetrandom-d726447bed66817e.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#syn@2.0.119","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\syn-2.0.119\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"syn","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\syn-2.0.119\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["clone-impls","extra-traits","full","parsing","printing","proc-macro","visit-mut"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libsyn-feb4b026404a50db.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libsyn-feb4b026404a50db.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#syn@3.0.10","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\syn-3.0.10\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"syn","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\syn-3.0.10\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["clone-impls","default","derive","parsing","printing","proc-macro"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libsyn-ce56f82831b76ef8.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libsyn-ce56f82831b76ef8.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#serde_spanned@1.1.3","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde_spanned-1.1.3\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"serde_spanned","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde_spanned-1.1.3\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","serde","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libserde_spanned-7d120b0dadf1640b.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libserde_spanned-7d120b0dadf1640b.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#toml_datetime@1.1.3+spec-1.1.0","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\toml_datetime-1.1.3+spec-1.1.0\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"toml_datetime","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\toml_datetime-1.1.3+spec-1.1.0\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","serde","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtoml_datetime-38ffd2ed40d10a75.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtoml_datetime-38ffd2ed40d10a75.rmeta"],"executable":null,"fresh":true}
+{"reason":"build-script-executed","package_id":"registry+https://github.com/rust-lang/crates.io-index#blake3@1.8.7","linked_libs":["static=blake3_sse2_sse41_avx2_assembly","static=blake3_avx512_assembly"],"linked_paths":["native=E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\blake3-6eb687818060ebd8\\out","native=E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\blake3-6eb687818060ebd8\\out"],"cfgs":["blake3_sse2_ffi","blake3_sse41_ffi","blake3_avx2_ffi","blake3_avx512_ffi"],"env":[],"out_dir":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\build\\blake3-6eb687818060ebd8\\out"}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#tempfile@3.27.0","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tempfile-3.27.0\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"tempfile","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tempfile-3.27.0\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","getrandom"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtempfile-d9fd35590b53034b.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtempfile-d9fd35590b53034b.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-implement@0.60.2","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-implement-0.60.2\\Cargo.toml","target":{"kind":["proc-macro"],"crate_types":["proc-macro"],"name":"windows_implement","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-implement-0.60.2\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\windows_implement-b93648e9bf5abe0e.dll","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\windows_implement-b93648e9bf5abe0e.dll.lib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\windows_implement-b93648e9bf5abe0e.dll.exp","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\windows_implement-b93648e9bf5abe0e.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-interface@0.59.3","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-interface-0.59.3\\Cargo.toml","target":{"kind":["proc-macro"],"crate_types":["proc-macro"],"name":"windows_interface","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-interface-0.59.3\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\windows_interface-07151a4875cf4a19.dll","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\windows_interface-07151a4875cf4a19.dll.lib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\windows_interface-07151a4875cf4a19.dll.exp","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\windows_interface-07151a4875cf4a19.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#tracing-attributes@0.1.31","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-attributes-0.1.31\\Cargo.toml","target":{"kind":["proc-macro"],"crate_types":["proc-macro"],"name":"tracing_attributes","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-attributes-0.1.31\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\tracing_attributes-48afa115aa26b17c.dll","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\tracing_attributes-48afa115aa26b17c.dll.lib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\tracing_attributes-48afa115aa26b17c.dll.exp","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\tracing_attributes-48afa115aa26b17c.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#thiserror-impl@2.0.21","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\thiserror-impl-2.0.21\\Cargo.toml","target":{"kind":["proc-macro"],"crate_types":["proc-macro"],"name":"thiserror_impl","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\thiserror-impl-2.0.21\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\thiserror_impl-36c7b3973a56d18d.dll","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\thiserror_impl-36c7b3973a56d18d.dll.lib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\thiserror_impl-36c7b3973a56d18d.dll.exp","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\thiserror_impl-36c7b3973a56d18d.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#serde_derive@1.0.229","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde_derive-1.0.229\\Cargo.toml","target":{"kind":["proc-macro"],"crate_types":["proc-macro"],"name":"serde_derive","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde_derive-1.0.229\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"0","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":["default"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\serde_derive-d1de4ea57003dea3.dll","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\serde_derive-d1de4ea57003dea3.dll.lib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\serde_derive-d1de4ea57003dea3.dll.exp","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\serde_derive-d1de4ea57003dea3.pdb"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#toml@1.2.2+spec-1.1.0","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\toml-1.2.2+spec-1.1.0\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"toml","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\toml-1.2.2+spec-1.1.0\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","display","parse","serde","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtoml-6215cf41fd281f84.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtoml-6215cf41fd281f84.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#blake3@1.8.7","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\blake3-1.8.7\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"blake3","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\blake3-1.8.7\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libblake3-41710162625ddce3.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libblake3-41710162625ddce3.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-core@0.62.2","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-core-0.62.2\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_core","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-core-0.62.2\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_core-3098b24df49e53e2.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_core-3098b24df49e53e2.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#tracing@0.1.44","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-0.1.44\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"tracing","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-0.1.44\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["attributes","default","std","tracing-attributes"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtracing-8612249dee5d7bc4.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtracing-8612249dee5d7bc4.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#thiserror@2.0.21","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\thiserror-2.0.21\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"thiserror","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\thiserror-2.0.21\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libthiserror-2906d9dadec70221.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libthiserror-2906d9dadec70221.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#serde@1.0.229","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde-1.0.229\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"serde","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serde-1.0.229\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["default","derive","serde_derive","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libserde-fdcad836d7e49281.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libserde-fdcad836d7e49281.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#tracing-subscriber@0.3.23","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-subscriber-0.3.23\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"tracing_subscriber","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\tracing-subscriber-0.3.23\\src\\lib.rs","edition":"2018","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["alloc","ansi","default","env-filter","fmt","matchers","nu-ansi-term","once_cell","registry","sharded-slab","smallvec","std","thread_local","tracing","tracing-log"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtracing_subscriber-1c527db2d8885d50.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libtracing_subscriber-1c527db2d8885d50.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-collections@0.3.2","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-collections-0.3.2\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_collections","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-collections-0.3.2\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_collections-aac4c08091ba9438.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_collections-aac4c08091ba9438.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-future@0.3.2","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-future-0.3.2\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_future","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-future-0.3.2\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_future-d9e78537671c4180.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_future-d9e78537671c4180.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows-numerics@0.3.1","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-numerics-0.3.1\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows_numerics","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-numerics-0.3.1\\src\\lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_numerics-415eaabc4c8a18f2.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows_numerics-415eaabc4c8a18f2.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"path+file:///E:/Projects/GTA-build/VIctory/crates/victory-core#0.1.0","manifest_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-core\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"victory_core","src_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-core\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libvictory_core-6fb5bb1e2c2f0ff2.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libvictory_core-6fb5bb1e2c2f0ff2.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#windows@0.62.2","manifest_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-0.62.2\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"windows","src_path":"C:\\Users\\USER\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-0.62.2\\src\\lib.rs","edition":"2021","doc":true,"doctest":false,"test":false},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["Win32","Win32_Foundation","Win32_Graphics","Win32_Graphics_Direct3D","Win32_Graphics_Direct3D12","Win32_Graphics_Direct3D_Fxc","Win32_Graphics_Dxgi","Win32_Graphics_Dxgi_Common","Win32_Graphics_Gdi","Win32_Security","Win32_System","Win32_System_LibraryLoader","Win32_System_Threading","Win32_UI","Win32_UI_WindowsAndMessaging","default","std"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows-fed84df0cdaeaad5.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libwindows-fed84df0cdaeaad5.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"path+file:///E:/Projects/GTA-build/VIctory/crates/victory-shader#0.1.0","manifest_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-shader\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"victory_shader","src_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-shader\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":["host"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libvictory_shader-61a1fb5506a6549a.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libvictory_shader-61a1fb5506a6549a.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"path+file:///E:/Projects/GTA-build/VIctory/crates/victory-pipeline#0.1.0","manifest_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-pipeline\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"victory_pipeline","src_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-pipeline\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libvictory_pipeline-b89619597d15aed1.rlib","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\libvictory_pipeline-b89619597d15aed1.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"path+file:///E:/Projects/GTA-build/VIctory/crates/victory-gpu#0.1.0","manifest_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-gpu\\Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"victory_gpu","src_path":"E:\\Projects\\GTA-build\\VIctory\\crates\\victory-gpu\\src\\lib.rs","edition":"2024","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":"line-tables-only","debug_assertions":false,"overflow_checks":false,"test":true},"features":["diagnostics"],"filenames":["E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\victory_gpu-b3e12a1e6b92b6a6.exe","E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\victory_gpu-b3e12a1e6b92b6a6.pdb"],"executable":"E:\\Projects\\GTA-build\\VIctory\\target\\diag\\deps\\victory_gpu-b3e12a1e6b92b6a6.exe","fresh":true}
+{"reason":"build-finished","success":true}
+
+    Finished `diag` profile [optimized + debuginfo] target(s) in 0.06s
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 48.36
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154460160
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154488832
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.32s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+D3D12 Debug Layer and GPU-based validation skipped by request.
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.94
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154492928
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11757
+BENCH shader_us=188.4
+BENCH pso_ready_us=849.1
+BENCH dispatch_readback_us=10719.5
+BENCH depth_us=3780.8999999999996
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154488832
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 49.05
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154419200
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10791.800000000001
+BENCH shader_us=168
+BENCH pso_ready_us=841.1
+BENCH dispatch_readback_us=9782.7
+BENCH depth_us=7805.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154435584
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 49.32
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154378240
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11750.099999999999
+BENCH shader_us=171.5
+BENCH pso_ready_us=956.7
+BENCH dispatch_readback_us=10621.9
+BENCH depth_us=3840.4
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154365952
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.27s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 49.20
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154583040
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10758.6
+BENCH shader_us=163.6
+BENCH pso_ready_us=848.4
+BENCH dispatch_readback_us=9746.599999999999
+BENCH depth_us=3650.7000000000003
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154595328
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 3, 5415, 49.20
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154451968
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11242.800000000001
+BENCH shader_us=168.8
+BENCH pso_ready_us=862.5
+BENCH dispatch_readback_us=10211.5
+BENCH depth_us=3690.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154427392
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 49.03
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154517504
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11123.1
+BENCH shader_us=166
+BENCH pso_ready_us=984.6
+BENCH dispatch_readback_us=9972.5
+BENCH depth_us=3577.7000000000003
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154525696
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 49.03
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154202112
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10806.2
+BENCH shader_us=190
+BENCH pso_ready_us=860.4
+BENCH dispatch_readback_us=9755.800000000001
+BENCH depth_us=4287
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=142049280
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.97
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154243072
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11872.7
+BENCH shader_us=162.7
+BENCH pso_ready_us=855.6
+BENCH dispatch_readback_us=10854.4
+BENCH depth_us=3600.7000000000003
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154284032
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 48.97
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154308608
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11143.9
+BENCH shader_us=173.9
+BENCH pso_ready_us=887.6
+BENCH dispatch_readback_us=10082.4
+BENCH depth_us=3654
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154329088
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 48.82
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154140672
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11674.800000000001
+BENCH shader_us=166.70000000000002
+BENCH pso_ready_us=801.5
+BENCH dispatch_readback_us=10706.6
+BENCH depth_us=3757.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154136576
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.27s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.79
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154234880
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11023.4
+BENCH shader_us=189.29999999999998
+BENCH pso_ready_us=860.3000000000001
+BENCH dispatch_readback_us=9973.8
+BENCH depth_us=3493.6
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154259456
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.77
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153899008
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11273
+BENCH shader_us=174.79999999999998
+BENCH pso_ready_us=876.8
+BENCH dispatch_readback_us=10221.4
+BENCH depth_us=3750.2
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153890816
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 3, 5415, 48.73
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=141905920
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=12474.7
+BENCH shader_us=164.7
+BENCH pso_ready_us=819
+BENCH dispatch_readback_us=11491
+BENCH depth_us=3679.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=141922304
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 48.65
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154509312
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10792.400000000001
+BENCH shader_us=174.1
+BENCH pso_ready_us=853.6999999999999
+BENCH dispatch_readback_us=9764.6
+BENCH depth_us=3865.7000000000003
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154529792
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.59
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154566656
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=12105.4
+BENCH shader_us=165.7
+BENCH pso_ready_us=948.1999999999999
+BENCH dispatch_readback_us=10991.5
+BENCH depth_us=4158.099999999999
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154603520
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.56
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154439680
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=14816.1
+BENCH shader_us=201.10000000000002
+BENCH pso_ready_us=1043.6
+BENCH dispatch_readback_us=13571.400000000001
+BENCH depth_us=3868.6
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154296320
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 48.53
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153858048
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11194.4
+BENCH shader_us=172.39999999999998
+BENCH pso_ready_us=840.6
+BENCH dispatch_readback_us=10181.4
+BENCH depth_us=3964.6000000000004
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153919488
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 48.44
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154324992
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11466.199999999999
+BENCH shader_us=172.5
+BENCH pso_ready_us=891.1
+BENCH dispatch_readback_us=10402.6
+BENCH depth_us=3673.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154329088
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.30
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153870336
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11413.3
+BENCH shader_us=195.1
+BENCH pso_ready_us=858.7
+BENCH dispatch_readback_us=10359.5
+BENCH depth_us=3720.7
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153890816
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 48.50
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154324992
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10874.6
+BENCH shader_us=182
+BENCH pso_ready_us=913.8
+BENCH dispatch_readback_us=9778.800000000001
+BENCH depth_us=3735.8
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154370048
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 48.32
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154378240
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10542
+BENCH shader_us=174.4
+BENCH pso_ready_us=882.3000000000001
+BENCH dispatch_readback_us=9485.300000000001
+BENCH depth_us=3650.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154394624
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.27s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 3, 5415, 48.32
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154583040
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11360.1
+BENCH shader_us=169.4
+BENCH pso_ready_us=928.5
+BENCH dispatch_readback_us=10262.2
+BENCH depth_us=3781.4
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154619904
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.18
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154390528
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=12067.2
+BENCH shader_us=170
+BENCH pso_ready_us=901.8000000000001
+BENCH dispatch_readback_us=10995.400000000001
+BENCH depth_us=4060.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154415104
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.27s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 48.21
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154312704
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10937.300000000001
+BENCH shader_us=160
+BENCH pso_ready_us=967.1999999999999
+BENCH dispatch_readback_us=9810.1
+BENCH depth_us=3714.6000000000004
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154320896
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 48.09
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154546176
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11516
+BENCH shader_us=163.39999999999998
+BENCH pso_ready_us=892.5
+BENCH dispatch_readback_us=10460.1
+BENCH depth_us=3795.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154562560
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 48.06
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154230784
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11180
+BENCH shader_us=170
+BENCH pso_ready_us=867.4000000000001
+BENCH dispatch_readback_us=10142.6
+BENCH depth_us=3900.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154263552
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.95
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154451968
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11305.4
+BENCH shader_us=164.79999999999998
+BENCH pso_ready_us=861.6
+BENCH dispatch_readback_us=10279
+BENCH depth_us=3653
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154456064
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 3, 5415, 47.95
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154382336
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10784.9
+BENCH shader_us=164.6
+BENCH pso_ready_us=926
+BENCH dispatch_readback_us=9694.3
+BENCH depth_us=4057.2999999999997
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154386432
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.92
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153968640
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11226.3
+BENCH shader_us=163.39999999999998
+BENCH pso_ready_us=797.8
+BENCH dispatch_readback_us=10265.099999999999
+BENCH depth_us=3585.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153993216
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 47.89
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154329088
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11664.300000000001
+BENCH shader_us=190.4
+BENCH pso_ready_us=885.5999999999999
+BENCH dispatch_readback_us=10588.3
+BENCH depth_us=4001.7999999999997
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154386432
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 47.74
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154341376
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11510.9
+BENCH shader_us=163.39999999999998
+BENCH pso_ready_us=852.8000000000001
+BENCH dispatch_readback_us=10494.699999999999
+BENCH depth_us=3732.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154370048
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.28s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.74
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154284032
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10537
+BENCH shader_us=163.79999999999998
+BENCH pso_ready_us=859.7
+BENCH dispatch_readback_us=9513.5
+BENCH depth_us=3675
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154300416
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 47.74
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154288128
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10718.9
+BENCH shader_us=162.29999999999998
+BENCH pso_ready_us=810.3000000000001
+BENCH dispatch_readback_us=9746.3
+BENCH depth_us=3687.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154300416
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 47.62
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=149946368
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10851.400000000001
+BENCH shader_us=170.7
+BENCH pso_ready_us=857.4
+BENCH dispatch_readback_us=9823.3
+BENCH depth_us=3883.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=149962752
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 47.57
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154521600
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10451.1
+BENCH shader_us=179.6
+BENCH pso_ready_us=836.3
+BENCH dispatch_readback_us=9435.199999999999
+BENCH depth_us=4150.6
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154525696
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.60
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154402816
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11656.8
+BENCH shader_us=176.79999999999998
+BENCH pso_ready_us=905.9
+BENCH dispatch_readback_us=10574.1
+BENCH depth_us=3718.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154415104
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 47.57
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154292224
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10826.300000000001
+BENCH shader_us=166.1
+BENCH pso_ready_us=1187.3000000000002
+BENCH dispatch_readback_us=9472.9
+BENCH depth_us=3510.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154316800
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 47.45
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154402816
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11156.3
+BENCH shader_us=171.8
+BENCH pso_ready_us=918
+BENCH dispatch_readback_us=10066.5
+BENCH depth_us=3524.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154456064
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.24s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 3, 5415, 47.51
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154337280
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=17982.100000000002
+BENCH shader_us=178.29999999999998
+BENCH pso_ready_us=807.3000000000001
+BENCH dispatch_readback_us=16996.5
+BENCH depth_us=3737.2
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154361856
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.39
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154312704
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10599.199999999999
+BENCH shader_us=161.10000000000002
+BENCH pso_ready_us=833.3000000000001
+BENCH dispatch_readback_us=9604.8
+BENCH depth_us=3672
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154349568
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 47.36
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154304512
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11097.5
+BENCH shader_us=168.2
+BENCH pso_ready_us=850.9
+BENCH dispatch_readback_us=10078.4
+BENCH depth_us=3773.1000000000004
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154378240
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 47.34
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153882624
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11086.4
+BENCH shader_us=168.5
+BENCH pso_ready_us=871.7
+BENCH dispatch_readback_us=10046.2
+BENCH depth_us=4053.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153886720
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 47.36
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154238976
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11180.7
+BENCH shader_us=166
+BENCH pso_ready_us=890.1999999999999
+BENCH dispatch_readback_us=10124.5
+BENCH depth_us=3716.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154267648
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.13
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=141942784
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=12545.9
+BENCH shader_us=170.7
+BENCH pso_ready_us=831.4000000000001
+BENCH dispatch_readback_us=11543.8
+BENCH depth_us=3557.4
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=141938688
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 3, 5415, 47.28
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154390528
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10994.5
+BENCH shader_us=164.79999999999998
+BENCH pso_ready_us=821.6999999999999
+BENCH dispatch_readback_us=10008
+BENCH depth_us=3694.6000000000004
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154386432
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.16
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154386432
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11487.1
+BENCH shader_us=204.5
+BENCH pso_ready_us=926.7
+BENCH dispatch_readback_us=10355.9
+BENCH depth_us=4159.6
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154374144
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 47.13
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154353664
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10756.3
+BENCH shader_us=167.5
+BENCH pso_ready_us=815.1999999999999
+BENCH dispatch_readback_us=9773.6
+BENCH depth_us=3903.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154378240
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.01
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154058752
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10745
+BENCH shader_us=158
+BENCH pso_ready_us=854.7
+BENCH dispatch_readback_us=9732.3
+BENCH depth_us=3759.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154087424
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 47.10
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154279936
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11479
+BENCH shader_us=159.70000000000002
+BENCH pso_ready_us=1045.3000000000002
+BENCH dispatch_readback_us=10274
+BENCH depth_us=3586.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154316800
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 47.01
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154435584
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10472.199999999999
+BENCH shader_us=165.79999999999998
+BENCH pso_ready_us=891.8
+BENCH dispatch_readback_us=9414.6
+BENCH depth_us=3864.7999999999997
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=141979648
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 46.95
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154300416
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11021.2
+BENCH shader_us=163.3
+BENCH pso_ready_us=936.4
+BENCH dispatch_readback_us=9921.5
+BENCH depth_us=3697.2
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154296320
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 46.84
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154308608
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11195.2
+BENCH shader_us=172.7
+BENCH pso_ready_us=942.6
+BENCH dispatch_readback_us=10079.9
+BENCH depth_us=3882.7000000000003
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154304512
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 46.90
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154202112
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11002.7
+BENCH shader_us=169.6
+BENCH pso_ready_us=874.6
+BENCH dispatch_readback_us=9958.5
+BENCH depth_us=3854.7999999999997
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154198016
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.84
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154419200
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10274
+BENCH shader_us=172.10000000000002
+BENCH pso_ready_us=798.2
+BENCH dispatch_readback_us=9303.699999999999
+BENCH depth_us=3394.2
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154431488
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 46.78
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154152960
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11597.400000000001
+BENCH shader_us=157.60000000000002
+BENCH pso_ready_us=804.1
+BENCH dispatch_readback_us=10635.699999999999
+BENCH depth_us=3518.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154230784
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 46.69
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154333184
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10745.2
+BENCH shader_us=169.29999999999998
+BENCH pso_ready_us=831.4000000000001
+BENCH dispatch_readback_us=9744.5
+BENCH depth_us=3879.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154349568
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 46.81
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154398720
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11347.7
+BENCH shader_us=169
+BENCH pso_ready_us=832.1999999999999
+BENCH dispatch_readback_us=10346.5
+BENCH depth_us=3612.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154431488
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.24s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.63
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=141873152
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=12374.7
+BENCH shader_us=162.20000000000002
+BENCH pso_ready_us=838.3000000000001
+BENCH dispatch_readback_us=11374.199999999999
+BENCH depth_us=3920.8999999999996
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=141852672
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 46.72
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154423296
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10512.1
+BENCH shader_us=171.10000000000002
+BENCH pso_ready_us=844.3
+BENCH dispatch_readback_us=9496.7
+BENCH depth_us=3640.6
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154435584
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 46.57
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154357760
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10781.199999999999
+BENCH shader_us=238.8
+BENCH pso_ready_us=836.8
+BENCH dispatch_readback_us=9705.6
+BENCH depth_us=6026
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=116789248
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.61
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154398720
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10704.3
+BENCH shader_us=165.3
+BENCH pso_ready_us=838.1
+BENCH dispatch_readback_us=9700.9
+BENCH depth_us=3856
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154476544
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.49
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154349568
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11286.6
+BENCH shader_us=169.4
+BENCH pso_ready_us=965.5
+BENCH dispatch_readback_us=10151.699999999999
+BENCH depth_us=3597
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154370048
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 3, 5415, 46.49
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154361856
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10594.4
+BENCH shader_us=172.9
+BENCH pso_ready_us=841.4
+BENCH dispatch_readback_us=9580.099999999999
+BENCH depth_us=3525.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154411008
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 46.43
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154333184
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11332.5
+BENCH shader_us=163.9
+BENCH pso_ready_us=905.6999999999999
+BENCH dispatch_readback_us=10262.9
+BENCH depth_us=3813.8999999999996
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154333184
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.40
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=141926400
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=12222.699999999999
+BENCH shader_us=163
+BENCH pso_ready_us=821
+BENCH dispatch_readback_us=11238.7
+BENCH depth_us=3584.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=141955072
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 46.34
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154451968
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11090.6
+BENCH shader_us=163.1
+BENCH pso_ready_us=814.3
+BENCH dispatch_readback_us=10113.199999999999
+BENCH depth_us=3593.2999999999997
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154480640
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 46.34
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154378240
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11365.5
+BENCH shader_us=161.29999999999998
+BENCH pso_ready_us=865.3000000000001
+BENCH dispatch_readback_us=10338.9
+BENCH depth_us=3772
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154406912
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 46.25
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154075136
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11064.5
+BENCH shader_us=160.8
+BENCH pso_ready_us=904.9000000000001
+BENCH dispatch_readback_us=9998.800000000001
+BENCH depth_us=3743.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154124288
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.25
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154112000
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11262.3
+BENCH shader_us=172.8
+BENCH pso_ready_us=851.4
+BENCH dispatch_readback_us=10238.1
+BENCH depth_us=3628.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154132480
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.27s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 46.23
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154365952
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11761.5
+BENCH shader_us=180
+BENCH pso_ready_us=918.4
+BENCH dispatch_readback_us=10663.1
+BENCH depth_us=3771.3999999999996
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154411008
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.17
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153767936
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11473
+BENCH shader_us=177.2
+BENCH pso_ready_us=891.7
+BENCH dispatch_readback_us=10404.1
+BENCH depth_us=6808.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153763840
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 46.23
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154447872
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10959.699999999999
+BENCH shader_us=164.4
+BENCH pso_ready_us=1002.0000000000001
+BENCH dispatch_readback_us=9793.3
+BENCH depth_us=13325.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=141967360
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.28s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.05
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153874432
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11394.3
+BENCH shader_us=166.1
+BENCH pso_ready_us=848.0999999999999
+BENCH dispatch_readback_us=10380.1
+BENCH depth_us=3561
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153903104
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.20
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154247168
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10887
+BENCH shader_us=167.3
+BENCH pso_ready_us=828.4
+BENCH dispatch_readback_us=9891.300000000001
+BENCH depth_us=3556.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154234880
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 46.05
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154226688
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10956.1
+BENCH shader_us=163.5
+BENCH pso_ready_us=853.8000000000001
+BENCH dispatch_readback_us=9938.8
+BENCH depth_us=3556
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154230784
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 46.02
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154415104
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11030.3
+BENCH shader_us=171.4
+BENCH pso_ready_us=859.8
+BENCH dispatch_readback_us=9999.1
+BENCH depth_us=3700.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154443776
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 45.93
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154656768
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11480.4
+BENCH shader_us=169.4
+BENCH pso_ready_us=955.0999999999999
+BENCH dispatch_readback_us=10355.9
+BENCH depth_us=6654.099999999999
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=117010432
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 45.99
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154558464
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11859.2
+BENCH shader_us=172.7
+BENCH pso_ready_us=1024.2
+BENCH dispatch_readback_us=10662.3
+BENCH depth_us=3922.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154550272
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 45.91
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154443776
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11142
+BENCH shader_us=161.7
+BENCH pso_ready_us=849.1
+BENCH dispatch_readback_us=10131.2
+BENCH depth_us=3562.3
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154435584
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.24s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 45.85
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154415104
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11547.099999999999
+BENCH shader_us=160.9
+BENCH pso_ready_us=960.2
+BENCH dispatch_readback_us=10426
+BENCH depth_us=6260.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=116838400
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 45.88
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154419200
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=20216.8
+BENCH shader_us=175.5
+BENCH pso_ready_us=873.7
+BENCH dispatch_readback_us=19167.6
+BENCH depth_us=3841.4
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154468352
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 45.82
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154333184
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11155.2
+BENCH shader_us=169.5
+BENCH pso_ready_us=837.4
+BENCH dispatch_readback_us=10148.300000000001
+BENCH depth_us=3953.8
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154324992
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.27s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 45.85
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153882624
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=12495.199999999999
+BENCH shader_us=177.6
+BENCH pso_ready_us=867.5
+BENCH dispatch_readback_us=11450.1
+BENCH depth_us=3808.6
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153866240
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 45.76
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154083328
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11337.6
+BENCH shader_us=170.1
+BENCH pso_ready_us=917.4
+BENCH dispatch_readback_us=10250.1
+BENCH depth_us=3881.7000000000003
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154095616
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 45.79
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154021888
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11538.3
+BENCH shader_us=190.2
+BENCH pso_ready_us=908.4
+BENCH dispatch_readback_us=10439.699999999999
+BENCH depth_us=3731.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154017792
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 45.61
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=153214976
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11481.699999999999
+BENCH shader_us=170.6
+BENCH pso_ready_us=854.7
+BENCH dispatch_readback_us=10456.4
+BENCH depth_us=3925.5999999999995
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=153231360
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 45.76
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154304512
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11203.4
+BENCH shader_us=164.3
+BENCH pso_ready_us=836.9
+BENCH dispatch_readback_us=10202.199999999999
+BENCH depth_us=3560.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154337280
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 45.70
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154324992
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11215
+BENCH shader_us=168.9
+BENCH pso_ready_us=919.0999999999999
+BENCH dispatch_readback_us=10127
+BENCH depth_us=3776.2999999999997
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154341376
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 45.61
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154533888
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11249.5
+BENCH shader_us=164.4
+BENCH pso_ready_us=837
+BENCH dispatch_readback_us=10248.1
+BENCH depth_us=3851
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154595328
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 45.50
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154300416
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11398
+BENCH shader_us=167.89999999999998
+BENCH pso_ready_us=813.3
+BENCH dispatch_readback_us=10416.800000000001
+BENCH depth_us=3845.6
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154316800
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 45.58
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154374144
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11791.9
+BENCH shader_us=171.9
+BENCH pso_ready_us=869.4
+BENCH dispatch_readback_us=10750.6
+BENCH depth_us=3841.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154382336
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 45.47
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154386432
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11113.5
+BENCH shader_us=171.8
+BENCH pso_ready_us=960
+BENCH dispatch_readback_us=9981.699999999999
+BENCH depth_us=4157
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154394624
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.24s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 3, 5415, 45.41
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154525696
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=19533.600000000002
+BENCH shader_us=169.6
+BENCH pso_ready_us=902.6999999999999
+BENCH dispatch_readback_us=18461.3
+BENCH depth_us=3432.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154570752
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 45.44
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154095616
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11803.7
+BENCH shader_us=176.79999999999998
+BENCH pso_ready_us=922.8
+BENCH dispatch_readback_us=10704.099999999999
+BENCH depth_us=3888.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154071040
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 45.50
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154365952
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11327.6
+BENCH shader_us=166.79999999999998
+BENCH pso_ready_us=853.5
+BENCH dispatch_readback_us=10307.3
+BENCH depth_us=3498.7
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154353664
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 45.35
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=141877248
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=13294.2
+BENCH shader_us=165.1
+BENCH pso_ready_us=839
+BENCH dispatch_readback_us=12290.1
+BENCH depth_us=3475.6
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=141893632
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 2, 5415, 45.32
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154402816
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11969.199999999999
+BENCH shader_us=186.4
+BENCH pso_ready_us=1007.6
+BENCH dispatch_readback_us=10775.2
+BENCH depth_us=3766.9
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154406912
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 0, 5415, 45.26
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154300416
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=10661.5
+BENCH shader_us=164.1
+BENCH pso_ready_us=860.7
+BENCH dispatch_readback_us=9636.699999999999
+BENCH depth_us=3409.1
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154304512
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 1, 5415, 45.29
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=141840384
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=13508.300000000001
+BENCH shader_us=175.5
+BENCH pso_ready_us=835.2
+BENCH dispatch_readback_us=12497.599999999999
+BENCH depth_us=3519.5
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=141893632
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.26s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0
+> C:\windows\system32\nvidia-smi.exe -i 0 --query-gpu=uuid,utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits
+GPU-REDACTED, 4, 5415, 45.32
+
+
+exit 0
+> E:\Projects\GTA-build\VIctory\target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe --exact pipeline::baseline::synthetic_gpu --ignored --nocapture --test-threads=1
+
+running 1 test
+test pipeline::baseline::synthetic_gpu ... BENCH adapter=NVIDIA GeForce RTX 5090
+BENCH compute_local_mb=24.272896
+BENCH compute_working_set_bytes=154398720
+BENCH rgba=[[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]]
+BENCH compute_us=11598.300000000001
+BENCH shader_us=169.6
+BENCH pso_ready_us=893.8000000000001
+BENCH dispatch_readback_us=10534.9
+BENCH depth_us=4006.7999999999997
+BENCH depth_local_mb=22.13888
+BENCH depth_working_set_bytes=154419200
+BENCH depth=[0.25, 0.5, 0.25, 0.25]
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 247 filtered out; finished in 0.25s
+
+
+vertex depth bounds on NVIDIA GeForce RTX 5090: true
+depth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]
+
+exit 0

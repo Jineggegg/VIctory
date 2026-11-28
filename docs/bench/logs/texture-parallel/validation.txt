@@ -1,0 +1,1001 @@
+gpu-default-1.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::kernel_reads_into_guarded_blocks_after_opening stdout ----
+
+thread 'watch::tests::kernel_reads_into_guarded_blocks_after_opening' (67244) panicked at crates\victory-gpu\src\watch.rs:1261:9:
+the kernel does not fault into our handler
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.17s
+
+gpu-default-2.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::a_retake_marks_buffer_copies_alone stdout ----
+
+thread 'watch::tests::a_retake_marks_buffer_copies_alone' (38544) panicked at crates\victory-gpu\src\watch.rs:1403:9:
+a title write marks both
+
+---- watch::tests::a_retake_marks_the_copies_and_keeps_the_guard stdout ----
+
+thread 'watch::tests::a_retake_marks_the_copies_and_keeps_the_guard' (18120) panicked at crates\victory-gpu\src\watch.rs:1369:9:
+assertion `left == right` failed
+  left: 4
+ right: 2
+
+
+failures:
+test result: FAILED. 298 passed; 2 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.79s
+
+gpu-default-3.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.01s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-4.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::a_retake_marks_buffer_copies_alone stdout ----
+
+thread 'watch::tests::a_retake_marks_buffer_copies_alone' (38716) panicked at crates\victory-gpu\src\watch.rs:1403:9:
+a title write marks both
+
+---- watch::tests::a_retake_marks_the_copies_and_keeps_the_guard stdout ----
+
+thread 'watch::tests::a_retake_marks_the_copies_and_keeps_the_guard' (6252) panicked at crates\victory-gpu\src\watch.rs:1369:9:
+assertion `left == right` failed
+  left: 4
+ right: 2
+
+
+failures:
+test result: FAILED. 298 passed; 2 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.22s
+
+gpu-default-5.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::unmapped_pages_are_taken_apart stdout ----
+
+thread 'watch::tests::unmapped_pages_are_taken_apart' (21064) panicked at crates\victory-gpu\src\watch.rs:1097:9:
+assertion `left == right` failed
+  left: ([(2899584155648, 2899584286720)], [])
+ right: ([(2899584155648, 2899584221184)], [(2899584221184, 2899584286720)])
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.70s
+
+gpu-default-6.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.67s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-7.txt
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.83s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-8.txt
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::a_retake_marks_buffer_copies_alone stdout ----
+
+thread 'watch::tests::a_retake_marks_buffer_copies_alone' (5160) panicked at crates\victory-gpu\src\watch.rs:1403:9:
+a title write marks both
+
+---- watch::tests::unmapped_pages_are_taken_apart stdout ----
+
+thread 'watch::tests::unmapped_pages_are_taken_apart' (33508) panicked at crates\victory-gpu\src\watch.rs:1097:9:
+assertion `left == right` failed
+  left: ([(2320066805760, 2320066936832)], [])
+ right: ([(2320066805760, 2320066871296)], [(2320066871296, 2320066936832)])
+
+---- watch::tests::kernel_reads_into_guarded_blocks_after_opening stdout ----
+
+thread 'watch::tests::kernel_reads_into_guarded_blocks_after_opening' (55512) panicked at crates\victory-gpu\src\watch.rs:1261:9:
+the kernel does not fault into our handler
+
+
+failures:
+test result: FAILED. 297 passed; 3 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.68s
+
+gpu-default-9.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.36s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-10.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- shadow::tests::bytes_off_the_runtimes_memory_are_copied_at_each_use stdout ----
+
+thread 'shadow::tests::bytes_off_the_runtimes_memory_are_copied_at_each_use' (51872) panicked at crates\victory-gpu\src\shadow.rs:2049:9:
+assertion `left == right` failed: the pool is guarded
+  left: 4
+ right: 2
+
+---- watch::tests::a_retake_marks_the_copies_and_keeps_the_guard stdout ----
+
+thread 'watch::tests::a_retake_marks_the_copies_and_keeps_the_guard' (53808) panicked at crates\victory-gpu\src\watch.rs:1370:9:
+assertion `left == right` failed
+  left: 4
+ right: 2
+
+---- watch::tests::writes_through_another_mapping_mark_the_tracker stdout ----
+
+thread 'watch::tests::writes_through_another_mapping_mark_the_tracker' (57920) panicked at crates\victory-gpu\src\watch.rs:1327:9:
+assertion `left == right` failed
+  left: []
+ right: [(2743662084096, 2743662149632)]
+
+
+failures:
+test result: FAILED. 297 passed; 3 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.43s
+
+gpu-default-11.txt
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.68s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-12.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::unmapped_pages_are_taken_apart stdout ----
+
+thread 'watch::tests::unmapped_pages_are_taken_apart' (45340) panicked at crates\victory-gpu\src\watch.rs:1097:9:
+assertion `left == right` failed
+  left: ([(2718887772160, 2718887903232)], [])
+ right: ([(2718887772160, 2718887837696)], [(2718887837696, 2718887903232)])
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.53s
+
+gpu-default-13.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::writes_mark_every_tracker_of_their_page stdout ----
+
+thread 'watch::tests::writes_mark_every_tracker_of_their_page' (66528) panicked at crates\victory-gpu\src\watch.rs:1002:9:
+a write is seen by every tracker
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.61s
+
+gpu-default-14.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- shadow::tests::partial_refresh_under_marked_range_updates_saved_bytes stdout ----
+
+thread 'shadow::tests::partial_refresh_under_marked_range_updates_saved_bytes' (57596) panicked at crates\victory-gpu\src\shadow.rs:2563:9:
+assertion `left == right` failed
+  left: [0, 102, 68, 17]
+ right: [170, 102, 0, 17]
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.59s
+
+gpu-default-15.txt
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.67s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-16.txt
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::writes_mark_every_tracker_of_their_page stdout ----
+
+thread 'watch::tests::writes_mark_every_tracker_of_their_page' (30764) panicked at crates\victory-gpu\src\watch.rs:1002:9:
+a write is seen by every tracker
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.43s
+
+gpu-default-17.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.36s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-18.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::a_retake_marks_the_copies_and_keeps_the_guard stdout ----
+
+thread 'watch::tests::a_retake_marks_the_copies_and_keeps_the_guard' (42548) panicked at crates\victory-gpu\src\watch.rs:1369:9:
+assertion `left == right` failed
+  left: 4
+ right: 2
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.18s
+
+gpu-default-19.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.38s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-20.txt
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- shadow::tests::partial_refresh_under_marked_range_updates_saved_bytes stdout ----
+
+thread 'shadow::tests::partial_refresh_under_marked_range_updates_saved_bytes' (26456) panicked at crates\victory-gpu\src\shadow.rs:2567:9:
+assertion `left == right` failed
+  left: [0, 119]
+ right: [187, 119]
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.45s
+
+gpu-default-21.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.38s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-22.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::a_retake_marks_buffer_copies_alone stdout ----
+
+thread 'watch::tests::a_retake_marks_buffer_copies_alone' (17812) panicked at crates\victory-gpu\src\watch.rs:1403:9:
+a title write marks both
+
+---- watch::tests::a_retake_marks_the_copies_and_keeps_the_guard stdout ----
+
+thread 'watch::tests::a_retake_marks_the_copies_and_keeps_the_guard' (50912) panicked at crates\victory-gpu\src\watch.rs:1369:9:
+assertion `left == right` failed
+  left: 4
+ right: 2
+
+
+failures:
+test result: FAILED. 298 passed; 2 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.31s
+
+gpu-default-23.txt
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.46s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-default-24.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::writes_through_another_mapping_mark_the_tracker stdout ----
+
+thread 'watch::tests::writes_through_another_mapping_mark_the_tracker' (30764) panicked at crates\victory-gpu\src\watch.rs:1315:9:
+assertion `left == right` failed
+  left: []
+ right: [(2330237796352, 2330237861888)]
+
+
+failures:
+test result: FAILED. 299 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.35s
+
+gpu-default-25.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 300 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.55s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+gpu-warp.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 316 passed; 0 failed; 19 ignored; 0 measured; 0 filtered out; finished in 2.17s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+hardware-diag-1.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 316 passed; 0 failed; 19 ignored; 0 measured; 0 filtered out; finished in 2.81s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+hardware-diag-2.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 316 passed; 0 failed; 19 ignored; 0 measured; 0 filtered out; finished in 2.79s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+hardware-diag-3.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+---- watch::tests::a_retake_marks_buffer_copies_alone stdout ----
+
+thread 'watch::tests::a_retake_marks_buffer_copies_alone' (50472) panicked at crates\victory-gpu\src\watch.rs:1403:9:
+a title write marks both
+
+
+failures:
+test result: FAILED. 315 passed; 1 failed; 19 ignored; 0 measured; 0 filtered out; finished in 2.74s
+
+watch-texture-1.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.87s
+
+watch-texture-2.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.93s
+
+watch-texture-3.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.59s
+
+watch-texture-4.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.60s
+
+watch-texture-5.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.63s
+
+watch-texture-6.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.59s
+
+watch-texture-7.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.58s
+
+watch-texture-8.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.62s
+
+watch-texture-9.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.61s
+
+watch-texture-10.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.62s
+
+watch-texture-11.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.62s
+
+watch-texture-12.txt
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 0.62s
+
+watch-shadow-1.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.54s
+
+watch-shadow-2.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.45s
+
+watch-shadow-3.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.55s
+
+watch-shadow-4.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.49s
+
+watch-shadow-5.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.48s
+
+watch-shadow-6.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.52s
+
+watch-shadow-7.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.53s
+
+watch-shadow-8.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.49s
+
+watch-shadow-9.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.57s
+
+watch-shadow-10.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.47s
+
+watch-shadow-11.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.49s
+
+watch-shadow-12.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.48s
+
+watch-shadow-13.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.51s
+
+watch-shadow-14.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.44s
+
+watch-shadow-15.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.50s
+
+watch-shadow-16.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.44s
+
+watch-shadow-17.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.46s
+
+watch-shadow-18.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.47s
+
+watch-shadow-19.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.46s
+
+watch-shadow-20.txt
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 266 filtered out; finished in 0.52s
+
+watch-only-1.txt
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 288 filtered out; finished in 0.00s
+
+watch-only-2.txt
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 288 filtered out; finished in 0.27s
+
+watch-only-3.txt
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 288 filtered out; finished in 0.00s
+
+watch-only-4.txt
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 288 filtered out; finished in 0.00s
+
+watch-only-5.txt
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 288 filtered out; finished in 0.00s
+
+skip-texture-1.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.50s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.39s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.57s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-2.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.49s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.39s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.48s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-3.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.50s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.36s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.68s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-4.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.46s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.38s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.49s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-5.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.44s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.38s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.54s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-6.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.39s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.37s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.42s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-7.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.44s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.38s
+---- shadow::tests::title_write_mid_scan_uses_the_pre_write_snapshot stdout ----
+
+thread 'shadow::tests::title_write_mid_scan_uses_the_pre_write_snapshot' (14456) panicked at crates\victory-gpu\src\shadow.rs:2306:13:
+assertion `left == right` failed
+  left: [162, 0]
+ right: [162, 194]
+
+
+failures:
+test result: FAILED. 293 passed; 1 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.59s
+
+skip-texture-8.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.54s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.44s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 3.08s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-9.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.53s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.45s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 3.03s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-10.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.50s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.46s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 3.13s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-11.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.54s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.45s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 3.06s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-12.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.56s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.47s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 3.09s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-13.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.46s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.34s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.67s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-14.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.49s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.40s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.72s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+skip-texture-15.txt
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.43s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 302 filtered out; finished in 0.38s
+test result: ok. 294 passed; 0 failed; 3 ignored; 0 measured; 6 filtered out; finished in 2.69s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+clippy-0.txt
+error: unsafe block missing a safety comment
+--> crates\victory-shader\src\emit\lower\marks\tests.rs:85:9
+error: unsafe block missing a safety comment
+--> crates\victory-shader\src\emit\lower\marks\tests.rs:87:28
+error: unsafe block missing a safety comment
+--> crates\victory-shader\src\emit\lower\marks\tests.rs:90:20
+error: unsafe block missing a safety comment
+--> crates\victory-shader\src\emit\lower\marks\tests.rs:95:12
+error: could not compile `victory-shader` (lib test) due to 4 previous errors
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\library.rs:154:8
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\library.rs:192:12
+error: this `if` statement can be collapsed
+--> crates\victory-gpu\src\shader_cache.rs:199:9
+error: could not compile `victory-gpu` (lib) due to 3 previous errors
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\descriptor\host.rs:3438:19
+error: manual implementation of `.is_multiple_of()`
+--> crates\victory-gpu\src\descriptor\host.rs:3686:22
+error: could not compile `victory-gpu` (lib test) due to 5 previous errors
+
+clippy-1.txt
+error: unsafe block missing a safety comment
+--> crates\victory-shader\src\emit\lower\marks\tests.rs:85:9
+error: unsafe block missing a safety comment
+--> crates\victory-shader\src\emit\lower\marks\tests.rs:87:28
+error: unsafe block missing a safety comment
+--> crates\victory-shader\src\emit\lower\marks\tests.rs:90:20
+error: unsafe block missing a safety comment
+--> crates\victory-shader\src\emit\lower\marks\tests.rs:95:12
+error: could not compile `victory-shader` (lib test) due to 4 previous errors
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\library.rs:154:8
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\library.rs:192:12
+error: this `if` statement can be collapsed
+--> crates\victory-gpu\src\shader_cache.rs:199:9
+error: could not compile `victory-gpu` (lib) due to 3 previous errors
+error: items after a test module
+--> crates\victory-gpu\src\descriptor\host.rs:2581:1
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\descriptor\host.rs:3438:19
+error: manual implementation of `.is_multiple_of()`
+--> crates\victory-gpu\src\descriptor\host.rs:3686:22
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:27:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:54:21
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:75:25
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:149:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:164:21
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:182:17
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:183:23
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:187:18
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:259:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:290:16
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:13:16
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:123:13
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:140:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:170:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:183:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:216:41
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\scale.rs:24:13
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:13:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:57:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:62:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:71:22
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:87:27
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:174:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:201:20
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:89:21
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:101:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:131:13
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:206:19
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:225:21
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:249:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:262:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:264:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:272:17
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:60:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:117:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:134:13
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:148:5
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\pipeline\hot.rs:189:28
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:420:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:424:13
+error: items after a test module
+--> crates\victory-gpu\src\queue.rs:756:1
+error: items after a test module
+--> crates\victory-gpu\src\shadow.rs:1936:1
+error: could not compile `victory-gpu` (lib test) due to 48 previous errors
+
+clippy-gpu-0.txt
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\library.rs:154:8
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\library.rs:192:12
+error: this `if` statement can be collapsed
+--> crates\victory-gpu\src\shader_cache.rs:199:9
+error: could not compile `victory-gpu` (lib) due to 3 previous errors
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\descriptor\host.rs:3438:19
+error: manual implementation of `.is_multiple_of()`
+--> crates\victory-gpu\src\descriptor\host.rs:3686:22
+error: could not compile `victory-gpu` (lib test) due to 5 previous errors
+
+clippy-gpu-1.txt
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\library.rs:154:8
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\library.rs:192:12
+error: this `if` statement can be collapsed
+--> crates\victory-gpu\src\shader_cache.rs:199:9
+error: could not compile `victory-gpu` (lib) due to 3 previous errors
+error: items after a test module
+--> crates\victory-gpu\src\descriptor\host.rs:2581:1
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\descriptor\host.rs:3438:19
+error: manual implementation of `.is_multiple_of()`
+--> crates\victory-gpu\src\descriptor\host.rs:3686:22
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:27:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:54:21
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:75:25
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:149:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:164:21
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:182:17
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:183:23
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:187:18
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:259:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\contention.rs:290:16
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:13:16
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:123:13
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:140:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:170:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:183:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\pressure.rs:216:41
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\scale.rs:24:13
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:13:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:57:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:62:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:71:22
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:87:27
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:174:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\soak.rs:201:20
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:89:21
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:101:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:131:13
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:206:19
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:225:21
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:249:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:262:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:264:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot\waves.rs:272:17
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:60:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:117:5
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:134:13
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:148:5
+error: using `chunks_exact` with a constant chunk size
+--> crates\victory-gpu\src\pipeline\hot.rs:189:28
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:420:9
+error: unsafe block missing a safety comment
+--> crates\victory-gpu\src\pipeline\hot.rs:424:13
+error: items after a test module
+--> crates\victory-gpu\src\queue.rs:756:1
+error: items after a test module
+--> crates\victory-gpu\src\shadow.rs:1936:1
+error: could not compile `victory-gpu` (lib test) due to 48 previous errors
+
+results.json pixel
+commit eb85408d25dbe0a3bb288e197de9cd717b2c380c
+complete False
+failed_runs 0
+process_crashes 0
+validation_status skipped by request
+requested_run_complete True
+source_changes
+{'index': 0, 'mode': 'check', 'exit_code': 0, 'status': 'passed'} verified= None {'rgba': [[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]], 'depth': [0.25, 0.5, 0.25, 0.25]}
+results.json texrace-smoke
+complete True
+suite victory-hot-v1
+formal False
+test pipeline::hot::hot_paths
+invalid_count 0
+{'index': 1, 'ok': True, 'exit': 0} verified= 1 {}
+{'index': 2, 'ok': True, 'exit': 0} verified= 1 {}
+{'index': 3, 'ok': True, 'exit': 0} verified= 1 {}

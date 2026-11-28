@@ -1,0 +1,63 @@
+Windows MSVC x64 · 46290c09dab7c6568ef183e46aef80a8558a8a9d
+cargo test --locked --workspace --no-fail-fast
+exit 0
+
+Running unittests src\main.rs (target\debug\deps\victory-194a589f37591d69.exe)
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+Running tests\census.rs (target\debug\deps\census-a255d957a44ba2ee.exe)
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+Running tests\census_unreadable.rs (target\debug\deps\census_unreadable-7dd9961cb041140b.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+Running tests\translate.rs (target\debug\deps\translate-62bc34dd8d6ceaed.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+Running unittests src\lib.rs (target\debug\deps\victory_core-51f8c46a2f8449d8.exe)
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running unittests src\lib.rs (target\debug\deps\victory_formats-0c7e51b8272807f7.exe)
+test result: ok. 46 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 4.45s
+Running unittests src\lib.rs (target\debug\deps\victory_game-4013e62613415e43.exe)
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+Running unittests src\lib.rs (target\debug\deps\victory_gpu-fafd4220db8e0d77.exe)
+test result: ok. 268 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.97s
+Running unittests src\lib.rs (target\debug\deps\victory_hle-715220e14005980d.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 151 filtered out; finished in 0.51s
+test result: ok. 152 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+Running tests\fidelityfx.rs (target\debug\deps\fidelityfx-ffa915b03ea22c20.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running tests\no_dll_planting.rs (target\debug\deps\no_dll_planting-9d3de9cb7cad3712.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running unittests src\lib.rs (target\debug\deps\victory_loader-200470b272292ca3.exe)
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.63s
+Running tests\crash_log.rs (target\debug\deps\crash_log-0a309a53e68e2388.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+Running tests\load_probe.rs (target\debug\deps\load_probe-bf0578a10d3d4466.exe)
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+Running tests\title_dlls.rs (target\debug\deps\title_dlls-1976a5926922e13e.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running unittests src\lib.rs (target\debug\deps\victory_pe-90f95e0f3fdfbfc4.exe)
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running unittests src\lib.rs (target\debug\deps\victory_pipeline-bbc4a0ec49b567c1.exe)
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+Running unittests src\lib.rs (target\debug\deps\victory_shader-3d01bf2c2a103fdb.exe)
+test result: ok. 306 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 670.66s
+Running tests\resource_tracking.rs (target\debug\deps\resource_tracking-70f4095dc288451d.exe)
+test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Running unittests src\main.rs (target\debug\deps\xtask-95d5f7b7b9b46810.exe)
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+Doc-tests victory_core
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_formats
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_game
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_gpu
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_hle
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_loader
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_pe
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_pipeline
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+Doc-tests victory_shader
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

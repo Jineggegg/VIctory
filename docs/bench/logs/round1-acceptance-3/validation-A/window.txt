@@ -1,0 +1,19 @@
+Local build-queue slots reserved: 4
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 09:43:13Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=5977/32607 MiB | power=45.16 W | temp=38.79 C | graphics=255 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.9s, 10 samples, max GPU=2%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+stage=validation-A SHA256=888ed490721961cfa2128e4343f91998d47625995a284b6eb2720ec60f21e4a6 profile=diag toolchain=../toolchain/env.ps1
+Results: E:\Projects\GTA-build\accept-r1\docs\bench\logs\round1-acceptance-3\validation-A
+D3D12 validation failed. See E:\Projects\GTA-build\accept-r1\docs\bench\logs\round1-acceptance-3\validation-A\run.txt
+At E:\Projects\GTA-build\integ-base\tools\bench\run.ps1:160 char:66
++ ... on.status -ne 'passed') { throw "D3D12 validation failed. See $log" }
++                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (D3D12 validatio...ation-A\run.txt:String) [], RuntimeException
+    + FullyQualifiedErrorId : D3D12 validation failed. See E:\Projects\GTA-build\accept-r1\docs\bench\logs\round1-acce 
+   ptance-3\validation-A\run.txt
+ 
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

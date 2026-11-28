@@ -33,18 +33,198 @@
 //! world), and loads that waited on it stalled every worker for as long.
 
 use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::fs::{self, File};
+use std::io::{self, Write};
+#[path = "library_dirs.rs"]
+mod dirs;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Condvar, Mutex, OnceLock};
 
 use windows::Win32::Graphics::Direct3D12::*;
+use windows::Win32::Graphics::Dxgi::{
+    CreateDXGIFactory2, DXGI_ADAPTER_DESC1, DXGI_ADAPTER_FLAG_SOFTWARE, DXGI_CREATE_FACTORY_FLAGS,
+    IDXGIAdapter1, IDXGIDevice, IDXGIFactory4,
+};
 use windows::core::{HSTRING, Interface, PCWSTR};
 
+// Directory handles also pin live generations against another process's GC.
 static DIR: OnceLock<PathBuf> = OnceLock::new();
+static LIBRARY_DIR: OnceLock<Option<PathBuf>> = OnceLock::new();
+static SOURCE_GUARD: OnceLock<File> = OnceLock::new();
+static DRIVER_GUARD: OnceLock<File> = OnceLock::new();
 
-/// Keeps the pipeline library and the early list in `dir` from now on.
-pub fn use_pipeline_cache(dir: PathBuf) {
-    let _ = DIR.set(dir);
+/// Keeps the compiled library and the title's shared early list under `root`.
+pub fn use_pipeline_cache(root: PathBuf) {
+    let mut check_drivers = false;
+    let source = DIR.get_or_init(|| {
+        let source = root.join(victory_shader::SOURCE_HASH);
+        if let Ok(_root) = dirs::hold(&root, false) {
+            if let Ok(guard) = dirs::hold(&source, false) {
+                let _ = SOURCE_GUARD.set(guard);
+            }
+            // Rescue legacy early lists before retiring any of their owners.
+            let (lists, excess) = dirs::legacy_layout(&root, &source);
+            check_drivers = excess;
+            if let Err(error) = migrate_early(&root, &lists) {
+                tracing::warn!(%error, "could not migrate early pipeline lists");
+            } else {
+                dirs::prune_sources(&root, &source);
+            }
+        }
+        source
+    });
+    // A fully warmed run might never write another PSO. Retire excess
+    // generations left by older releases in that case too.
+    if check_drivers && SOURCE_GUARD.get().is_some()
+        && let Some(adapter) = library_dir().and_then(|d| d.parent())
+    {
+        dirs::prune_drivers(source, adapter);
+    }
+    let root = source.parent().unwrap();
+    let path = root.join(LIBRARY_FILE);
+    if dirs::regular(&path) && let Ok(_root) = dirs::hold(root, false) {
+        // Legacy blobs are opaque. Only the driver can accept them; keep the
+        // existing namespaced blob if both exist. Hard-link never overwrites.
+        let result = migrate_blob(&path, library_dir().map(PathBuf::as_path));
+        if let Err(error) = result {
+            tracing::debug!(%error, "could not retire legacy pipeline library");
+        }
+    }
+}
+
+fn migrate_blob(path: &Path, target: Option<&Path>) -> io::Result<()> {
+    if let Some(target) = target {
+        let _leaf = prepare_dir(target)?;
+        if !target.join(LIBRARY_FILE).exists() {
+            // Unsupported hard links or an incompatible layout just cost a
+            // rebuild. Never replace an already-published library.
+            if let Err(error) = fs::hard_link(path, target.join(LIBRARY_FILE)) {
+                tracing::debug!(%error, "could not reuse legacy pipeline library");
+            }
+        }
+    }
+    fs::remove_file(path)
+}
+
+fn translator_dir(root: PathBuf, translator: &[u8; 32]) -> PathBuf {
+    root.join(&blake3::Hash::from(*translator).to_hex()[..16])
+}
+
+fn existing_library_dir() -> Option<&'static PathBuf> {
+    if let Some(resolved) = LIBRARY_DIR.get() {
+        return resolved.as_ref();
+    }
+    SOURCE_GUARD.get().and_then(|_| library_dir())
+}
+
+fn library_dir() -> Option<&'static PathBuf> {
+    let source = DIR.get()?;
+    LIBRARY_DIR.get_or_init(|| {
+        let device = &crate::host::host()?.device;
+        let adapter = source.join(adapter_namespace(device)?);
+        if SOURCE_GUARD.get().is_some() && let Ok(guard) = dirs::hold(&adapter, false) {
+            let _ = DRIVER_GUARD.set(guard);
+        }
+        Some(translator_dir(adapter, crate::shader_cache::build(crate::shader_cache::options())))
+    }).as_ref()
+}
+
+fn prepare_dir(dir: &Path) -> io::Result<File> {
+    let adapter = dir.parent().unwrap();
+    let source = adapter.parent().unwrap();
+    let root = source.parent().unwrap();
+    fs::create_dir_all(root)?;
+    let _root = dirs::hold(root, false)?;
+    for (path, slot) in [(source, &SOURCE_GUARD), (adapter, &DRIVER_GUARD)] {
+        if slot.get().is_none() {
+            fs::create_dir_all(path)?;
+            let _ = slot.set(dirs::hold(path, false)?);
+        }
+    }
+    fs::create_dir_all(dir)?;
+    dirs::hold(dir, false)
+}
+
+fn adapter_namespace(device: &ID3D12Device) -> Option<String> {
+    // SAFETY: reads the identifier of this live device.
+    let luid = unsafe { device.GetAdapterLuid() };
+    // The kernel query describes physical node zero. For linked devices use
+    // the logical adapter and driver identity supplied by DXGI.
+    // SAFETY: GetNodeCount queries the same live device.
+    if unsafe { device.GetNodeCount() } == 1 && let Some(name) = hardware_namespace(luid) {
+        return Some(name);
+    }
+    dxgi_namespace(luid)
+}
+
+fn dxgi_namespace(luid: windows::Win32::Foundation::LUID) -> Option<String> {
+    // SAFETY: query the adapter that owns the existing D3D12 device.
+    let (desc, driver) = unsafe {
+        let factory: IDXGIFactory4 = CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)).ok()?;
+        let adapter: IDXGIAdapter1 = factory.EnumAdapterByLuid(luid).ok()?;
+        (adapter.GetDesc1().ok()?, adapter.CheckInterfaceSupport(&IDXGIDevice::IID).ok())
+    };
+    namespace(&desc, driver)
+}
+
+fn hardware_namespace(luid: windows::Win32::Foundation::LUID) -> Option<String> {
+    use windows::Wdk::Graphics::Direct3D::*;
+
+    let mut open = D3DKMT_OPENADAPTERFROMLUID { AdapterLuid: luid, ..Default::default() };
+    // SAFETY: an initialized adapter LUID and a writable result handle.
+    unsafe { D3DKMTOpenAdapterFromLuid(&mut open) }.ok().ok()?;
+    let read = |kind, data, size| {
+        let mut query = D3DKMT_QUERYADAPTERINFO {
+            hAdapter: open.hAdapter,
+            Type: kind,
+            pPrivateDriverData: data,
+            PrivateDriverDataSize: size,
+        };
+        // SAFETY: each call below supplies the live output object and size
+        // prescribed by its query type.
+        unsafe { D3DKMTQueryAdapterInfo(&mut query) }.ok().ok()
+    };
+    let result = (|| {
+        let mut kind = D3DKMT_ADAPTERTYPE::default();
+        read(KMTQAITYPE_ADAPTERTYPE, (&raw mut kind).cast(), size_of_val(&kind) as u32)?;
+        const SOFTWARE_DEVICE: u32 = 1 << 2;
+        // SAFETY: the successful adapter-type query initialized these flags, also readable as
+        // Value.
+        if unsafe { kind.Anonymous.Value } & SOFTWARE_DEVICE != 0 {
+            return None;
+        }
+        let mut ids = D3DKMT_QUERY_DEVICE_IDS::default();
+        read(KMTQAITYPE_PHYSICALADAPTERDEVICEIDS, (&raw mut ids).cast(), size_of_val(&ids) as u32)?;
+        let ids = ids.DeviceIds;
+        let mut version = D3DKMT_UMD_DRIVER_VERSION::default();
+        read(KMTQAITYPE_UMD_DRIVER_VERSION, (&raw mut version).cast(), size_of_val(&version) as u32)?;
+        if ids.VendorID == 0 || ids.DeviceID == 0 || version.DriverVersion == 0 {
+            return None;
+        }
+        // The PCI subsystem DWORD contains subsystem ID then subvendor ID.
+        let desc = DXGI_ADAPTER_DESC1 {
+            VendorId: ids.VendorID,
+            DeviceId: ids.DeviceID,
+            SubSysId: (u32::from(u16::try_from(ids.SubSystemID).ok()?) << 16)
+                | u32::from(u16::try_from(ids.SubVendorID).ok()?),
+            Revision: ids.RevisionID,
+            ..Default::default()
+        };
+        namespace(&desc, Some(version.DriverVersion))
+    })();
+    // SAFETY: this call releases the handle opened above, on all result paths.
+    unsafe { D3DKMTCloseAdapter(&D3DKMT_CLOSEADAPTER { hAdapter: open.hAdapter }) }.ok().ok()?;
+    result
+}
+
+fn namespace(desc: &DXGI_ADAPTER_DESC1, driver: Option<i64>) -> Option<String> {
+    // If DXGI cannot identify the installed driver, use the in-memory
+    // library for this run. An unknown driver cannot name a disk cache.
+    let driver = driver?;
+    let kind = if desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 == 0 { "hw" } else { "sw" };
+    Some(format!("{kind}-{:08x}-{:08x}-{:08x}-{:08x}-{driver:016x}",
+        desc.VendorId, desc.DeviceId, desc.SubSysId, desc.Revision))
 }
 
 /// Host pipelines created, loaded from the library, and title pipelines
@@ -55,8 +235,6 @@ pub(crate) static EARLY: AtomicU64 = AtomicU64::new(0);
 
 struct Library {
     library: ID3D12PipelineLibrary1,
-    /// The blob the library was made from: it must outlive the library.
-    _blob: Vec<u8>,
     /// Pipelines stored since the last save.
     added: u64,
     /// Title pipelines the pre-build put in the library or found there, by
@@ -74,6 +252,14 @@ struct Shared {
     /// The same library as `state`'s, loaded from without its lock.
     loads: ID3D12PipelineLibrary1,
     state: Mutex<Library>,
+    /// Whether a disk cache was configured when this library opened.
+    /// A later configuration must not replace an unconsulted library.
+    disk_configured: bool,
+    // D3D borrows the driver prefix of this allocation. Drop it after both
+    // library references. The optional index is in this same disk snapshot.
+    image: Vec<u8>,
+    driver_len: usize,
+    initial_keys: OnceLock<HashSet<String>>,
 }
 
 // SAFETY: as for `Library`.
@@ -138,60 +324,87 @@ fn library() -> Option<&'static Shared> {
     LIBRARY
         .get_or_init(|| {
             let device = crate::host::host()?.device.cast::<ID3D12Device1>().ok()?;
-            let read = |file| DIR.get().and_then(|d| std::fs::read(d.join(file)).ok());
+            let disk_configured = DIR.get().is_some();
+            let dir = disk_configured.then(existing_library_dir).flatten();
+            let read = |file| dir.and_then(|d| std::fs::read(d.join(file)).ok());
             let blob = read(LIBRARY_FILE).unwrap_or_default();
-            let tag = tag(&blob);
-            let mut library = open(&device, blob);
-            // The pre-build's list, if it was saved with these bytes.
-            if let (Some(l), Some(list)) = (library.as_mut(), read(PREBUILT_FILE))
-                && !l._blob.is_empty()
-            {
-                l.prebuilt = listed(&list, &tag);
-            }
+            let library = open(&device, blob, disk_configured);
             if library.is_none() {
                 tracing::warn!("no host pipeline library: pipelines are not kept");
             }
-            library.map(|l| Shared { loads: l.library.clone(), state: Mutex::new(l) })
+            library
         })
         .as_ref()
 }
 
 /// The library in `blob`, or an empty one if the host rejects the blob (an
 /// adapter or driver change, damage).
-fn open(device: &ID3D12Device1, blob: Vec<u8>) -> Option<Library> {
+fn open(device: &ID3D12Device1, mut blob: Vec<u8>, disk_configured: bool) -> Option<Shared> {
     let make = |bytes: &[u8]| -> windows::core::Result<ID3D12PipelineLibrary1> {
         // SAFETY: the bytes outlive the library (kept beside it).
         unsafe {
             device.CreatePipelineLibrary::<ID3D12PipelineLibrary>(bytes)?.cast()
         }
     };
-    if !blob.is_empty() {
+    let mut driver_len = driver_length(&blob);
+    let loaded = if driver_len == 0 { None } else {
         let started = std::time::Instant::now();
-        match make(&blob) {
+        match make(&blob[..driver_len]) {
             Ok(library) => {
-                let ms = started.elapsed().as_millis() as u64;
-                tracing::info!(bytes = blob.len(), ms, "host pipeline library loaded");
-                return Some(Library {
-                    library,
-                    _blob: blob,
-                    added: 0,
-                    prebuilt: HashSet::new(),
-                    prebuilt_changed: false,
-                });
+                tracing::info!(bytes = driver_len, ms = started.elapsed().as_millis(), "host pipeline library loaded");
+                Some(library)
             }
-            Err(e) => tracing::info!(error = %e, "host pipeline library rejected; starting an empty one"),
+            Err(error) => {
+                tracing::info!(%error, "host pipeline library rejected; starting an empty one");
+                None
+            }
         }
-    } else {
-        tracing::info!("no host pipeline library yet; starting an empty one");
-    }
-    let library = make(&[]).ok()?;
-    Some(Library {
-        library,
-        _blob: Vec::new(),
-        added: 0,
-        prebuilt: HashSet::new(),
-        prebuilt_changed: false,
+    };
+    let library = match loaded {
+        Some(library) => library,
+        None => {
+            blob = Vec::new();
+            driver_len = 0;
+            make(&[]).ok()?
+        }
+    };
+    Some(Shared {
+        loads: library.clone(),
+        state: Mutex::new(Library { library, added: 0, prebuilt: HashSet::new(), prebuilt_changed: false }),
+        disk_configured,
+        image: blob,
+        driver_len,
+        initial_keys: OnceLock::new(),
     })
+}
+
+// Legacy files consist entirely of driver bytes. New indexed files append
+// the UTF-8 index, the little-endian driver length and a format signature.
+const FOOTER: &[u8; 8] = b"VPSOIDX1";
+
+fn driver_length(image: &[u8]) -> usize {
+    if !image.ends_with(FOOTER) { return image.len(); }
+    let Some(end) = image.len().checked_sub(16) else { return 0 };
+    let n = u64::from_le_bytes(image[end..end+8].try_into().unwrap());
+    usize::try_from(n).ok().filter(|n| *n <= end).unwrap_or(0)
+}
+
+impl Shared {
+    // No state lock while hashing the (potentially gigabyte-sized) driver
+    // bytes. Gameplay disk hits need neither the hash nor the parsed keys.
+    fn initial_keys(&self) -> &HashSet<String> {
+        self.initial_keys.get_or_init(|| {
+            if self.driver_len == 0 { return HashSet::new(); }
+            let (driver, tail) = self.image.split_at(self.driver_len);
+            if let Some(index) = tail.get(..tail.len().saturating_sub(16)).filter(|s| !s.is_empty()) {
+                listed(index, &tag(driver))
+            } else {
+                // A legacy sidecar's tag includes the sources of the writer.
+                // This revised writer necessarily has a different tag.
+                HashSet::new()
+            }
+        })
+    }
 }
 
 /// What the pre-build's list holds for: the library's bytes, and what
@@ -233,14 +446,16 @@ fn listed(list: &[u8], tag: &str) -> HashSet<String> {
 
 /// Whether the pre-build has the title pipeline `key` in the library.
 pub(crate) fn prebuilt(key: &str) -> bool {
-    library().is_some_and(|l| l.state.lock().unwrap_or_else(|e| e.into_inner()).prebuilt.contains(key))
+    library().is_some_and(|l| l.initial_keys().contains(key) || l.state.lock().unwrap_or_else(|e| e.into_inner()).prebuilt.contains(key))
 }
 
 /// The pre-build has the title pipeline `key` in the library now.
 pub(crate) fn note_prebuilt(key: String) {
-    if let Some(l) = library() {
+    if let Some(l) = library() && !l.initial_keys().contains(&key) {
         let mut l = l.state.lock().unwrap_or_else(|e| e.into_inner());
-        l.prebuilt_changed |= l.prebuilt.insert(key);
+        if l.prebuilt.insert(key) {
+            l.prebuilt_changed = true;
+        }
     }
 }
 
@@ -301,41 +516,71 @@ thread_local! {
         const { std::cell::Cell::new(None) };
 }
 
-/// Writes the library and the early list if pipelines were added since the
-/// last save and `SAVE_EVERY` has passed (or `now`).
+/// Writes the changed early list and adapter library independently once
+/// `SAVE_EVERY` has passed (or `now`). The library saves only to the adapter
+/// directory selected for this adapter, driver and translator.
 pub(crate) fn save(now: bool) {
     static LAST: Mutex<Option<std::time::Instant>> = Mutex::new(None);
     const SAVE_EVERY: std::time::Duration = std::time::Duration::from_secs(20);
-    let (Some(dir), Some(library)) = (DIR.get(), library()) else { return };
-    {
-        let mut last = LAST.lock().unwrap_or_else(|e| e.into_inner());
-        if !now && last.is_some_and(|t| t.elapsed() < SAVE_EVERY) {
-            return;
+    let Some(root) = DIR.get().and_then(|d| d.parent()) else { return };
+    // Serialize complete saves so shutdown and periodic saves cannot publish
+    // a newer library and then replace it with an older snapshot.
+    let mut last = if now {
+        LAST.lock().unwrap_or_else(|e| e.into_inner())
+    } else {
+        match LAST.try_lock() {
+            Ok(last) => last,
+            Err(std::sync::TryLockError::Poisoned(e)) => e.into_inner(),
+            Err(std::sync::TryLockError::WouldBlock) => return,
         }
-        *last = Some(std::time::Instant::now());
+    };
+    if !now && last.is_some_and(|t| t.elapsed() < SAVE_EVERY) {
+        return;
     }
-    let (blob, prebuilt) = {
+    *last = Some(std::time::Instant::now());
+
+    if USED_CHANGED.swap(false, Ordering::Relaxed) {
+        let used = used().as_ref().map(Used::list).unwrap_or_default();
+        let written = std::fs::create_dir_all(root)
+            .and_then(|()| write_atomically(&root.join(EARLY_FILE), used.join("\n").as_bytes()));
+        if let Err(e) = written {
+            USED_CHANGED.store(true, Ordering::Relaxed);
+            tracing::warn!(error = %e, "early pipeline list not saved");
+        }
+    }
+
+    let Some(dir) = library_dir() else { return };
+    let Some(library) = library() else { return };
+    if library.disk_configured {
+        save_library(dir, library);
+    }
+}
+
+fn save_library(dir: &std::path::Path, library: &Shared) {
+    let (blob, prebuilt, added, prebuilt_changed) = {
         let mut l = library.state.lock().unwrap_or_else(|e| e.into_inner());
-        if l.added == 0 && !l.prebuilt_changed && !USED_CHANGED.swap(false, Ordering::Relaxed) {
+        if l.added == 0 && !l.prebuilt_changed {
             return;
         }
         // SAFETY: a plain size query on a live library.
         let size = unsafe { l.library.GetSerializedSize() };
         let Some(mut bytes) = zeroed(size) else {
             // Left for a later save: the pipelines stay counted as added.
-            tracing::warn!(bytes = size, "no memory to serialise the host pipeline library; saved later");
+            tracing::warn!(
+                bytes = size,
+                "no memory to serialise the host pipeline library; saved later"
+            );
             return;
         };
         // SAFETY: a buffer of the size the library asks for.
         let bytes = unsafe { l.library.Serialize(&mut bytes) }.map(|()| bytes);
         match bytes {
             Ok(bytes) => {
-                l.added = 0;
-                l.prebuilt_changed = false;
+                let added = std::mem::take(&mut l.added);
+                let prebuilt_changed = std::mem::take(&mut l.prebuilt_changed);
                 // Kept beside the bytes it holds for (also when a run adds
                 // pipelines).
-                let prebuilt = (!l.prebuilt.is_empty()).then(|| list(&tag(&bytes), &l.prebuilt));
-                (bytes, prebuilt)
+                (bytes, l.prebuilt.clone(), added, prebuilt_changed)
             }
             Err(e) => {
                 tracing::warn!(error = %e, "host pipeline library not serialised");
@@ -343,20 +588,27 @@ pub(crate) fn save(now: bool) {
             }
         }
     };
-    let used = used().as_ref().map(Used::list).unwrap_or_default();
-    let written = std::fs::create_dir_all(dir)
-        .and_then(|()| write_atomically(&dir.join(LIBRARY_FILE), &blob))
-        .and_then(|()| write_atomically(&dir.join(EARLY_FILE), used.join("\n").as_bytes()))
-        .and_then(|()| match &prebuilt {
-            Some(list) => write_atomically(&dir.join(PREBUILT_FILE), list.as_bytes()),
-            None => Ok(()),
+    let mut keys = prebuilt;
+    keys.extend(library.initial_keys().iter().cloned());
+    let index = (!keys.is_empty()).then(|| list(&tag(&blob), &keys));
+    let written = prepare_dir(dir).and_then(|_leaf| write_cache(dir, &blob, index.as_deref()));
+    if written.is_ok() {
+        static CLEANED: OnceLock<()> = OnceLock::new();
+        CLEANED.get_or_init(|| {
+            let adapter = dir.parent().unwrap();
+            dirs::prune_drivers(adapter.parent().unwrap(), adapter);
         });
+    }
+    if written.is_err() {
+        let mut l = library.state.lock().unwrap_or_else(|e| e.into_inner());
+        l.added += added;
+        l.prebuilt_changed |= prebuilt_changed;
+    }
     let (created, distinct) = created();
     let (shaders_cached, shaders_translated) = crate::shader_cache::counts();
     match written {
         Ok(()) => tracing::info!(
             bytes = blob.len(),
-            early = used.len(),
             made = MADE.load(Ordering::Relaxed),
             loaded = LOADED.load(Ordering::Relaxed),
             started_early = EARLY.load(Ordering::Relaxed),
@@ -368,6 +620,15 @@ pub(crate) fn save(now: bool) {
         ),
         Err(e) => tracing::warn!(error = %e, "host pipeline library not saved"),
     }
+}
+
+fn write_cache(dir: &std::path::Path, blob: &[u8], prebuilt: Option<&str>) -> std::io::Result<()> {
+    let length = (blob.len() as u64).to_le_bytes();
+    let parts: &[&[u8]] = match prebuilt {
+        Some(index) => &[blob, index.as_bytes(), &length, FOOTER],
+        None => &[blob],
+    };
+    write_parts(&dir.join(LIBRARY_FILE), parts)
 }
 
 /// `n` zero bytes, or `None` when the host has no memory for them. The
@@ -385,6 +646,10 @@ fn zeroed(n: usize) -> Option<Vec<u8>> {
 /// `path`: a reader never sees a part. Serialised so concurrent worker and
 /// shutdown saves do not race on the same staging file or target rename.
 fn write_atomically(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<()> {
+    write_parts(path, &[bytes])
+}
+
+fn write_parts(path: &Path, parts: &[&[u8]]) -> io::Result<()> {
     use std::sync::atomic::AtomicU64;
     static WRITING: Mutex<()> = Mutex::new(());
     static NEXT: AtomicU64 = AtomicU64::new(0);
@@ -393,7 +658,10 @@ fn write_atomically(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<()>
     let mut name = path.file_name().unwrap_or_default().to_os_string();
     name.push(format!(".tmp-{}-{n}", std::process::id()));
     let tmp = path.with_file_name(name);
-    let res = std::fs::write(&tmp, bytes).and_then(|()| std::fs::rename(&tmp, path));
+    let mut file = File::create_new(&tmp)?;
+    let write = parts.iter().try_for_each(|part| file.write_all(part));
+    drop(file);
+    let res = write.and_then(|()| fs::rename(&tmp, path));
     if res.is_err() {
         let _ = std::fs::remove_file(&tmp);
     }
@@ -450,16 +718,49 @@ impl Used {
 static USED: Mutex<Option<Used>> = Mutex::new(None);
 static USED_CHANGED: AtomicBool = AtomicBool::new(false);
 
+static UNPUBLISHED_HINTS: OnceLock<String> = OnceLock::new();
+
+fn migrate_early(root: &Path, old: &[PathBuf]) -> io::Result<()> {
+    if old.is_empty() { return Ok(()); }
+    let path = root.join(EARLY_FILE);
+    let mut ordered = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => String::new(),
+        Err(e) => return Err(e),
+    };
+    // Pin every ancestor of each validated legacy entry until its removal.
+    // A junction or a concurrent directory rename must not redirect cleanup.
+    let mut guards = Vec::new();
+    for file in old {
+        let leaf = file.parent().unwrap();
+        let adapter = leaf.parent().unwrap();
+        for dir in [adapter.parent().unwrap(), adapter, leaf] {
+            guards.push(dirs::hold(dir, false)?);
+        }
+        if !dirs::regular(file) { return Err(io::Error::other("early list changed during migration")); }
+        ordered.push('\n');
+        ordered.push_str(&fs::read_to_string(file)?);
+    }
+    let merged = Used::read(&ordered).list().join("\n");
+    if let Err(error) = write_atomically(&path, merged.as_bytes()) {
+        let _ = UNPUBLISHED_HINTS.set(merged);
+        return Err(error);
+    }
+    for file in old { fs::remove_file(file)?; }
+    Ok(())
+}
+
 fn used() -> std::sync::MutexGuard<'static, Option<Used>> {
     let mut used = USED.lock().unwrap_or_else(|e| e.into_inner());
-    if used.is_none() {
-        let listed = DIR
-            .get()
+    static READ_DISK: OnceLock<()> = OnceLock::new();
+    if DIR.get().is_some() && READ_DISK.get().is_none() {
+        let listed = DIR.get().and_then(|d| d.parent())
             .and_then(|d| std::fs::read_to_string(d.join(EARLY_FILE)).ok())
             .unwrap_or_default();
-        let read = Used::read(&listed);
-        tracing::info!(pipelines = read.before.len(), "title pipelines to start early");
-        *used = Some(read);
+        let before = Used::read(UNPUBLISHED_HINTS.get().unwrap_or(&listed)).before;
+        tracing::info!(pipelines = before.len(), "title pipelines to start early");
+        used.get_or_insert_with(Used::default).before = before;
+        let _ = READ_DISK.set(());
     }
     used
 }
@@ -486,7 +787,91 @@ pub(crate) fn note_used(key: &str) {
 mod tests {
     use super::*;
 
+    #[test]
+    fn early_list_survives_driver_changes_and_unknown_drivers() {
+        const PHASE: &str = "VICTORY_EARLY_TEST_PHASE";
+        const ROOT: &str = "VICTORY_EARLY_TEST_ROOT";
+        if let Ok(phase) = std::env::var(PHASE) {
+            let root = PathBuf::from(std::env::var_os(ROOT).unwrap());
+            let source = root.join(victory_shader::SOURCE_HASH);
+            let desc = DXGI_ADAPTER_DESC1::default();
+            let dir = phase.parse::<i64>().ok().and_then(|v| namespace(&desc, Some(v)))
+                .map(|name| source.join(name).join("0123456789abcdef"));
+            LIBRARY_DIR.set(dir).unwrap();
+            use_pipeline_cache(root.clone());
+            assert!(wanted_early("legacy-draw"), "{phase}");
+            if phase != "1" { assert!(wanted_early("first-driver")); }
+            if phase == "2" { assert!(wanted_early("unknown-driver")); }
+            note_used(if phase == "unknown" { "unknown-driver" } else { "first-driver" });
+            save(true);
+            assert!(root.join(EARLY_FILE).is_file());
+            return;
+        }
+        let root = tempfile::tempdir().unwrap();
+        let legacy = root.path().join("0123456789abcdef")
+            .join(namespace(&DXGI_ADAPTER_DESC1::default(), Some(7)).unwrap())
+            .join("fedcba9876543210");
+        fs::create_dir_all(&legacy).unwrap();
+        fs::write(legacy.join(EARLY_FILE), "legacy-draw").unwrap();
+        let source = root.path().join(victory_shader::SOURCE_HASH);
+        let mut drivers = Vec::new();
+        for version in 1..=4 {
+            let driver = source.join(namespace(&DXGI_ADAPTER_DESC1::default(), Some(version)).unwrap());
+            let leaf = driver.join("0123456789abcdef");
+            fs::create_dir_all(&leaf).unwrap();
+            fs::write(leaf.join(LIBRARY_FILE), b"synthetic driver blob").unwrap();
+            drivers.push(driver);
+        }
+        for phase in ["1", "unknown", "2"] {
+            assert!(std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "pipeline::library::tests::early_list_survives_driver_changes_and_unknown_drivers"])
+                .env(ROOT, root.path()).env(PHASE, phase).status().unwrap().success());
+            if phase == "1" {
+                assert!(drivers[0].exists());
+                assert_eq!(drivers.iter().filter(|dir| dir.exists()).count(), 2);
+            }
+        }
+    }
+
+    #[test]
+    fn indexed_library_publishes_while_legacy_sidecar_is_busy() {
+        use std::os::windows::fs::OpenOptionsExt;
+        let root = tempfile::tempdir().unwrap();
+        let held = fs::OpenOptions::new().create_new(true).write(true).share_mode(0)
+            .open(root.path().join(PREBUILT_FILE)).unwrap();
+        let keys = HashSet::from(["draw".to_owned()]);
+        let blob = b"new driver bytes";
+        let index = list(&tag(blob), &keys);
+        write_cache(root.path(), blob, Some(&index)).unwrap();
+        let image = fs::read(root.path().join(LIBRARY_FILE)).unwrap();
+        let n = driver_length(&image);
+        assert_eq!(&image[..n], blob);
+        assert_eq!(listed(&image[n..image.len()-16], &tag(blob)), keys);
+        drop(held);
+    }
+
     /// A size the host cannot give is refused, not fatal; others are zeros.
+    #[test]
+    #[ignore]
+    fn hardware_metadata_matches_the_dxgi_driver_namespace() {
+        let host = crate::host::host().expect("test device");
+        // SAFETY: plain identifier query on the current live device.
+        let luid = unsafe { host.device.GetAdapterLuid() };
+        let start = std::time::Instant::now();
+        let fast = hardware_namespace(luid);
+        let t1 = start.elapsed();
+        let start = std::time::Instant::now();
+        let reference = dxgi_namespace(luid).expect("DXGI driver identity");
+        let t2 = start.elapsed();
+        if reference.starts_with("hw-") {
+            assert_eq!(fast.as_deref(), Some(reference.as_str()));
+        } else {
+            assert_eq!(adapter_namespace(&host.device).as_deref(), Some(reference.as_str()));
+        }
+        println!("IDENTITY kind={} kmt_us={:.3} dxgi_us={:.3}", &reference[..2],
+                 t1.as_secs_f64()*1e6, t2.as_secs_f64()*1e6);
+    }
+
     #[test]
     fn a_save_buffer_the_host_cannot_give_is_refused() {
         assert!(zeroed(usize::MAX / 2).is_none());
@@ -682,11 +1067,11 @@ mod tests {
                 }
             }
         }
-        let first = open(&device, Vec::new()).expect("an empty library");
-        let made = Shared(device.clone(), root.clone(), first.library.clone());
+        let first = open(&device, Vec::new(), false).expect("an empty library");
+        let made = Shared(device.clone(), root.clone(), first.loads.clone());
         (0..N).for_each(|i| made.store(i, &codes[i]));
-        let again = open(&device, made.serialized()).expect("the library again");
-        let shared = Shared(device, root, again.library.clone());
+        let again = open(&device, made.serialized(), false).expect("the library again");
+        let shared = Shared(device, root, again.loads.clone());
         let stores = Mutex::new(());
         std::thread::scope(|s| {
             for t in 0..8 {
@@ -807,14 +1192,115 @@ mod tests {
     }
 
     #[test]
+    fn libraries_are_separate_across_translator_driver_and_adapter() {
+        let hardware = DXGI_ADAPTER_DESC1 { DeviceId: 0x2b85, ..Default::default() };
+        let base = namespace(&hardware, Some(1));
+        assert_ne!(base, namespace(&hardware, Some(2)));
+        assert!(base.is_some());
+        assert!(namespace(&hardware, None).is_none());
+        assert_ne!(translator_dir("pso".into(), &[2; 32]), translator_dir("pso".into(), &[3; 32]));
+        let mut other = hardware;
+        other.DeviceId += 1;
+        assert_ne!(base, namespace(&other, Some(1)));
+        let mut warp = hardware;
+        warp.Flags |= DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32;
+        assert_ne!(base, namespace(&warp, Some(1)));
+    }
+
+    /// Run in separate processes so an in-memory library cannot satisfy
+    /// a disk hit. The third process gets the same pipeline name and a
+    /// deliberately rejected blob and must compile and dispatch it again.
+    #[cfg(feature = "diagnostics")]
+    #[test]
+    #[ignore = "requires an SM 6.6 adapter with a persistent pipeline library"]
+    fn reopened_library_loads_then_recovers_a_rejected_blob() {
+        const PHASE: &str = "VICTORY_TEST_PSO_PHASE";
+        const ROOT: &str = "VICTORY_TEST_PSO_ROOT";
+        if let Ok(phase) = std::env::var(PHASE) {
+            let root = PathBuf::from(std::env::var_os(ROOT).unwrap());
+            let host = crate::host::host().expect("D3D12 device");
+            if phase == "late" {
+                // A run without a configured disk cache has an in-memory PSO.
+                note_used("before-configuration");
+                let pixels = super::super::placed_uav_tests::run_store(host, |_| {}).unwrap();
+                assert_eq!(pixels, [[1.0, 0.5, -0.25, 2.0], [0.0; 4]]);
+                use_pipeline_cache(root.clone());
+                let dir = library_dir().unwrap();
+                let blob = std::fs::read(dir.join(LIBRARY_FILE)).unwrap();
+                assert!(wanted_early("old-draw"));
+                note_prebuilt("late-marker".to_owned());
+                save(true);
+                assert_eq!(std::fs::read(dir.join(LIBRARY_FILE)).unwrap(), blob);
+                let early = std::fs::read_to_string(root.join(EARLY_FILE)).unwrap();
+                assert!(early.lines().any(|k| k == "old-draw"));
+                assert!(early.lines().any(|k| k == "before-configuration"));
+                return;
+            }
+            use_pipeline_cache(root.clone());
+            let dir = library_dir().expect("cacheable driver version");
+            let blob = dir.join(LIBRARY_FILE);
+            if phase == "gameplay-save" {
+                let pixels = super::super::placed_uav_tests::run_store(host, |_| {}).unwrap();
+                assert_eq!(pixels, [[1.0, 0.5, -0.25, 2.0], [0.0; 4]]);
+                let shared = library().unwrap();
+                assert!(shared.initial_keys.get().is_none());
+                let (_root, pso) = crate::draw::tests::compile_cs(
+                    r#"[RootSignature("UAV(u0)")] [numthreads(1,1,1)]
+                        void main() {}"#,
+                );
+                pipeline("gameplay-save-test", |_, _| Err(windows::core::Error::empty()), || Ok(pso)).unwrap();
+                assert!(shared.initial_keys.get().is_none());
+                save(true);
+                assert!(shared.initial_keys().contains("old-marker"));
+                return;
+            }
+            if phase == "hit" || phase == "legacy" {
+                assert!(prebuilt("old-marker"));
+            }
+            if phase == "damaged" {
+                assert!(blob.is_file());
+                std::fs::write(&blob, b"invalid host pipeline library").unwrap();
+            }
+            let pixels = super::super::placed_uav_tests::run_store(host, |_| {}).unwrap();
+            assert_eq!(pixels, [[1.0, 0.5, -0.25, 2.0], [0.0; 4]]);
+            let hit = matches!(phase.as_str(), "hit" | "legacy" | "repaired");
+            assert_eq!(LOADED.load(Ordering::Relaxed), u64::from(hit));
+            assert_eq!(MADE.load(Ordering::Relaxed), u64::from(!hit));
+            if phase == "empty" {
+                note_used("old-draw");
+                note_prebuilt("old-marker".to_owned());
+            }
+            save(true);
+            assert!(std::fs::metadata(&blob).unwrap().len() > 32);
+            if phase == "hit" {
+                fs::rename(blob, root.join(LIBRARY_FILE)).unwrap();
+            } else if phase == "legacy" {
+                assert!(!root.join(LIBRARY_FILE).exists());
+            }
+            return;
+        }
+
+        let root = tempfile::tempdir().unwrap();
+        for phase in ["empty", "late", "gameplay-save", "hit", "legacy", "damaged", "repaired"] {
+            let child = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "pipeline::library::tests::reopened_library_loads_then_recovers_a_rejected_blob", "--ignored", "--nocapture"])
+                .env(PHASE, phase)
+                .env(ROOT, root.path())
+                .status()
+                .unwrap();
+            assert!(child.success(), "{phase}: {child}");
+        }
+    }
+
+    #[test]
     fn a_rejected_blob_gives_an_empty_library() {
         let Some(device) = crate::host::host().and_then(|h| h.device.cast::<ID3D12Device1>().ok()) else {
             return; // no host GPU here
         };
-        let library = open(&device, b"not a pipeline library".repeat(16)).expect("an empty library");
+        let library = open(&device, b"not a pipeline library".repeat(16), false).expect("an empty library");
         // SAFETY: a plain query on a live library.
-        assert!(unsafe { library.library.GetSerializedSize() } > 0);
-        assert!(library._blob.is_empty());
+        assert!(unsafe { library.loads.GetSerializedSize() } > 0);
+        assert!(library.image.is_empty());
     }
 
     #[test]

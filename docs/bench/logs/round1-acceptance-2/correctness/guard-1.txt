@@ -1,0 +1,13 @@
+exit=0  recorded_utc=2026-11-27T01:45:18Z
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\accept-r1\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.99s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-edf6be784a9cb342.exe)
+
+running 1 test
+guards_join joins=512 wall_ms=135.597 held_ms=0.286 max_hold_ms=0.008
+guards_join line=424 held_ms=0.183 max_ms=0.008
+guards_join line=402 held_ms=0.103 max_ms=0.005
+guards_join line=617 held_ms=0.000 max_ms=0.000
+test watch::tests::joining_a_guarded_pool_held_times ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 0.15s

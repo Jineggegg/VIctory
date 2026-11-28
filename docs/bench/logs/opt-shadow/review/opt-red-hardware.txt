@@ -1,0 +1,25 @@
+Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\opt-shadow\crates\victory-shader)
+   Compiling victory-formats v0.1.0 (E:\Projects\GTA-build\opt-shadow\crates\victory-formats)
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\opt-shadow\crates\victory-gpu)
+    Finished `diag` profile [optimized + debuginfo] target(s) in 26.06s
+     Running unittests src\lib.rs (target\diag\deps\victory_gpu-b3e12a1e6b92b6a6.exe)
+
+running 1 test
+test shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes ... review adapter=NVIDIA GeForce RTX 5090 software=false
+review title=[161, 178, 195] refreshed=65536 after=[161, 178, 195]
+
+thread 'shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes' (43856) panicked at crates\victory-gpu\src\shadow.rs:2723:9:
+assertion `left == right` failed: withheld mark on the same shadow page
+  left: [161, 178, 195]
+ right: [0, 0, 195]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 318 filtered out; finished in 0.31s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`

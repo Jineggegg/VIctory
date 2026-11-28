@@ -1,0 +1,57 @@
+6b1e408
+$env:VICTORY_WARP='1'; $env:VICTORY_D3D12_WARP='1'; cargo test --locked -p victory-shader --lib --features diagnostics emit::synthetic_tests -- --test-threads=1; exit $LASTEXITCODE
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\integ-base\crates\victory-shader)
+   Compiling windows-sys v0.61.2
+   Compiling syn v2.0.119
+   Compiling windows-interface v0.59.3
+   Compiling windows-implement v0.60.2
+   Compiling windows-core v0.62.2
+   Compiling windows-numerics v0.3.1
+   Compiling windows-collections v0.3.2
+   Compiling windows-future v0.3.2
+   Compiling windows v0.62.2
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 30.41s
+     Running unittests src\lib.rs (target\debug\deps\victory_shader-564f4d9b915b314b.exe)
+
+running 11 tests
+test emit::synthetic_tests::a_compare_mask_joined_with_data_on_the_skip_edge_is_0_there ... ok
+test emit::synthetic_tests::a_mask_joined_with_data_at_a_uniform_loop_is_its_number ... FAILED
+test emit::synthetic_tests::gathers_at_a_level_match_the_hardware ... ok
+test emit::synthetic_tests::gathers_at_a_level_that_may_be_a_fraction_stop ... ok
+test emit::synthetic_tests::ordered_pixel_sections_use_rasterizer_ordered_views ... ok
+test emit::synthetic_tests::permutes_mask_high_address_bits_and_divergent_branches ... FAILED
+test emit::synthetic_tests::permutes_read_the_lane_named_and_zero_from_lanes_left_out ... FAILED
+test emit::synthetic_tests::pops_wait_loop_exits_immediately_for_inactive_lanes ... ok
+test emit::synthetic_tests::relative_moves_in_waterfall_loops_reach_each_lane_s_element ... ok
+test emit::synthetic_tests::wave64_permutes_check_exec_within_each_half ... ok
+test emit::synthetic_tests::wave64_permutes_stay_within_each_32_lane_half ... ok
+
+failures:
+
+---- emit::synthetic_tests::a_mask_joined_with_data_at_a_uniform_loop_is_its_number stdout ----
+
+thread 'emit::synthetic_tests::a_mask_joined_with_data_at_a_uniform_loop_is_its_number' (42792) panicked at crates\victory-shader\src\emit\synthetic_tests.rs:613:13:
+hardware: no pipeline for a wave of 32
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- emit::synthetic_tests::permutes_mask_high_address_bits_and_divergent_branches stdout ----
+
+thread 'emit::synthetic_tests::permutes_mask_high_address_bits_and_divergent_branches' (63760) panicked at crates\victory-shader\src\emit\synthetic_tests.rs:434:13:
+hardware: no pipeline for a wave of 32
+
+---- emit::synthetic_tests::permutes_read_the_lane_named_and_zero_from_lanes_left_out stdout ----
+
+thread 'emit::synthetic_tests::permutes_read_the_lane_named_and_zero_from_lanes_left_out' (11028) panicked at crates\victory-shader\src\emit\synthetic_tests.rs:360:13:
+hardware: no pipeline for a wave of 32
+
+
+failures:
+    emit::synthetic_tests::a_mask_joined_with_data_at_a_uniform_loop_is_its_number
+    emit::synthetic_tests::permutes_mask_high_address_bits_and_divergent_branches
+    emit::synthetic_tests::permutes_read_the_lane_named_and_zero_from_lanes_left_out
+
+test result: FAILED. 8 passed; 3 failed; 0 ignored; 0 measured; 298 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `-p victory-shader --lib`
+
+exit=101

@@ -4,10 +4,9 @@
 //! an old translation, while rebuilding the rest of VIctory keeps them.
 //! Each translator's entries are in a folder of their own, named by the
 //! start of that key: older translators' folders can be deleted whole.
-//! Entries go through `victory-pipeline`'s content-addressed cache, which
-//! writes them atomically; an entry that does not read back is translated
-//! again. A container that does not translate is kept too, with the reason,
-//! so it is not tried again on every run.
+//! Entries are written beside their final path and atomically renamed.
+//! Reads verify both the container key and the payload checksum. Refusals
+//! are cached with their reason so they are not retried on every run.
 //!
 //! `victory translate --cache` fills the same cache ahead of a run, through
 //! [`host_shader`].
@@ -15,13 +14,14 @@
 //! The entry is our own encoding of [`HostShader`]; this file's text is part
 //! of the key, so changing the encoding invalidates every entry.
 
-use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::{Mutex, OnceLock};
+use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU64, Ordering};
 
-use victory_pipeline::{Cache, Converter};
+use std::io::{self, Write};
 use victory_shader::emit::{HostShader, StaticSampler, UserData};
-use victory_shader::{HwStage, RootType};
+use crate::pipeline::Translated;
+use victory_shader::{HwStage, ResourceType, RootType, UsedResource};
 
 static CACHE: OnceLock<Cache> = OnceLock::new();
 static HITS: AtomicU64 = AtomicU64::new(0);
@@ -30,12 +30,11 @@ static MISSES: AtomicU64 = AtomicU64::new(0);
 /// Keeps translated shaders in a folder of `dir` from now on: the folder
 /// of this translator, `None` if it cannot be opened.
 pub fn use_shader_cache(dir: PathBuf) -> Option<PathBuf> {
-    let dir = dir.join(&blake3::Hash::from(*build()).to_hex()[..16]);
+    let dir = dir.join(&blake3::Hash::from(*build(options())).to_hex()[..16]);
     match Cache::open(&dir) {
         Ok(cache) => {
             tracing::info!(dir = %dir.display(), "shader cache");
-            let _ = CACHE.set(cache);
-            Some(dir)
+            Some(CACHE.get_or_init(|| cache).dir.clone())
         }
         Err(e) => {
             tracing::warn!(error = %e, "no shader cache");
@@ -53,10 +52,13 @@ pub fn counts() -> (u64, u64) {
 /// (`victory_shader::SOURCE_HASH`: its sources, manifest, the lock file and
 /// the compiler), the entry's encoding (this file's text) and the
 /// translation settings (the loop limit, which a diagnostics build can
-/// change at run time).
-fn build() -> &'static [u8; 32] {
-    static BUILD: OnceLock<[u8; 32]> = OnceLock::new();
-    BUILD.get_or_init(|| {
+/// change at run time, and host support for view paging and wave marks: [`options`]).
+pub(crate) fn build(options: victory_shader::emit::Options) -> &'static [u8; 32] {
+    // Keep the key paired with the same options passed to the translator,
+    // including a scalar translation performed before a device was available.
+    static BUILDS: [OnceLock<[u8; 32]>; 4] = [const { OnceLock::new() }; 4];
+    let index = usize::from(options.view_pages) * 2 + usize::from(options.wave_marks);
+    BUILDS[index].get_or_init(|| {
         let limit = victory_shader::emit::loop_limit();
         if limit != victory_shader::emit::DEFAULT_LOOP_LIMIT {
             tracing::warn!(
@@ -64,114 +66,166 @@ fn build() -> &'static [u8; 32] {
                 "VICTORY_SHADER_LOOP_LIMIT: translated loops stop sooner"
             );
         }
-        key(victory_shader::SOURCE_HASH, ENCODING, limit)
+        key(
+            victory_shader::SOURCE_HASH,
+            ENCODING,
+            limit,
+            options.view_pages,
+            options.wave_marks,
+        )
+    })
+}
+
+/// How shaders are translated for this host: writes through views mark
+/// their pages (copy-backs compare only those,
+/// `crate::shadow::copy_back_marks`), and view heap indices go through the
+/// page table where the host's view heaps are paged
+/// (`crate::descriptor::host::view_pages`).
+pub fn options() -> victory_shader::emit::Options {
+    victory_shader::emit::Options {
+        view_marks: true,
+        view_pages: crate::descriptor::view_pages(),
+        wave_marks: host_wave_marks(),
+    }
+}
+
+fn host_wave_marks() -> bool {
+    use windows::Win32::Graphics::Direct3D12::*;
+    static CAPABLE: OnceLock<bool> = OnceLock::new();
+    let Some(host) = crate::host::host() else { return false };
+    *CAPABLE.get_or_init(|| {
+        let mut caps = D3D12_FEATURE_DATA_D3D12_OPTIONS1::default();
+        // SAFETY: the queried feature matches the structure and its size.
+        unsafe {
+            host.device.CheckFeatureSupport(
+                D3D12_FEATURE_D3D12_OPTIONS1,
+                (&raw mut caps).cast(),
+                size_of_val(&caps) as u32,
+            )
+        }.is_ok() && caps.WaveOps.as_bool()
     })
 }
 
 /// This file, whose `encode` and `decode` define the entries.
 const ENCODING: &[u8] = include_bytes!("shader_cache.rs");
 
-fn key(translator: &str, encoding: &[u8], limit: u32) -> [u8; 32] {
+pub(crate) fn key(translator: &str, encoding: &[u8], limit: u32, view_pages: bool, wave_marks: bool) -> [u8; 32] {
     let mut h = blake3::Hasher::new();
     h.update(translator.as_bytes());
     h.update(blake3::hash(encoding).as_bytes());
     h.update(&limit.to_le_bytes());
+    h.update(&[u8::from(view_pages), u8::from(wave_marks)]);
     *h.finalize().as_bytes()
 }
 
 /// The translation of a console shader container, from the cache when
 /// there is one, and whether it came from there.
 pub fn host_shader(container: &[u8]) -> (Result<HostShader, String>, bool) {
-    // Writes through views mark their pages: copy-backs compare only those
-    // (`crate::shadow::copy_back_marks`).
-    let options = victory_shader::emit::Options { view_marks: true };
-    let translate = |c: &[u8]| victory_shader::emit::translate_with(c, options).map_err(|e| e.to_string());
+    let (result, hit) = translated(container);
+    (result.map(|t| t.host), hit)
+}
+
+pub(crate) fn translated(container: &[u8]) -> (Result<Translated, String>, bool) {
+    let options = options();
+    let translate = |c: &[u8]| {
+        victory_shader::emit::translate_with_resources(c, options)
+            .map(|(host, used)| Translated { host, used })
+            .map_err(|e| e.to_string())
+    };
     match CACHE.get() {
-        Some(cache) => cached(cache, build(), container, translate),
+        Some(cache) => cached(cache, build(options), container, translate),
         None => (translate(container), false),
     }
 }
 
-/// The cache entry's converter: the build and the container in, the
-/// encoded translation (or refusal) out. `ran` tells a miss from a hit;
-/// `made` keeps a miss's translation, so the entry just written is not read
-/// back (the first read of a new file costs about as much as a small
-/// translation where a virus scanner looks at it: 0.5-3 ms here).
-struct Translate<F> {
-    translate: F,
-    ran: AtomicBool,
-    made: Mutex<Option<Result<HostShader, String>>>,
+/// A single directory per translator. A hit needs one file open, and a
+/// miss can stage its bytes in the already existing destination directory.
+pub(crate) struct Cache {
+    dir: PathBuf,
 }
 
-impl<F: Fn(&[u8]) -> Result<HostShader, String> + Send + Sync> Converter for Translate<F> {
-    fn id(&self) -> &'static str {
-        "shader.dxil"
+impl Cache {
+    pub(crate) fn open(dir: &Path) -> anyhow::Result<Self> {
+        victory_core::ensure_outside_repo(dir)?;
+        if dir.is_dir() {
+            remove_stale_temps(dir);
+        } else {
+            std::fs::create_dir_all(dir)?;
+        }
+        Ok(Self {
+            dir: dir.to_owned(),
+        })
     }
-    fn version(&self) -> u32 {
-        // The build fingerprint in the input does the versioning.
-        1
+
+    fn read(path: &Path, key: &[u8; 32]) -> Option<Result<Translated, String>> {
+        let entry = std::fs::read(path).ok()?;
+        let (bytes, digest) = entry.split_at(entry.len().checked_sub(32)?);
+        if blake3::keyed_hash(key, bytes).as_bytes() != digest {
+            return None;
+        }
+        decode(bytes)
     }
-    fn convert(&self, input: &[u8]) -> anyhow::Result<Vec<u8>> {
-        self.ran.store(true, Ordering::Relaxed);
-        let made = (self.translate)(&input[32..]);
-        let bytes = encode(&made);
-        *self.made.lock().unwrap_or_else(|e| e.into_inner()) = Some(made);
-        Ok(bytes)
+
+    fn stage(&self) -> io::Result<tempfile::NamedTempFile> {
+        // Create an ordinary file: persisting a Windows temporary-attribute
+        // file would also change its attributes on every publication.
+        tempfile::Builder::new().make_in(&self.dir, |p| {
+            std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(p)
+        })
+    }
+
+    fn write(&self, path: &Path, key: &[u8; 32], mut bytes: Vec<u8>) -> io::Result<()> {
+        let digest = blake3::keyed_hash(key, &bytes);
+        bytes.extend_from_slice(digest.as_bytes());
+        let mut stage = self.stage()?;
+        stage.write_all(&bytes)?;
+        std::fs::rename(stage.path(), path)?;
+        stage.disable_cleanup(true);
+        Ok(())
     }
 }
 
-fn cached(
+// tempfile's default names are .tmp plus six random alphanumerics.
+fn remove_stale_temps(dir: &Path) {
+    use std::time::{Duration, SystemTime};
+    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let now = SystemTime::now();
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        let Some(suffix) = name.to_str().and_then(|s| s.strip_prefix(".tmp")) else { continue };
+        if suffix.len() == 6 && suffix.bytes().all(|c| c.is_ascii_alphanumeric())
+            && let Ok(meta) = entry.metadata()
+            && meta.is_file() && !meta.file_type().is_symlink()
+            && let Ok(age) = meta.modified().and_then(|t| now.duration_since(t).map_err(io::Error::other))
+            && age >= Duration::from_secs(3600)
+            && let Err(error) = std::fs::remove_file(entry.path())
+        {
+            tracing::debug!(%error, "could not remove abandoned shader staging file");
+        }
+    }
+}
+
+pub(crate) fn cached(
     cache: &Cache,
     build: &[u8; 32],
     container: &[u8],
-    translate: impl Fn(&[u8]) -> Result<HostShader, String> + Send + Sync,
-) -> (Result<HostShader, String>, bool) {
-    let input = [&build[..], container].concat();
-    let converter = Translate {
-        translate,
-        ran: AtomicBool::new(false),
-        made: Mutex::new(None),
-    };
-    let made = || {
-        converter
-            .made
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .take()
-    };
-    for _ in 0..2 {
-        let path = match cache.get_or_convert(&converter, &input) {
-            Ok(path) => path,
-            Err(e) => {
-                tracing::warn!(error = format!("{e:#}"), "shader cache entry not written");
-                break;
-            }
-        };
-        if let Some(shader) = made() {
-            MISSES.fetch_add(1, Ordering::Relaxed);
-            tracing::debug!(path = %path.display(), "shader translated and cached");
-            return (shader, false);
-        }
-        if let Some(shader) = std::fs::read(&path).ok().and_then(|b| decode(&b)) {
-            let hit = !converter.ran.load(Ordering::Relaxed);
-            let (counter, what) = if hit {
-                (&HITS, "from the cache")
-            } else {
-                (&MISSES, "translated and cached")
-            };
-            counter.fetch_add(1, Ordering::Relaxed);
-            tracing::debug!(path = %path.display(), "shader {what}");
-            return (shader, hit);
-        }
-        tracing::debug!(path = %path.display(), "unreadable shader cache entry; translating again");
-        let _ = std::fs::remove_file(&path);
+    translate: impl Fn(&[u8]) -> Result<Translated, String>,
+) -> (Result<Translated, String>, bool) {
+    let key = blake3::keyed_hash(build, container);
+    let path = cache.dir.join(key.to_hex().as_str());
+    if let Some(shader) = Cache::read(&path, key.as_bytes()) {
+        HITS.fetch_add(1, Ordering::Relaxed);
+        return (shader, true);
     }
     MISSES.fetch_add(1, Ordering::Relaxed);
-    // A translation whose entry could not be written is not made again.
-    (
-        made().unwrap_or_else(|| (converter.translate)(container)),
-        false,
-    )
+    let shader = translate(container);
+    if let Err(e) = cache.write(&path, key.as_bytes(), encode(&shader)) {
+        tracing::debug!(error = %e, "shader cache entry not written");
+    }
+    (shader, false)
 }
 
 const MAGIC: &[u8; 4] = b"VSH1";
@@ -212,9 +266,37 @@ fn root_type(code: u32) -> RootType {
     }
 }
 
+fn encode_resource_type(out: &mut Vec<u8>, kind: ResourceType) {
+    match kind {
+        ResourceType::Srv => out.push(0),
+        ResourceType::Sampler => out.push(1),
+        ResourceType::Cbv => out.push(2),
+        ResourceType::Uav => out.push(3),
+        ResourceType::Other(x) => {
+            out.push(4);
+            out.push(x);
+        }
+    }
+}
+
+fn encode_root_type(out: &mut Vec<u8>, root: RootType) {
+    match root {
+        RootType::Constants => out.push(0),
+        RootType::Descriptor => out.push(1),
+        RootType::Table => out.push(2),
+        RootType::ImmediateSampler => out.push(3),
+        RootType::ResourceHeap => out.push(4),
+        RootType::SamplerHeap => out.push(5),
+        RootType::Other(x) => {
+            out.push(6);
+            out.extend_from_slice(&x.to_le_bytes());
+        }
+    }
+}
+
 /// Little-endian words and length-prefixed lists; a refusal is its
 /// reason's text.
-fn encode(translation: &Result<HostShader, String>) -> Vec<u8> {
+fn encode(translation: &Result<Translated, String>) -> Vec<u8> {
     let s = match translation {
         Ok(s) => s,
         Err(reason) => return [REFUSED.as_slice(), reason.as_bytes()].concat(),
@@ -236,7 +318,7 @@ fn encode(translation: &Result<HostShader, String>) -> Vec<u8> {
         heap,
         heap_writes,
         view_marks,
-    } = s;
+    } = &s.host;
     let mut out = MAGIC.to_vec();
     let word = |out: &mut Vec<u8>, v: u32| out.extend(v.to_le_bytes());
     let stage = STAGES.iter().position(|x| x == stage).unwrap_or(0) as u32;
@@ -287,10 +369,21 @@ fn encode(translation: &Result<HostShader, String>) -> Vec<u8> {
             | u32::from(*heap_writes) << 4
             | u32::from(*view_marks) << 5,
     );
+    word(&mut out, s.used.len() as u32);
+    for res in &s.used {
+        encode_resource_type(&mut out, res.kind);
+        encode_root_type(&mut out, res.root);
+        out.extend_from_slice(&res.table_offset_dwords.to_le_bytes());
+        out.extend_from_slice(&res.lower_bound.to_le_bytes());
+        out.extend_from_slice(&res.stride.to_le_bytes());
+        out.push(res.dwords);
+        out.push(res.user_data);
+        out.push(res.slot);
+    }
     out
 }
 
-fn decode(bytes: &[u8]) -> Option<Result<HostShader, String>> {
+fn decode(bytes: &[u8]) -> Option<Result<Translated, String>> {
     struct Reader<'a>(&'a [u8]);
     impl<'a> Reader<'a> {
         fn take(&mut self, n: usize) -> Option<&'a [u8]> {
@@ -300,6 +393,30 @@ fn decode(bytes: &[u8]) -> Option<Result<HostShader, String>> {
         }
         fn word(&mut self) -> Option<u32> {
             Some(u32::from_le_bytes(self.take(4)?.try_into().ok()?))
+        }
+        fn u8(&mut self) -> Option<u8> { Some(self.take(1)?[0]) }
+        fn resource_type(&mut self) -> Option<ResourceType> {
+            match self.u8()? {
+                0 => Some(ResourceType::Srv),
+                1 => Some(ResourceType::Sampler),
+                2 => Some(ResourceType::Cbv),
+                3 => Some(ResourceType::Uav),
+                4 => Some(ResourceType::Other(self.u8()?)),
+                _ => None,
+            }
+        }
+
+        fn root_type(&mut self) -> Option<RootType> {
+            match self.u8()? {
+                0 => Some(RootType::Constants),
+                1 => Some(RootType::Descriptor),
+                2 => Some(RootType::Table),
+                3 => Some(RootType::ImmediateSampler),
+                4 => Some(RootType::ResourceHeap),
+                5 => Some(RootType::SamplerHeap),
+                6 => Some(RootType::Other(self.word()?)),
+                _ => None,
+            }
         }
         fn list(&mut self) -> Option<Vec<u8>> {
             let n = self.word()? as usize;
@@ -348,7 +465,21 @@ fn decode(bytes: &[u8]) -> Option<Result<HostShader, String>> {
     let root_srvs = r.list()?;
     let root_uavs = r.list()?;
     let memory = r.word()?;
-    r.0.is_empty().then_some(Ok(HostShader {
+    let count = r.word()? as usize;
+    let mut used = Vec::with_capacity(count.min(256));
+    for _ in 0..count {
+        used.push(UsedResource {
+            kind: r.resource_type()?,
+            root: r.root_type()?,
+            table_offset_dwords: r.word()?,
+            lower_bound: r.word()?,
+            stride: r.word()?,
+            dwords: r.u8()?,
+            user_data: r.u8()?,
+            slot: r.u8()?,
+        });
+    }
+    let host = HostShader {
         stage,
         dxil,
         user_data,
@@ -363,15 +494,16 @@ fn decode(bytes: &[u8]) -> Option<Result<HostShader, String>> {
         heap: memory & 8 != 0,
         heap_writes: memory & 16 != 0,
         view_marks: memory & 32 != 0,
-    }))
+    };
+    r.0.is_empty().then_some(Ok(Translated { host, used }))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn shader() -> HostShader {
-        HostShader {
+    fn shader() -> Translated {
+        let host = HostShader {
             stage: HwStage::Ps,
             dxil: b"DXBC and the rest".to_vec(),
             user_data: vec![UserData {
@@ -396,7 +528,18 @@ mod tests {
             heap: true,
             heap_writes: true,
             view_marks: true,
-        }
+        };
+        let used = vec![UsedResource {
+            kind: ResourceType::Other(255),
+            root: RootType::Other(u32::MAX),
+            table_offset_dwords: 7,
+            lower_bound: 2,
+            stride: 32,
+            dwords: 8,
+            user_data: 3,
+            slot: 1,
+        }];
+        Translated { host, used }
     }
 
     #[test]
@@ -428,9 +571,12 @@ mod tests {
         assert_eq!(runs.load(Ordering::Relaxed), 2);
 
         // A damaged entry is a miss, translated and stored again.
-        for e in walk(dir.path()) {
-            std::fs::write(e, b"VSH1 broken").unwrap();
-        }
+        let path = cache
+            .dir
+            .join(blake3::keyed_hash(&build, container).to_hex().as_str());
+        let mut damaged = std::fs::read(&path).unwrap();
+        damaged[12] ^= 1; // DXIL payload: still decodes structurally.
+        std::fs::write(&path, damaged).unwrap();
         assert_eq!(
             cached(&cache, &build, container, translate),
             (Ok(shader()), false)
@@ -446,7 +592,7 @@ mod tests {
         let fails = AtomicU64::new(0);
         let fail = |_: &[u8]| {
             fails.fetch_add(1, Ordering::Relaxed);
-            Err::<HostShader, _>("unsupported".to_owned())
+            Err::<Translated, _>("unsupported".to_owned())
         };
         let refused = (Err("unsupported".to_owned()), false);
         assert_eq!(cached(&cache, &build, b"other", fail), refused);
@@ -454,15 +600,129 @@ mod tests {
         assert_eq!(fails.load(Ordering::Relaxed), 1);
     }
 
-    /// A translation whose entry cannot be written (the cache folder is
-    /// a file now) is handed back as it was made, not made again.
+    #[test]
+    fn concurrent_publication_of_one_key_survives_reopen() {
+        let dir = tempfile::tempdir().unwrap();
+        let caches: Vec<_> = (0..4).map(|_| Cache::open(dir.path()).unwrap()).collect();
+        let start = std::sync::Barrier::new(caches.len());
+        std::thread::scope(|scope| {
+            for cache in &caches {
+                scope.spawn(|| {
+                    let (result, hit) = cached(cache, &[7; 32], b"same key", |_| {
+                        start.wait(); // every connection observed the initial miss
+                        Ok(shader())
+                    });
+                    assert!(!hit);
+                    assert_eq!(result, Ok(shader()));
+                });
+            }
+        });
+        drop(caches);
+        let cache = Cache::open(dir.path()).unwrap();
+        assert_eq!(
+            cached(&cache, &[7; 32], b"same key", |_| panic!()),
+            (Ok(shader()), true)
+        );
+    }
+
+    // Same contested publication as upstream #2828: an external reader
+    // permits reads but prevents replacing the winner until it exits.
+    #[cfg(windows)]
+    #[test]
+    fn a_busy_destination_only_yields_hits_for_valid_content() {
+        use std::os::windows::fs::OpenOptionsExt;
+
+        for valid in [true, false] {
+            let dir = tempfile::tempdir().unwrap();
+            let cache = Cache::open(dir.path()).unwrap();
+            let build = [7; 32];
+            let container = b"contested";
+            let key = blake3::keyed_hash(&build, container);
+            let path = dir.path().join(key.to_hex().as_str());
+            let held = OnceLock::new();
+            let (first, hit) = cached(&cache, &build, container, |_| {
+                let mut bytes = encode(&Ok(shader()));
+                let digest = blake3::keyed_hash(key.as_bytes(), &bytes);
+                bytes.extend_from_slice(digest.as_bytes());
+                if !valid {
+                    bytes[12] ^= 1;
+                }
+                std::fs::write(&path, bytes).unwrap();
+                let reader = std::fs::OpenOptions::new()
+                    .read(true)
+                    .share_mode(1)
+                    .open(&path)
+                    .unwrap();
+                held.set(reader).unwrap();
+                Ok(shader())
+            });
+            assert_eq!((first, hit), (Ok(shader()), false));
+            let reopened = Cache::open(dir.path()).unwrap();
+            let lookup = || cached(&reopened, &build, container, |_| Ok(shader()));
+            assert_eq!(lookup(), (Ok(shader()), valid));
+            drop(held);
+            assert_eq!(lookup(), (Ok(shader()), valid));
+            assert_eq!(lookup(), (Ok(shader()), true));
+            assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+        }
+    }
+
+    #[test]
+    fn open_removes_only_old_shader_staging_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = Cache::open(dir.path()).unwrap();
+        let (old, path) = cache.stage().unwrap().keep().unwrap();
+        let stale = std::time::SystemTime::now() - std::time::Duration::from_secs(7200);
+        old.set_modified(stale).unwrap();
+        drop(old);
+        let fresh = cache.stage().unwrap();
+        let other = dir.path().join(".tmp-not-ours");
+        std::fs::File::create(&other).unwrap().set_modified(stale).unwrap();
+        Cache::open(dir.path()).unwrap();
+        assert!(!path.exists());
+        assert!(fresh.path().is_file() && other.is_file());
+    }
+
+    #[test]
+    fn interrupted_writer_preserves_only_published_entries() {
+        const CHILD: &str = "VICTORY_TEST_INTERRUPTED_SHADER_WRITER";
+        if let Some(dir) = std::env::var_os(CHILD) {
+            let cache = Cache::open(Path::new(&dir)).unwrap();
+            assert!(!cached(&cache, &[7; 32], b"committed", |_| Ok(shader())).1);
+            let mut partial = cache.stage().unwrap();
+            partial.write_all(b"incomplete shader").unwrap();
+            // Exit before the temporary file is published at a cache key.
+            std::process::exit(71);
+        }
+
+        let dir = tempfile::tempdir().unwrap();
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "shader_cache::tests::interrupted_writer_preserves_only_published_entries",
+            ])
+            .env(CHILD, dir.path())
+            .status()
+            .unwrap();
+        assert_eq!(status.code(), Some(71));
+        let cache = Cache::open(dir.path()).unwrap();
+        assert_eq!(
+            cached(&cache, &[7; 32], b"committed", |_| panic!()),
+            (Ok(shader()), true)
+        );
+        assert_eq!(
+            cached(&cache, &[7; 32], b"unfinished", |_| Ok(shader())),
+            (Ok(shader()), false)
+        );
+    }
+
     #[test]
     fn a_translation_is_made_once_when_its_entry_cannot_be_written() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path().join("cache");
         let cache = Cache::open(&root).unwrap();
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::write(&root, b"not a folder").unwrap();
+        std::fs::remove_dir(&root).unwrap();
+        std::fs::write(&root, b"not a directory").unwrap();
         let runs = AtomicU64::new(0);
         let translate = |_: &[u8]| {
             runs.fetch_add(1, Ordering::Relaxed);
@@ -480,37 +740,33 @@ mod tests {
     /// written before it is read.
     #[test]
     fn the_key_covers_translator_encoding_and_settings() {
-        let k = key("0123456789abcdef", b"encoding", 1 << 20);
-        assert_eq!(k, key("0123456789abcdef", b"encoding", 1 << 20));
-        assert_ne!(k, key("0123456789abcdee", b"encoding", 1 << 20));
-        assert_ne!(k, key("0123456789abcdef", b"encoding.", 1 << 20));
-        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 19));
+        let k = key("0123456789abcdef", b"encoding", 1 << 20, false, false);
+        assert_eq!(k, key("0123456789abcdef", b"encoding", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdee", b"encoding", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding.", 1 << 20, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 19, false, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 20, true, false));
+        assert_ne!(k, key("0123456789abcdef", b"encoding", 1 << 20, false, true));
+        let options = options();
+        let with_wave = build(victory_shader::emit::Options { wave_marks: true, ..options });
+        let scalar = build(victory_shader::emit::Options { wave_marks: false, ..options });
+        assert_ne!(with_wave, scalar);
         assert_eq!(
-            *build(),
+            *build(options),
             key(
                 victory_shader::SOURCE_HASH,
                 ENCODING,
-                victory_shader::emit::loop_limit()
+                victory_shader::emit::loop_limit(),
+                options.view_pages,
+                options.wave_marks
             )
         );
         // The encoding part is this file as built.
         assert!(
             std::str::from_utf8(ENCODING)
                 .unwrap()
-                .contains("fn encode(translation: &Result<HostShader, String>)")
+                .contains("fn encode(translation: &Result<Translated, String>)")
         );
-    }
-
-    fn walk(dir: &std::path::Path) -> Vec<PathBuf> {
-        let mut files = Vec::new();
-        for e in std::fs::read_dir(dir).unwrap().flatten() {
-            if e.path().is_dir() {
-                files.extend(walk(&e.path()));
-            } else {
-                files.push(e.path());
-            }
-        }
-        files
     }
 
     #[test]

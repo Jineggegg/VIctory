@@ -1,0 +1,32 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 15:34:04Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=4988/32607 MiB | power=24.68 W | temp=35.75 C | graphics=262 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.9s, 10 samples, max GPU=0%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+RUN c1 sha256=B8B2E8BB608E19B698202B9FA287C5D5F7AFEF6DC9B5BD38CE9F7C5B5DD13C70 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=1
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 321 filtered out; finished in 0.67s
+
+EXIT c1 round=1 code=0
+RUN c1 sha256=B8B2E8BB608E19B698202B9FA287C5D5F7AFEF6DC9B5BD38CE9F7C5B5DD13C70 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=2
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 321 filtered out; finished in 0.59s
+
+EXIT c1 round=2 code=0
+RUN c1 sha256=B8B2E8BB608E19B698202B9FA287C5D5F7AFEF6DC9B5BD38CE9F7C5B5DD13C70 filter=a_release_and_alias_during_parallel_groups_waits_for_them round=3
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 321 filtered out; finished in 0.58s
+
+EXIT c1 round=3 code=0
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+Restored studio-comfy.service=active studio-swarm.service=active

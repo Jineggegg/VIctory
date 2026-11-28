@@ -336,6 +336,9 @@ pub fn warm(paths: Vec<PathBuf>, jobs: Option<usize>, pipelines: bool) -> Result
     }
     let started = std::time::Instant::now();
     let seen = Mutex::new(HashSet::new());
+    // Files holding containers or the shader pack, passed to `prebuild::run`
+    // so it does not re-walk and re-read the entire game directory.
+    let mut relevant: Vec<PathBuf> = Vec::new();
     // Containers already cached, translated now, refused now.
     let counts = [const { AtomicUsize::new(0) }; 3];
     for root in &paths {
@@ -350,6 +353,11 @@ pub fn warm(paths: Vec<PathBuf>, jobs: Option<usize>, pipelines: bool) -> Result
                 continue;
             };
             let jobs = sources(&data);
+            if pipelines
+                && (data.starts_with(victory_game::shaderpack::MAGIC) || !jobs.is_empty())
+            {
+                relevant.push(entry.path().to_owned());
+            }
             let next = AtomicUsize::new(0);
             std::thread::scope(|s| {
                 let workers: Vec<_> = (0..threads.min(jobs.len()))
@@ -425,7 +433,7 @@ pub fn warm(paths: Vec<PathBuf>, jobs: Option<usize>, pipelines: bool) -> Result
         started.elapsed().as_secs_f64()
     );
     if pipelines {
-        crate::prebuild::run(&paths, threads)?;
+        crate::prebuild::run(&relevant, threads)?;
     }
     Ok(())
 }
@@ -568,7 +576,7 @@ fn translate(
                 if let (Some(r), Some(i), Some(s)) = (res, raised, structured) {
                     let label = || format!("{} {:?}", example(), p.stage);
                     *counter(t, p.stage, 0) += 1;
-                    let marks = emit::Options { view_marks: true };
+                    let marks = victory_gpu::shader_cache::options();
                     match emit::emit_with(&container, &p, &program, &s, &i, &r, marks) {
                         Ok(shader) => {
                             *counter(t, p.stage, 1) += 1;

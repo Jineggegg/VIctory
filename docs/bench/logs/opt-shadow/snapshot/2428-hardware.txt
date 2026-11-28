@@ -1,0 +1,18 @@
+running 1 test
+test shadow::snapshot_comparison::probe_snapshot_late_cpu_store ... snapshot adapter=NVIDIA GeForce RTX 5090 software=false
+
+thread 'shadow::snapshot_comparison::probe_snapshot_late_cpu_store' (26044) panicked at crates\victory-gpu\src\shadow.rs:1803:9:
+assertion `left == right` failed: CPU store during first snapshot
+  left: [161, 0, 0, 162]
+ right: [161, 0, 193, 162]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    shadow::snapshot_comparison::probe_snapshot_late_cpu_store
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 291 filtered out; finished in 0.35s
+
+error: test failed, to rerun pass `-p victory-gpu --lib`

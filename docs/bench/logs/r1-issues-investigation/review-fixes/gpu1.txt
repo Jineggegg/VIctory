@@ -1,0 +1,350 @@
+commit=8d39f2c0d100339e1aee1136d9b6796404bf5c90
+cargo test --locked -p victory-gpu
+exit=0
+   Compiling victory-gpu v0.1.0 (<worktree>\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.42s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-4ddd15aa5426e911.exe)
+
+running 314 tests
+test descriptor::host::tests::dynamic_powers_of_two_are_passed_once ... ok
+test descriptor::host::tests::a_texture_view_gives_its_image_descriptor_size_fields ... ok
+test descriptor::host::tests::empty_and_overlong_buffer_views_are_refused ... ok
+test descriptor::host::tests::integer_typed_buffer_views_are_marked_in_the_stride_table ... ok
+test descriptor::host::tests::null_uavs_keep_the_titles_dimension ... ok
+test bindless::tests::hulls_follow_the_ranges ... ok
+test descriptor::host::tests::the_dynamic_peak_follows_takes_and_releases ... ok
+test descriptor::pages::tests::a_page_read_again_with_no_room_presses_the_next_pass ... ok
+test descriptor::pages::tests::a_refused_write_relaxes_one_pass ... ok
+test descriptor::pages::tests::fixed_and_host_pages_are_never_taken_back ... ok
+test descriptor::pages::tests::pages_are_placed_once_on_first_write ... ok
+test descriptor::pages::tests::pages_are_taken_back_only_once_old_by_both_counts ... ok
+test descriptor::pages::tests::pages_refused_room_are_placed_again_when_there_is ... ok
+test descriptor::pages::tests::pages_taken_back_then_refused_room_count_as_placed_again ... ok
+test descriptor::pages::tests::pages_unused_for_a_few_submissions_are_taken_back_once_a_write_is_refused ... ok
+test descriptor::pages::tests::pages_unused_lately_are_taken_back_oldest_first ... ok
+test descriptor::pages::tests::pages_used_lately_stay_and_taken_back_ones_are_placed_again ... ok
+test descriptor::pages::tests::written_slots_are_counted_per_page ... ok
+test descriptor::pages::tests::young_pages_stay_while_no_write_is_refused ... ok
+test descriptor::host::tests::a_placed_texture_slot_left_null_is_made_once_a_draw_reads_it ... ok
+test descriptor::host::tests::views_bound_while_another_slot_gets_its_texture_do_not_wait ... ok
+test descriptor::host::tests::a_slot_rewritten_while_its_view_is_prepared_views_the_new_record ... ok
+test descriptor::host::tests::views_written_while_read_slots_get_their_textures_do_not_wait ... ok
+test descriptor::host::tests::heap_syncs_make_the_slots_whose_records_changed ... ok
+test descriptor::tests::heaps_hold_count_descriptors_from_their_start ... ok
+test descriptor::tests::null_cbv_clears_a_stale_view ... ok
+test descriptor::tests::placed_heaps_start_at_the_title_memory ... ok
+test descriptor::tests::final_release_drains_the_current_visit_and_invalidates_older_snapshots ... ok
+test descriptor::tests::views_die_with_their_resource ... ok
+test descriptor::tests::views_survive_copies ... ok
+test device::tests::a_healthy_device_reports_no_removal ... ok
+test device::tests::creation_hands_out_the_device ... ok
+test device::tests::feature_levels_pick_the_highest_supported ... ok
+test device::tests::newer_device_levels_are_the_same_device ... ok
+test device::tests::shader_model_and_wave_options_are_the_consoles ... ok
+test device::tests::the_device_is_found_at_every_level_through_others ... ok
+test device::tests::virtual_memory_configuration_reports_user_space ... ok
+test device::tests::the_hosts_children_hand_out_newer_device_levels ... ok
+test draw::tests::a_list_without_a_sampler_heap_gets_ours ... ok
+test descriptor::host::tests::a_slot_viewing_a_texture_given_up_is_made_again_when_read ... ok
+test descriptor::host::tests::a_paged_heap_of_every_slot_shaders_index_is_capped ... ok
+test descriptor::host::tests::a_generation_invalidated_during_prepare_cannot_publish_the_old_resource ... ok
+test descriptor::host::tests::view_addresses_cover_tables_made_afresh ... ok
+test descriptor::host::tests::structured_buffer_views_stay_raw_on_host_and_keep_stride_table ... ok
+test descriptor::host::tests::sync_dirty_mirrors_both_sides_of_unmapped_pages ... ok
+test descriptor::host::tests::batched_constants_in_the_scratch_page_are_remade_when_resident ... ok
+test descriptor::host::tests::sync_slots_handles_rewrites_clears_and_the_heap_cap ... ok
+test descriptor::tests::records_copied_as_bytes_are_made_at_the_next_sync ... ok
+test descriptor::host::tests::placed_uav_textures_create_real_host_uavs ... ok
+test descriptor::host::tests::dynamic_search_can_find_a_run_across_the_cursor ... ok
+test descriptor::host::tests::null_3d_uav_is_accepted_by_the_device ... ok
+test descriptor::host::tests::a_recorder_can_replace_a_slot_while_the_heap_sync_prepares_it ... ok
+test descriptor::tests::a_released_view_heap_drops_its_page_table ... ok
+test descriptor::host::tests::dynamic_slots_are_held_until_released ... ok
+test descriptor::host::tests::recorded_table_and_live_heap_observe_their_own_records ... ok
+test draw::tests::a_texture_given_up_is_made_again_with_its_bytes_and_recorded_lists_keep_it ... ok
+test draw::tests::a_list_run_after_a_host_write_keeps_the_host_texels ... ok
+test draw::tests::a_texture_written_in_one_format_reads_in_another_through_a_placed_view ... ok
+test draw::tests::a_page_taken_back_keeps_another_heaps_read_of_its_slot_for_eviction ... ok
+test draw::tests::flat_texture_table_without_a_resource_list_binds_a_full_view_heap ... ok
+test draw::tests::a_write_into_one_mip_uploads_that_mip_alone ... ok
+test dxgi::tests::out_of_range_enumeration_clears_output ... ok
+test dxgi::tests::startup_walks_from_device_to_output ... ok
+test fence::tests::fence1_interface_is_created_and_queried ... ok
+test fence::tests::signals_set_waiting_events ... ok
+test frame::tests::waits_begun_together_take_different_ticks ... ok
+test draw::tests::marked_subpage_uav_and_cpu_disjoint_write_three_way_merge ... ok
+test draw::tests::marked_subpage_uav_unaligned_and_cross_page_shadow_bounds ... ok
+test draw::tests::compute_view_marks_rebind_after_depth_twin_conversion ... ok
+test draw::tests::marked_unaligned_root_uav_and_bindless_subpage_refresh ... ok
+test hold::tests::a_fence_wait_holds_its_queue ... ok
+test hold::tests::a_list_waits_for_another_queues_write ... ok
+test hold::tests::a_queue_keeps_its_order ... ok
+test hold::tests::a_signal_waits_for_the_work_before_it ... ok
+test hold::tests::a_wait_that_holds_defers_nothing ... ok
+test hold::tests::chained_waits_across_two_queues ... ok
+test hold::tests::comparisons_test_the_masked_value ... ok
+test hold::tests::the_valve_releases_only_old_heads ... ok
+test hold::tests::unknown_comparisons_are_counted_and_do_not_hold_work ... ok
+test hold::tests::work_held_at_the_frames_end_stays_held ... ok
+test bindless::tests::heap_views_are_current ... ok
+test host::batch::ranges_of_a_copy_stay_disjoint ... ok
+test host::batch::a_page_between_flushed_ranges_is_refreshed_when_asked_for ... ok
+test host::batch::the_gap_between_copied_ranges_is_not_covered ... ok
+test host::tests::a_breadcrumb_node_is_found_by_pointer_or_by_name ... ok
+test host::batch::distant_refreshes_of_a_copy_are_copied_apart ... ok
+test host::batch::a_copy_is_refreshed_once_per_submission_by_the_pages_written ... ok
+test host::batch::a_page_copied_in_two_halves_is_refreshed_whole ... ok
+test draw::tests::structured_views_off_their_buffers_elements_get_their_own_copy ... ok
+test draw::tests::marked_subpage_uav_writes_copy_back_and_keep_neighbor_bytes ... ok
+test draw::tests::marked_subpage_uavs_after_copy_in_same_list ... ok
+test host::tests::is_node_reads_the_name_the_runtime_copied ... ok
+test host::tests::swap_chain_failures_retry_once_per_second_and_success_clears_the_wait ... ok
+test bindless::tests::heap_views_follow_writes_through_another_mapping ... ok
+test host::tests::a_list_knows_every_pointer_it_answers_with ... ok
+test draw::tests::placed_unordered_textures_write_and_read_back_through_placed_views ... ok
+test host::tests::heap_textures_unread_lately_are_not_brought_up ... ok
+test host::tests::heap_textures_brought_up_together_each_get_their_upload ... ok
+test host::tests::warp_adapter_accepts_only_software ... ok
+test host::title_copies::copy_back_writes_mapped_pages_only ... ok
+test host::tests::read_marks_of_both_bitmaps_are_taken ... ok
+test host::title_copies::title_copies_reach_mapped_destinations_and_stop_at_unmapped_pages ... ok
+test draw::tests::a_texture_owning_its_pages_is_uploaded_on_any_write ... ok
+test draw::tests::textures_uploaded_together_each_read_their_own_bytes ... ok
+test host::tests::present_compositor_builds_both_pipeline_states ... ok
+test indirect::tests::argument_clamp_builds ... ok
+test host::tests::view_heap_pages_placed_by_a_read_keep_the_texture_made_for_it ... ok
+test host::tests::view_heap_pages_taken_back_make_their_buffer_views_again ... ok
+test list::tests::every_inline_command_falls_back_to_the_table ... ok
+test list::tests::lists_bind_the_initial_pipeline_on_creation ... ok
+test draw::tests::root_views_reach_their_copy_and_read_zeros_past_it ... ok
+test list::tests::resolve_queries_rejects_overflowing_offset ... ok
+test list::tests::unordered_access_clears_have_the_same_slots_in_both_layouts ... ok
+test memory::tests::a_miss_holds_back_its_frame_and_the_next ... ok
+test host::tests::view_heap_slots_written_with_no_room_are_made_when_their_page_is_placed ... ok
+test memory::tests::addresses_find_the_copy_holding_them ... ok
+test host::withholding::only_programs_using_title_memory_are_withheld ... ok
+test memory::tests::has_missed_checks_block_zero_out_of_range_unowned_and_owned ... ok
+test draw::tests::a_texture_is_uploaded_once_per_submission_and_only_when_written ... ok
+test memory::tests::table_skips_overflowing_and_out_of_range_copies ... ok
+test object::tests::benchmark_private_data_release ... ignored, synthetic release benchmark; run with --release --ignored --nocapture
+test object::tests::every_object_answers_for_iunknown ... ok
+test object::tests::final_release_clears_private_data_before_drop ... ok
+test object::tests::guids_round_trip_through_text ... ok
+test object::tests::private_data_is_scoped_to_object_and_id ... ok
+test object::tests::unimplemented_calls_report_their_argument_registers ... ok
+test indirect::tests::a_record_that_does_not_fit_ends_the_budget ... ok
+test pipeline::depth_bounds_test::depth_bounds_flag_changes_the_stream_state ... ok
+test pipeline::host::tests::a_huge_explicit_offset_does_not_overflow ... ok
+test pipeline::host::tests::appended_elements_are_aligned ... ok
+test indirect::tests::a_spent_budget_stays_spent ... ok
+test pipeline::host::tests::blend_states_without_integer_blending_are_kept ... ok
+test pipeline::host::tests::integer_targets_do_not_blend ... ok
+test draw::tests::a_depth_texture_written_through_unordered_views_reads_as_depth ... ok
+test draw::tests::unordered_1d_and_3d_textures_keep_their_writes ... ok
+test pipeline::library::tests::a_pipeline_loads_while_a_save_holds_the_library ... ok
+test pipeline::library::tests::a_rejected_blob_gives_an_empty_library ... ok
+test pipeline::library::tests::a_save_buffer_the_host_cannot_give_is_refused ... ok
+test host::tests::heap_reads_since_the_last_pass_name_their_textures ... ok
+test memory::tests::a_full_table_names_the_largest_copies ... ok
+test pipeline::library::tests::different_names_are_held_at_the_same_time ... ok
+test pipeline::library::tests::hardware_metadata_matches_the_dxgi_driver_namespace ... ignored
+test host::tests::view_heap_pages_taken_back_are_placed_again_when_read ... ok
+test pipeline::library::tests::libraries_are_separate_across_translator_driver_and_adapter ... ok
+test pipeline::library::tests::names_change_with_what_goes_into_the_pipeline ... ok
+test indirect::tests::argument_buffers_move_from_their_current_states ... ok
+test pipeline::library::dirs::tests::retire_drivers_per_device_skip_busy_blobs_and_unmarked_directories ... ok
+test draw::tests::explicit_and_placed_rgba8_textures_at_one_address_share_compute_writes ... ok
+test pipeline::library::tests::the_prebuilt_list_holds_for_its_library_only ... ok
+test pipeline::make::tests::draws_go_ahead_of_early_starts ... ok
+test pipeline::make::tests::first_use_is_made_by_a_worker ... ok
+test pipeline::library::dirs::tests::retire_only_marked_translators_keep_current_newest_and_busy ... ok
+test pipeline::tests::a_prebuild_is_the_pipeline_the_title_creates ... ok
+test pipeline::tests::a_stream_of_any_alignment_is_read ... ok
+test pipeline::tests::bench_prebuild_key_vs_full ... ignored, benchmark
+test pipeline::tests::pipelines_keep_their_shaders ... ok
+test pipeline::tests::prebuild_key_shortcuts_match_full_prebuild_keys ... ok
+test pipeline::tests::streams_yield_their_shaders ... ok
+test draw::tests::a_placed_texture_read_with_no_page_free_is_made_after_one_submission ... ok
+test placement::tests::ranges_are_taken_first_fit_and_joined_when_given_back ... ok
+test primitive::tests::elements_past_the_stride_are_left_alone ... ok
+test primitive::tests::half_subnormals_convert_in_both_directions ... ok
+test primitive::tests::halves_round_up_into_the_next_power_of_two ... ok
+test primitive::tests::multiple_rectangles_and_f32_f16_vector_formats_expand_in_sequence ... ok
+test primitive::tests::normalized_attributes_are_interpolated_in_their_own_range ... ok
+test primitive::tests::rectangles_complete_opposite_their_right_angle ... ok
+test placement::tests::a_range_is_reused_only_once_nothing_holds_its_texture ... ok
+test primitive::tests::rectangles_get_their_fourth_corner ... ok
+test primitive::tests::unorm16_unorm8_clamping_and_unknown_formats_expand_correctly ... ok
+test primitive::tests::zero_or_overflowing_stride_is_ignored_without_panicking ... ok
+test query::tests::heaps_answer_their_interfaces_and_count_references ... ok
+test query::tests::creation_without_an_out_pointer_only_probes ... ok
+test query::tests::null_descriptions_are_rejected ... ok
+test queue::tests::console_queues_are_created_as_on_pc ... ok
+test queue::tests::newer_queues_have_their_methods_two_slots_later ... ok
+test queue::tests::queue_signals_complete_at_once ... ok
+test queue::tests::timestamps_and_values_are_written ... ok
+test resource::tests::a8_unorm_is_not_in_the_r8_typeless_family ... ok
+test pipeline::library::tests::a_full_early_list_drops_the_oldest_runs_keys ... ok
+test resource::tests::a_null_view_has_no_alias_source ... ok
+test host::tests::list_scratch_grows_to_fit_and_reuses_fenced_chunks ... ok
+test resource::tests::a_regions_rows_in_a_footprint ... ok
+
+running 1 test
+test pipeline::library::tests::the_early_list_keeps_this_run_first ... ok
+test resource::tests::castable_formats_share_the_element ... ok
+test resource::tests::committed_and_placed_resources_map_at_their_gpu_address ... ok
+test resource::tests::depth_stencil_footprints_follow_the_pc_plane_order ... ok
+test resource::tests::device_setup_heap_properties_and_resources_at_addresses ... ok
+test resource::tests::heaps_are_zeroed_aligned_memory ... ok
+test pipeline::library::tests::one_name_is_held_by_one_thread_at_a_time ... ok
+test resource::tests::idle_textures_go_and_past_the_budget_the_least_recently_used ... ok
+test resource::tests::host_textures_are_made_on_first_use_with_every_use_of_their_memory ... ok
+test resource::tests::one_memory_one_key_in_any_format_of_its_element ... ok
+test resource::tests::placed_textures_made_side_by_side_are_one_each ... ok
+test resource::tests::sizes_cover_every_mip ... ok
+test resource::tests::upload_footprints_follow_the_pc_rules ... ok
+test root::tests::console_flags_are_dropped_and_the_rest_kept ... ok
+test root::tests::creating_a_root_signature_checks_its_arguments ... ok
+test root::tests::descriptions_keep_the_pc_layout ... ok
+test root::tests::deserializer_creation_rejects_missing_arguments ... ok
+test root::tests::every_known_interface_creates_a_working_object ... ok
+test root::tests::host_serialized_blobs_create_root_signatures ... ok
+test root::tests::malformed_blobs_are_rejected_by_the_host ... ok
+test root::tests::our_blobs_deserialize_on_the_host ... ok
+test root::tests::serializers_reject_a_null_description ... ok
+test root::tests::the_table_has_the_object_and_device_child_slots ... ok
+test root::tests::versioned_descriptions_serialize_on_the_host ... ok
+test sampler::tests::anisotropic_samplers_keep_point_mips_where_the_host_can ... ok
+test sampler::tests::bias_address_and_comparison_stay_in_host_bounds ... ok
+test sampler::tests::console_descriptions_decode ... ok
+test sampler::tests::mip_none_clamps_to_min_lod_and_inverted_lod_range_clamps ... ok
+test sampler::tests::the_host_takes_its_anisotropic_samplers ... ok
+test shader_cache::tests::a_busy_destination_only_yields_hits_for_valid_content ... ok
+test shader_cache::tests::a_translation_is_made_once_when_its_entry_cannot_be_written ... ok
+test resource::tests::only_textures_fed_from_title_memory_are_given_up ... ok
+test shader_cache::tests::concurrent_publication_of_one_key_survives_reopen ... ok
+test shader_cache::tests::entries_round_trip_and_reject_damage ... ok
+test shader_cache::tests::open_removes_only_old_shader_staging_files ... ok
+test shader_cache::tests::the_key_covers_translator_encoding_and_settings ... ok
+test shader_cache::tests::translations_come_back_from_the_cache ... ok
+
+running 1 test
+test pipeline::library::tests::concurrent_write_atomically_never_fails_or_truncates ... ok
+test shader_cache::tests::interrupted_writer_preserves_only_published_entries ... ok
+test pipeline::library::tests::indexed_library_publishes_while_legacy_sidecar_is_busy ... ok
+test shadow::tests::failed_store_retries_only_bytes_after_the_completed_prefix ... ok
+test shadow::tests::bytes_off_the_runtimes_memory_are_copied_at_each_use ... ok
+test shadow::tests::arena_runs_are_aligned_to_their_elements_and_join_again ... ok
+test shadow::tests::inaccessible_store_retries_mapped_bytes_beyond_the_hole ... ok
+test shadow::tests::last_word_keeps_all_allocatable_marks ... ok
+test shadow::tests::mark_runs_are_reused_and_joined ... ok
+test shadow::tests::late_cpu_bytes_in_short_gaps_survive_exact_stores ... ok
+test pipeline::library::tests::pipelines_load_on_many_threads_at_once ... ok
+test shadow::tests::one_cpu_store_crosses_two_gpu_written_pages ... ok
+test shadow::tests::fragmented_megabyte_snapshot_needs_no_kernel_writes ... ok
+test shadow::tests::overlapping_snapshot_does_not_replay_cpu_bytes_from_a_marked_page ... ok
+test shadow::tests::overlapping_snapshots_keep_late_cpu_stores ... ok
+test shadow::tests::partial_snapshot_after_a_full_page_preserves_a_new_cpu_store ... ok
+test frame::tests::waits_end_on_ticks_and_count_frames ... ok
+test host::tests::textures_read_every_frame_stay_and_title_lists_stamp_theirs ... ok
+test shadow::tests::readable_partial_snapshot_retries_after_a_full_page_read_fails ... ok
+test shadow::tests::snapshot_stores_retry_a_guard_installed_after_reading_the_title ... ok
+test pipeline::depth_bounds_test::depth_bounds_control_a_title_draw ... ok
+test shadow::tests::snapshots_cover_the_declared_ranges_and_writes_go_back_once ... ok
+test shadow::tests::title_writes_under_a_busy_range_are_copied ... ok
+test shadow::tests::title_write_mid_scan_uses_the_pre_write_snapshot ... ok
+test shadow::tests::unmarked_snapshot_preserves_late_cpu_bytes_across_a_page_boundary ... ok
+test shadow::tests::what_a_frame_withholds_leaves_the_copies_at_its_end ... ok
+test descriptor::host::overlap_test::an_evicted_buffer_reads_through_the_dedicated_null_srv ... ok
+test indirect::tests::rejected_records_do_not_wrap_the_budget ... ok
+test signature::tests::arguments_are_copied_out_of_title_memory ... ok
+test signature::tests::creation_without_an_out_pointer_only_probes ... ok
+test signature::tests::null_or_argument_free_descriptions_are_rejected ... ok
+test signature::tests::signatures_answer_their_interfaces_and_count_references ... ok
+test signature::tests::signatures_without_arguments_stay_empty ... ok
+test switch::tests::one_is_on ... ok
+test switch::tests::other_values_keep_their_old_meaning ... ok
+test switch::tests::unset_is_off ... ok
+test switch::tests::zero_is_off ... ok
+test tdr::tests::a_missing_value_reads_as_the_default ... ok
+test tdr::tests::delay_alone_does_not_warn ... ok
+test tdr::tests::off_and_bugcheck_warn ... ok
+test tdr::tests::recovery_and_the_default_do_not_warn ... ok
+test tdr::tests::shown_names_the_default ... ok
+test shadow::tests::marked_pages_go_back_by_the_bytes_the_gpu_changed ... ok
+test shadow::tests::marks_of_shaders_using_title_memory_are_held_back ... ok
+test shadow::writeback_merge_matches_bytewise_oracle ... ok
+test shadow::tests::partial_refresh_under_marked_range_updates_saved_bytes ... ok
+test shadow::tests::physical_aliases_merge_cross_page_gpu_and_cpu_stores ... ok
+test shadow::tests::publish_valid_declaration_beside_a_withheld_write_on_one_page ... ok
+test texture::tests::committed_rejects_overflow_and_noaccess_pages ... ok
+test texture::tests::subresource_len_stays_inside_staging_total ... ok
+test twin::tests::copies_follow_the_side_each_use_needs ... ok
+test draw::tests::a_placed_texture_in_a_page_taken_back_is_made_after_one_submission_reads_it ... ok
+test watch::tests::a_busy_alias_leaves_the_page_changed_and_keeps_saved_bytes ... ok
+test watch::tests::a_live_tracker_observes_a_reported_recommit_without_registering_again ... ok
+test watch::tests::a_new_tracker_rearms_a_recommitted_page_with_a_live_predecessor ... ok
+test watch::tests::a_new_tracker_recognizes_a_hole_in_an_inherited_guard ... ok
+test indirect::tests::the_budget_goes_to_the_first_records ... ok
+test shadow::tests::withheld_and_ordinary_marks_on_one_shadow_page_keep_its_title_bytes ... ok
+test watch::tests::a_new_tracker_starts_dirty_on_a_bit_given_back ... ok
+test watch::tests::a_range_over_foreign_memory_guards_only_the_runtimes ... ok
+test watch::tests::a_retake_marks_buffer_copies_alone ... ok
+test watch::tests::a_reported_alias_with_an_inherited_guard_observes_the_next_write ... ok
+test watch::tests::a_retake_marks_the_copies_and_keeps_the_guard ... ok
+test watch::tests::a_stale_query_does_not_open_a_guard_reinstalled_before_registration ... ok
+test watch::tests::a_tracker_dropped_on_one_mapping_leaves_the_other_guarded ... ok
+test watch::tests::adjacent_and_overlapping_armed_runs_coalesce ... ok
+test shadow::tests::withheld_byte_on_each_side_of_a_boundary_blocks_both_marked_pages ... ok
+test watch::tests::armed_ranges_keep_their_pages_bytes_from_before_the_first_write ... ok
+test watch::tests::heap_memory_is_not_tracked_and_placeholders_wait_for_mappings ... ok
+test watch::tests::partial_pages_stay_changed ... ok
+test watch::tests::kernel_reads_into_guarded_blocks_after_opening ... ok
+test watch::tests::ranges_past_the_address_space_end_do_not_overflow ... ok
+test watch::tests::unmapped_pages_are_taken_apart ... ok
+test watch::tests::writes_mark_every_tracker_of_their_page ... ok
+test watch::tests::writes_through_another_mapping_mark_the_tracker ... ok
+test resource::tests::buffer_data_reaches_the_host_texture ... ok
+test twin::tests::prelude_copies_start_from_the_real_states ... ok
+test draw::tests::a_placed_texture_read_with_no_room_before_is_made_after_one_submission ... ok
+test memory::tests::a_submission_that_missed_leaves_the_copies_at_once ... ok
+test resource::tests::a_texture_read_back_reaches_the_title_buffer ... ok
+test memory::tests::bitmap_pool_reuses_and_zeroes_across_resets ... ok
+test shadow::tests::a_replacement_buffer_tracks_cpu_writes_at_its_predecessors_address ... ok
+test pipeline::library::tests::early_list_survives_driver_changes_and_unknown_drivers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 313 filtered out; finished in 0.30s
+
+test resource::tests::a_list_waiting_for_another_queues_write_reads_what_it_wrote ... ok
+test texture::readback_tests::non_xor_msaa_does_not_retry_without_a_write ... ok
+test queue::tests::aliased_present_planes_preserve_the_host_texture_state ... ok
+test memory::tests::lists_share_a_table_and_copies_keep_their_views ... ok
+test texture::readback_tests::permanent_detile_error_consumes_dirty_pages_once ... ok
+test pipeline::view_marks_tests::raster_helpers_and_compute_stores_mark_exact_view_pages ... ok
+test texture::readback_tests::recorded_tail_update_survives_an_intervening_texture_submission ... ok
+test texture::readback_tests::mixed_texture_detects_changes_to_private_pages_alone ... ok
+
+running 1 test
+test pipeline::library::tests::early_list_survives_driver_changes_and_unknown_drivers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 313 filtered out; finished in 0.00s
+
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+test draw::tests::structured_clear::structured_clears_preserve_neighbor_words_in_the_shared_buffer ... ok
+test texture::readback_tests::array_mips_match_full_detile_after_repeated_updates ... ok
+test descriptor::host::overlap_test::gpu_writes_visible_through_overlapping_views ... ok
+test pipeline::library::tests::early_list_survives_driver_changes_and_unknown_drivers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 313 filtered out; finished in 0.28s
+
+test pipeline::library::tests::early_list_survives_driver_changes_and_unknown_drivers ... ok
+
+test result: ok. 311 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.00s
+
+   Doc-tests victory_gpu
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

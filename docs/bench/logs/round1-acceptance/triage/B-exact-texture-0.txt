@@ -1,0 +1,62 @@
+2026-11-26T22:56:41Z
+$env:VICTORY_WARP='0'; $env:VICTORY_D3D12_WARP='0'; foreach ($i in 1..5) { cargo test --locked -p victory-gpu --lib --features diagnostics texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows -- --exact --test-threads=1; Write-Output "trial=$i code=$LASTEXITCODE" }; exit 0
+   Compiling windows-sys v0.61.2
+   Compiling syn v3.0.10
+   Compiling windows v0.62.2
+   Compiling nu-ansi-term v0.50.3
+   Compiling tempfile v3.27.0
+   Compiling tracing-subscriber v0.3.23
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.229
+   Compiling thiserror v2.0.21
+   Compiling serde v1.0.229
+   Compiling victory-core v0.1.0 (E:\Projects\GTA-build\integ-r1\crates\victory-core)
+   Compiling victory-shader v0.1.0 (E:\Projects\GTA-build\integ-r1\crates\victory-shader)
+   Compiling victory-gpu v0.1.0 (E:\Projects\GTA-build\integ-r1\crates\victory-gpu)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 24.12s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-edf6be784a9cb342.exe)
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.38s
+
+trial=1 code=0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-edf6be784a9cb342.exe)
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.33s
+
+trial=2 code=0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-edf6be784a9cb342.exe)
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.37s
+
+trial=3 code=0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-edf6be784a9cb342.exe)
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.48s
+
+trial=4 code=0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src\lib.rs (target\debug\deps\victory_gpu-edf6be784a9cb342.exe)
+
+running 1 test
+test texture::readback_tests::tails_small_mips_cube_faces_and_depth_copy_complete_rows ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 333 filtered out; finished in 0.41s
+
+trial=5 code=0
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04"><Obj S="progress" RefId="0"><TN RefId="0"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N="SourceId">1</I64><PR N="Record"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj><Obj S="progress" RefId="1"><TNRef RefId="0" /><MS><I64 N="SourceId">1</I64><PR N="Record"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj></Objs>
+exit=0

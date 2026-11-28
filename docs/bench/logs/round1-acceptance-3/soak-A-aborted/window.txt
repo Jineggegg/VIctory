@@ -1,0 +1,13 @@
+Local build-queue slots reserved: 4
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+2026-11-27 02:49:34Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=2% | VRAM=5291/32607 MiB | power=56.35 W | temp=36.28 C | graphics=780 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+Idle window: 11.9s, 10 samples, max GPU=3%, active 3D/Compute=none
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=True
+stage=soak-A SHA256=888ed490721961cfa2128e4343f91998d47625995a284b6eb2720ec60f21e4a6 profile=diag toolchain=../toolchain/env.ps1
+warm_ready=True stable_ms=3306 pstate=P0 core_mhz=2887 mem_mhz=14001 pcie=5x16
+soak minute 1 threads=14 observation_age_ms=31
+soak minute 2 threads=15 observation_age_ms=140
+soak minute 3 threads=13 observation_age_ms=440
+soak minute 4 threads=12 observation_age_ms=239

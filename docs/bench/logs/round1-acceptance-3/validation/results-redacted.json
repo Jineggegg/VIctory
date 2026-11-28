@@ -1,0 +1,107 @@
+{
+  "started_utc": "2026-11-27T09:34:56.9228321Z",
+  "commit": "54c8ae9409302b294b66b3cf768d1537985032e9",
+  "source_changes": "",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-pc-windows-msvc\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "profile": "diag (release code generation), diagnostics; debug layer off during timings",
+  "cpu": "Intel(R) Core(TM) Ultra 9 285K",
+  "ram_bytes": 136871063552,
+  "os": "10.0.26300",
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 5090",
+    "uuid": "<GPU-UUID>",
+    "driver": "621.14",
+    "memory_mib": "32607"
+  },
+  "max_pre_sample_gpu_utilization_pct": 10,
+  "requested_samples": 0,
+  "validation_status": "failed",
+  "process_crashes": 0,
+  "failed_runs": 1,
+  "runs": [
+    {
+      "mode": "check",
+      "index": 0,
+      "utc": "2026-11-27T09:34:58.8550308Z",
+      "pre_run": {
+        "uuid": "<GPU-UUID>",
+        "gpu_pct": "0",
+        "used_mib": "5150",
+        "temp_c": "34.00"
+      },
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "compute_local_mb": 54.157312,
+        "compute_working_set_bytes": 155680768,
+        "rgba": [
+          [
+            1.0,
+            0.5,
+            -0.25,
+            2.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "depth_local_mb": 22.13888,
+        "depth_working_set_bytes": 117702656,
+        "depth": [
+          0.25,
+          0.5,
+          0.25,
+          0.25
+        ]
+      },
+      "exit_code": 0,
+      "status": "passed"
+    },
+    {
+      "mode": "validate",
+      "index": 0,
+      "utc": "2026-11-27T09:34:59.4319679Z",
+      "pre_run": {
+        "uuid": "<GPU-UUID>",
+        "gpu_pct": "4",
+        "used_mib": "5150",
+        "temp_c": "34.03"
+      },
+      "values": {
+        "adapter": "NVIDIA GeForce RTX 5090",
+        "compute_local_mb": 60.145664,
+        "compute_working_set_bytes": 537829376,
+        "rgba": [
+          [
+            1.0,
+            0.5,
+            -0.25,
+            2.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "depth_local_mb": 27.99616,
+        "depth_working_set_bytes": 399290368,
+        "depth": [
+          0.25,
+          0.5,
+          0.25,
+          0.25
+        ],
+        "validation_errors": 3
+      },
+      "exit_code": 101,
+      "status": "failed",
+      "reason": "D3D12 error 645: ID3D12Device::CreateDescriptorHeap: D3D12_DESCRIPTOR_HEAP_DESC.NumDescriptors 2359296, but the limit for shader visible view heaps is 1000000\nvertex depth bounds on NVIDIA GeForce RTX 5090: true\nD3D12 error 1419: ID3D12CommandList::SetGraphicsRootSignature: SetDescriptorHeaps must be called to bind a CBV/SRV/UAV descriptor before setting a root signature with D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED flag.\nD3D12 error 1419: ID3D12CommandList::SetGraphicsRootSignature: SetDescriptorHeaps must be called to bind a CBV/SRV/UAV descriptor before setting a root signature with D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED flag.\ndepth readback (fresh, excluded, included, reset): [0.25, 0.5, 0.25, 0.25]\n\nthread 'pipeline::baseline::synthetic_gpu' (23652) panicked at crates\\victory-gpu\\src\\pipeline\\baseline.rs:133:9:\nassertion `left == right` failed: D3D12 validation errors\n  left: 3\n right: 0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    }
+  ],
+  "summary": {},
+  "complete": false
+}

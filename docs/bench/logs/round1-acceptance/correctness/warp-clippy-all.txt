@@ -1,0 +1,558 @@
+2026-11-26T22:56:09Z
+VICTORY_WARP=1 VICTORY_D3D12_WARP=1 cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+    Checking victory-shader v0.1.0 (E:\Projects\GTA-build\integ-r1\crates\victory-shader)
+    Checking victory-gpu v0.1.0 (E:\Projects\GTA-build\integ-r1\crates\victory-gpu)
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\library.rs:154:8
+    |
+154 |     if unsafe { device.GetNodeCount() } == 1 && let Some(name) = hardware_namespace(luid) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+    = note: `-D clippy::undocumented-unsafe-blocks` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::undocumented_unsafe_blocks)]`
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\library.rs:192:12
+    |
+192 |         if unsafe { kind.Anonymous.Value } & SOFTWARE_DEVICE != 0 {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: this `if` statement can be collapsed
+   --> crates\victory-gpu\src\shader_cache.rs:199:9
+    |
+199 | /         if suffix.len() == 6 && suffix.bytes().all(|c| c.is_ascii_alphanumeric())
+200 | |             && let Ok(meta) = entry.metadata()
+201 | |             && meta.is_file() && !meta.file_type().is_symlink()
+202 | |             && let Ok(age) = meta.modified().and_then(|t| now.duration_since(t).map_err(io::Error::other))
+...   |
+208 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+203 ~             && age >= Duration::from_secs(3600)
+204 ~             && let Err(error) = std::fs::remove_file(entry.path()) {
+205 |                 tracing::debug!(%error, "could not remove abandoned shader staging file");
+206 ~             }
+    |
+
+error: could not compile `victory-gpu` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: unsafe block missing a safety comment
+  --> crates\victory-shader\src\emit\lower\marks\tests.rs:85:9
+   |
+85 |         unsafe { CreateDXGIFactory2(DXGI_CREATE_FACTORY_FLAGS(0)) }.unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+   = note: `-D clippy::undocumented-unsafe-blocks` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::undocumented_unsafe_blocks)]`
+
+error: unsafe block missing a safety comment
+  --> crates\victory-shader\src\emit\lower\marks\tests.rs:87:28
+   |
+87 |         let Ok(adapter) = (unsafe { factory.EnumAdapters1(i) }) else {
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-shader\src\emit\lower\marks\tests.rs:90:20
+   |
+90 |         let desc = unsafe { adapter.GetDesc1() }.unwrap();
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-shader\src\emit\lower\marks\tests.rs:95:12
+   |
+95 |         if unsafe { D3D12CreateDevice(&adapter, D3D_FEATURE_LEVEL_12_0, &mut device) }.is_err() {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: could not compile `victory-shader` (lib test) due to 4 previous errors
+error: items after a test module
+    --> crates\victory-gpu\src\descriptor\host.rs:2581:1
+     |
+2581 | mod tests {
+     | ^^^^^^^^^
+...
+3756 | impl HostHeap {
+     | ^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#items_after_test_module
+     = note: `-D clippy::items-after-test-module` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::items_after_test_module)]`
+     = help: move the items to before the test module was defined
+
+error: using `chunks_exact` with a constant chunk size
+    --> crates\victory-gpu\src\descriptor\host.rs:3438:19
+     |
+3438 |             words.chunks_exact(2).fold(K ^ 32, |hash, pair| {
+     |                   ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<2>().0.iter()`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+     = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
+
+error: manual implementation of `.is_multiple_of()`
+    --> crates\victory-gpu\src\descriptor\host.rs:3686:22
+     |
+3686 |                 _ if (index / SLOTS) % 2 == 0 => &new,
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `(index / SLOTS).is_multiple_of(2)`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#manual_is_multiple_of
+     = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\contention.rs:27:9
+   |
+27 |         unsafe { ((constants + 256 * i) as *mut u32).write(0xcafe0000 + i as u32) };
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\contention.rs:54:21
+   |
+54 |                     unsafe {
+   |                     ^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\contention.rs:75:25
+   |
+75 |                         unsafe { data.cast::<u32>().read() },
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\contention.rs:149:5
+    |
+149 |     unsafe {
+    |     ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\contention.rs:164:21
+    |
+164 |                     unsafe { std::ptr::write_bytes((addr + lane * PAGE) as *mut u8, 0xaa, PAGE) };
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\contention.rs:182:17
+    |
+182 |     let words = unsafe { std::slice::from_raw_parts(addr as *const u32, bytes / 4) };
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: using `chunks_exact` with a constant chunk size
+   --> crates\victory-gpu\src\pipeline\hot\contention.rs:183:23
+    |
+183 |     for page in words.chunks_exact(PAGE / 4) {
+    |                       ^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<PAGE / 4>().0`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+
+error: using `chunks_exact` with a constant chunk size
+   --> crates\victory-gpu\src\pipeline\hot\contention.rs:187:18
+    |
+187 |                 .chunks_exact(2)
+    |                  ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<2>().0.iter()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\contention.rs:259:5
+    |
+259 |     unsafe {
+    |     ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\contention.rs:290:16
+    |
+290 |     assert_eq!(unsafe { output.cast::<u64>().read() }, tag);
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\pressure.rs:13:16
+   |
+13 |     let name = unsafe {
+   |                ^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\pressure.rs:123:13
+    |
+123 |     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\pressure.rs:140:5
+    |
+140 |     unsafe { std::ptr::write_bytes(tex as *mut u8, 0x7b, PAGE) };
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\pressure.rs:170:9
+    |
+170 |         unsafe {
+    |         ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\pressure.rs:183:9
+    |
+183 |         unsafe { data.cast::<u32>().read() }
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\pressure.rs:216:41
+    |
+216 |     println!("BENCH physical_slots={}", unsafe {
+    |                                         ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\scale.rs:24:13
+   |
+24 |     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\soak.rs:13:5
+   |
+13 |     unsafe {
+   |     ^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\soak.rs:57:9
+   |
+57 |         unsafe { std::ptr::write_bytes(addr as *mut u8, round as u8, bytes) };
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\soak.rs:62:9
+   |
+62 |         unsafe {
+   |         ^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\soak.rs:71:22
+   |
+71 |         let result = unsafe { std::slice::from_raw_parts(addr as *const u32, bytes / 4) };
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\soak.rs:87:27
+   |
+87 |             let removed = unsafe { host.device.GetDeviceRemovedReason() }
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\soak.rs:174:5
+    |
+174 |     unsafe {
+    |     ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\soak.rs:201:20
+    |
+201 |         assert_eq!(unsafe { data.cast::<u32>().add(i as usize).read() }, v);
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\textures.rs:26:13
+   |
+26 |     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\textures.rs:45:9
+   |
+45 |         unsafe { std::ptr::write_bytes(base as *mut u8, k as u8 + 1, layout.size as usize) };
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\textures.rs:48:13
+   |
+48 |             unsafe { ((base + offset as usize) as *mut u32).write_unaligned(0x1234abcd + mip) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\textures.rs:153:9
+    |
+153 |         unsafe {
+    |         ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot\waves.rs:89:21
+   |
+89 |             let p = unsafe {
+   |                     ^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\waves.rs:101:9
+    |
+101 |         unsafe {
+    |         ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\waves.rs:131:13
+    |
+131 |             unsafe { std::ptr::write_bytes(src as *mut u32, 0, WORDS) };
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\waves.rs:206:19
+    |
+206 |         let out = unsafe { std::slice::from_raw_parts(dst as *const u32, count) };
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\waves.rs:225:21
+    |
+225 |                     unsafe { (src as *const u32).add(offset).read() },
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\waves.rs:249:5
+    |
+249 |     unsafe {
+    |     ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\waves.rs:262:5
+    |
+262 |     unsafe { list.list.EndQuery(&query, D3D12_QUERY_TYPE_TIMESTAMP, 0) };
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\waves.rs:264:5
+    |
+264 |     unsafe {
+    |     ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot\waves.rs:272:17
+    |
+272 |     let times = unsafe { data.cast::<[u64; 2]>().read_unaligned() };
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+  --> crates\victory-gpu\src\pipeline\hot.rs:60:9
+   |
+60 |         unsafe { (a as *mut u32).write(0x12340000 + i as u32) };
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a safety comment on the preceding line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot.rs:117:5
+    |
+117 |     unsafe {
+    |     ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot.rs:134:13
+    |
+134 |             unsafe { data.cast::<u32>().add(i).read() },
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot.rs:148:5
+    |
+148 |     unsafe { std::ptr::write_bytes(addr as *mut u8, 0x35, len) };
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: using `chunks_exact` with a constant chunk size
+   --> crates\victory-gpu\src\pipeline\hot.rs:189:28
+    |
+189 |     for (i, page) in title.chunks_exact(PAGE).enumerate() {
+    |                            ^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<PAGE>().0.iter()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot.rs:420:9
+    |
+420 |         unsafe { K32GetProcessMemoryInfo(GetCurrentProcess(), &mut c, c.cb) },
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\pipeline\hot.rs:424:13
+    |
+424 |     assert!(unsafe { host.device.GetDeviceRemovedReason() }.is_ok());
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: items after a test module
+   --> crates\victory-gpu\src\queue.rs:756:1
+    |
+756 | mod tests {
+    | ^^^^^^^^^
+...
+916 | pub(crate) fn bench_submit(list: std::sync::Arc<crate::host::HostList>) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#items_after_test_module
+    = help: move the items to before the test module was defined
+
+error: items after a test module
+    --> crates\victory-gpu\src\shadow.rs:1936:1
+     |
+1936 | pub(crate) mod tests {
+     | ^^^^^^^^^^^^^^^^^^^^
+...
+2767 | pub(crate) fn bench_mark(first: usize, pages: usize) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#items_after_test_module
+     = help: move the items to before the test module was defined
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\texture\readback_tests.rs:187:39
+    |
+187 |     let memory = (0..16).find_map(|_| unsafe {
+    |                                       ^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: unsafe block missing a safety comment
+   --> crates\victory-gpu\src\texture\readback_tests.rs:210:5
+    |
+210 |     unsafe { ((memory + page) as *mut u8).write_bytes(0x37, page) };
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider adding a safety comment on the preceding line
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#undocumented_unsafe_blocks
+
+error: could not compile `victory-gpu` (lib test) due to 54 previous errors
+exit=101

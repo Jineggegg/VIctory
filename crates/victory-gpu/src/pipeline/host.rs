@@ -367,6 +367,8 @@ pub(crate) struct HostPipeline {
     pub(crate) mesh: bool,
     pub(crate) pso: ID3D12PipelineState,
     pub(crate) root: ID3D12RootSignature,
+    /// The emitted code in at least one stage indexes the view heap.
+    pub(crate) indexes_views: bool,
     /// Vertex, then pixel stage, or the compute stage.
     pub(crate) stages: Vec<Stage>,
     /// A graphics pipeline of the console's rectangle lists whose geometry
@@ -430,27 +432,25 @@ impl HostPipeline {
         if mesh.is_some() && !host()?.mesh_shaders() {
             return refuse("the host GPU has no mesh shaders (or no shader model 6.6)", shaders);
         }
+        // SFI0 records the accesses that survived DXIL lowering, including
+        // descriptor-table loads missing from the title's resource list.
+        let mut features = 0;
         for (s, _) in &stages {
-            s.translated()?;
+            let t = s.translated()?;
+            let container = victory_shader::Container::parse(&t.host.dxil).ok()?;
+            if let Some(part) = container.part(victory_shader::FourCC::SFI0) {
+                features |= u64::from_le_bytes(part.data.try_into().ok()?);
+            } else if container.part(victory_shader::FourCC::DXIL).is_some() {
+                // Some producers omit optional feature metadata. Only an
+                // explicitly resource-free DXIL shader can use a one-slot heap.
+                features |= u64::from(D3D_SHADER_REQUIRES_RESOURCE_DESCRIPTOR_HEAP_INDEXING);
+            }
         }
+        let indexes_views = features & u64::from(D3D_SHADER_REQUIRES_RESOURCE_DESCRIPTOR_HEAP_INDEXING) != 0;
+        let atomics = D3D_SHADER_REQUIRES_ATOMIC_INT64_ON_TYPED_RESOURCE
+            | D3D_SHADER_REQUIRES_ATOMIC_INT64_ON_DESCRIPTOR_HEAP_RESOURCE;
         let host = host()?;
-        // `SFI0`: 64-bit atomics on typed resources and on heap resources.
-        let atomics64 = stages.iter().any(|(s, _)| {
-            let Some(t) = s.translated() else {
-                return false;
-            };
-            victory_shader::Container::parse(&t.host.dxil)
-                .ok()
-                .and_then(|c| {
-                    c.part(victory_shader::FourCC::SFI0)?
-                        .data
-                        .get(..4)?
-                        .try_into()
-                        .ok()
-                })
-                .is_some_and(|b: [u8; 4]| u32::from_le_bytes(b) & 0x1040_0000 != 0)
-        });
-        if atomics64 && !host.heap_atomics64() {
+        if features & u64::from(atomics) != 0 && !host.heap_atomics64() {
             return refuse(
                 "the host GPU has no 64-bit atomics on typed heap resources",
                 shaders,
@@ -632,6 +632,7 @@ impl HostPipeline {
                 pso,
                 root,
                 stages: bound,
+                indexes_views,
                 name: format!("{shaders:?}"),
                 rectangles: false,
                 slots: 0,
@@ -680,6 +681,7 @@ impl HostPipeline {
                 pso,
                 root,
                 stages: bound,
+                indexes_views,
                 name: format!("{shaders:?}"),
                 rectangles: false,
                 slots: 0,
@@ -782,6 +784,7 @@ impl HostPipeline {
             pso,
             root,
             stages: bound,
+            indexes_views,
             name: format!("{shaders:?}"),
             rectangles: !gs.is_empty(),
             slots: g.slots(),
