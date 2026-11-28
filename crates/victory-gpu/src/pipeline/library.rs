@@ -462,18 +462,26 @@ pub(crate) fn note_prebuilt(key: String) {
 /// A pipeline's name in the library: the hash of what its host
 /// description holds.
 pub(crate) fn name(kind: &str, root: &[u8], code: &[&[u8]], state: &str) -> String {
-    use std::io::{BufWriter, Write};
-
-    // Feed small, length-prefixed parts to BLAKE3 together so it can hash
-    // their chunks in parallel. BufWriter passes large shaders through.
-    let mut hash = blake3::Hasher::new();
-    let mut bytes = BufWriter::new(&mut hash);
-    for part in [kind.as_bytes(), root].into_iter().chain(code.iter().copied()).chain([state.as_bytes()]) {
-        bytes.write_all(&(part.len() as u64).to_le_bytes()).unwrap();
-        bytes.write_all(part).unwrap();
-    }
-    bytes.into_inner().expect("the in-memory hasher accepts all bytes");
-    hash.finalize().to_hex()[..32].to_owned()
+    let parts = [kind.as_bytes(), root].into_iter().chain(code.iter().copied()).chain([state.as_bytes()]);
+    // One contiguous input lets BLAKE3 hash multiple short shader chunks in
+    // parallel. Keep the original streaming path for large pipeline descriptions.
+    let size = parts.clone().try_fold(0usize, |n, p| n.checked_add(8)?.checked_add(p.len()));
+    let digest = if let Some(size) = size.filter(|&n| n <= 8 * blake3::CHUNK_LEN) {
+        let mut frame = Vec::with_capacity(size);
+        for part in parts {
+            frame.extend_from_slice(&(part.len() as u64).to_le_bytes());
+            frame.extend_from_slice(part);
+        }
+        blake3::hash(&frame)
+    } else {
+        let mut hash = blake3::Hasher::new();
+        for part in parts {
+            hash.update(&(part.len() as u64).to_le_bytes());
+            hash.update(part);
+        }
+        hash.finalize()
+    };
+    digest.to_hex()[..32].to_owned()
 }
 
 /// The pipeline named `name`: loaded from the library by `load` if it is
@@ -882,6 +890,21 @@ mod tests {
     fn a_save_buffer_the_host_cannot_give_is_refused() {
         assert!(zeroed(usize::MAX / 2).is_none());
         assert_eq!(zeroed(100).as_deref(), Some(&[0u8; 100][..]));
+    }
+
+    #[test]
+    fn library_names_preserve_the_length_framing_at_the_buffer_limit() {
+        // One compute stage plus four u64 lengths and the seven-byte kind.
+        const OVERHEAD: usize = 4 * 8 + 7;
+        for size in [8191, 8192, 8193] {
+            let shader = vec![0x5a; size - OVERHEAD];
+            let mut expected = blake3::Hasher::new();
+            for part in [b"compute".as_slice(), &[], shader.as_slice(), &[]] {
+                expected.update(&(part.len() as u64).to_le_bytes());
+                expected.update(part);
+            }
+            assert_eq!(name("compute", &[], &[&shader], ""), expected.finalize().to_hex()[..32]);
+        }
     }
 
     #[test]
