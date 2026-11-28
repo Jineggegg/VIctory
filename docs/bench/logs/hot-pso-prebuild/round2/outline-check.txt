@@ -1,0 +1,14 @@
+Isolating the buffered hash: 08139e1, native Windows x86-64 diag. PE SHA256 cb2fb934a493fd77a0c99ceb08994333b7a8ffed85a8c1016ca8dae1e15832a3. CodeView GUID and age match the supplied PDB (age 7). GNU objdump 2.46 Intel syntax, same criteria and original control mapping as codegen.txt.
+
+Columns: source, procedure, RVA, bytes, instructions, ordered PDB inline-record count, stack subtraction.
+c353316  Viewed::set        0x25dba0  2463  638  198  0x148
+2fff375  Viewed::set        0x0ef860  2063  549  141  0x148
+08139e1  Viewed::set        0x0ef860  2063  549  141  0x148
+c353316  shadow::find       0x10ed90  3652  925  307  0x0f8
+2fff375  shadow::find       0x1506e0  3354  838  276  0x118
+08139e1  shadow::find       0x1506e0  3354  838  276  0x118
+2fff375  library::name      0x2a42b0  1764  430  101  0x898
+08139e1  library::name      0x29fd60   240   57   19  0x0b8
+08139e1  library::name_digest 0x29d200 1556 383   82  0x888
+
+All three HostPipeline::new callsites still call library::name in 08139e1. It directly calls the separate library::name_digest, which calls BLAKE3 finalize; 2fff375 has no standalone name_digest. Viewed::set and shadow::find each retain the exact 2fff375 normalized instruction list and ordered inline names. The former still calls HashMap<u32, Seen>::remove, and the latter still calls LeafRange<shadow::Entry>::perform_next_back_checked. The isolated hash boundary therefore changed, while these two selected callees retained their combined-candidate inlining. This is static evidence; absolute runtimes, cache behavior, and the cost of unrelated functions require measurement.

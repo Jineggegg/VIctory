@@ -592,14 +592,14 @@ impl HostPipeline {
                 return None;
             }
         };
-        let code = |i: usize| {
-            stages.get(i).and_then(|(s, _)| s.translated()).map_or(
-                D3D12_SHADER_BYTECODE::default(),
-                |t| D3D12_SHADER_BYTECODE {
-                    pShaderBytecode: t.host.dxil.as_ptr().cast(),
-                    BytecodeLength: t.host.dxil.len(),
-                },
-            )
+        let dxil = |i: usize| {
+            stages.get(i).and_then(|(s, _)| s.translated()).map(|t| t.host.dxil.as_slice())
+        };
+        let code = |i| {
+            dxil(i).map_or(D3D12_SHADER_BYTECODE::default(), |bytes| D3D12_SHADER_BYTECODE {
+                pShaderBytecode: bytes.as_ptr().cast(),
+                BytecodeLength: bytes.len(),
+            })
         };
         if compute.is_some() {
             let desc = D3D12_COMPUTE_PIPELINE_STATE_DESC {
@@ -608,7 +608,7 @@ impl HostPipeline {
                 CS: code(0),
                 ..Default::default()
             };
-            let name = super::library::name("compute", &root_blob, &[&code_bytes(&code(0))], "");
+            let name = super::library::name("compute", &root_blob, &[dxil(0).unwrap_or_default()], "");
             let made = super::library::pipeline(
                 &name,
                 // SAFETY: the description points at live data.
@@ -649,7 +649,7 @@ impl HostPipeline {
             let name = super::library::name(
                 "mesh",
                 &root_blob,
-                &[&code_bytes(&code(0)), &code_bytes(&code(1))],
+                &[dxil(0).unwrap_or_default(), dxil(1).unwrap_or_default()],
                 &state,
             );
             let ms = Sub(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MS, code(0));
@@ -731,7 +731,7 @@ impl HostPipeline {
         let name = super::library::name(
             "graphics",
             &root_blob,
-            &[&code_bytes(&code(0)), &code_bytes(&code(1)), &gs],
+            &[dxil(0).unwrap_or_default(), dxil(1).unwrap_or_default(), &gs],
             &state,
         );
         let started = std::time::Instant::now();
@@ -870,15 +870,6 @@ fn stream_pipeline<S, D>(
         // SAFETY: as above.
         || unsafe { device.CreatePipelineState(&desc) },
     )
-}
-
-/// The bytes of shader code (none for an absent stage).
-fn code_bytes(code: &D3D12_SHADER_BYTECODE) -> Vec<u8> {
-    if code.pShaderBytecode.is_null() {
-        return Vec::new();
-    }
-    // SAFETY: a translation's own bytes, alive while its shader is.
-    unsafe { std::slice::from_raw_parts(code.pShaderBytecode.cast::<u8>(), code.BytecodeLength) }.to_vec()
 }
 
 fn root_signature(
