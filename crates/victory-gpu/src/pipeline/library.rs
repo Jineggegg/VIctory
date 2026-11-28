@@ -462,12 +462,18 @@ pub(crate) fn note_prebuilt(key: String) {
 /// A pipeline's name in the library: the hash of what its host
 /// description holds.
 pub(crate) fn name(kind: &str, root: &[u8], code: &[&[u8]], state: &str) -> String {
-    let mut h = blake3::Hasher::new();
+    use std::io::{BufWriter, Write};
+
+    // Feed small, length-prefixed parts to BLAKE3 together so it can hash
+    // their chunks in parallel. BufWriter passes large shaders through.
+    let mut hash = blake3::Hasher::new();
+    let mut bytes = BufWriter::new(&mut hash);
     for part in [kind.as_bytes(), root].into_iter().chain(code.iter().copied()).chain([state.as_bytes()]) {
-        h.update(&(part.len() as u64).to_le_bytes());
-        h.update(part);
+        bytes.write_all(&(part.len() as u64).to_le_bytes()).unwrap();
+        bytes.write_all(part).unwrap();
     }
-    h.finalize().to_hex()[..32].to_owned()
+    bytes.into_inner().expect("the in-memory hasher accepts all bytes");
+    hash.finalize().to_hex()[..32].to_owned()
 }
 
 /// The pipeline named `name`: loaded from the library by `load` if it is
@@ -881,7 +887,8 @@ mod tests {
     #[test]
     fn names_change_with_what_goes_into_the_pipeline() {
         let a = name("graphics", b"root", &[b"vs", b"ps"], "state");
-        assert_eq!(a, name("graphics", b"root", &[b"vs", b"ps"], "state"));
+        // A name from the previous writer must still load from disk.
+        assert_eq!(a, "9402d2bc73e94e1548e2a550a55f878f");
         assert_ne!(a, name("graphics", b"root", &[b"vs", b"ps2"], "state"));
         assert_ne!(a, name("graphics", b"root", &[b"vs", b"ps"], "state2"));
         assert_ne!(a, name("graphics", b"root2", &[b"vs", b"ps"], "state"));
