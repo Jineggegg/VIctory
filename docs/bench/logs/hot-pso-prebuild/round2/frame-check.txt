@@ -1,0 +1,16 @@
+Bounded single-frame hash: 6449897, native x86-64 Windows diag. PE SHA256 939159e7387bc5b70535b52eb42c515de4fe0ebe7a12d7a1ebedd825f6da0f64. CodeView GUID/age verified against the accompanying PDB (age 8). GNU objdump 2.46, same normalization and control symbol mapping as codegen.txt.
+
+Columns: revision, procedure, RVA, bytes, instructions, PDB inline-site records, stack subtraction.
+c353316 Viewed::set     0x25dba0 2463 638 198 0x148
+2fff375 Viewed::set     0x0ef860 2063 549 141 0x148
+6449897 Viewed::set     0x19c130 2063 549 141 0x148
+c353316 shadow::find    0x10ed90 3652 925 307 0x0f8
+2fff375 shadow::find    0x1506e0 3354 838 276 0x118
+6449897 shadow::find    0x132580 3652 927 306 0x0f8
+6449897 library::name   0x186bb0 1404 329 162 0x868
+
+Viewed::set retains the combined-candidate instruction list after address normalization, matching all 28 named external direct branch/call sites and its ordered inline records. It still calls HashMap<u32, Seen>::remove; the control inlined this lookup/removal.
+
+shadow::find recovers inline records for perform_next_back_checked, next_back_kv, and next_back_leaf_edge and no longer has the corresponding external B-tree leaf-iterator call. Its size and stack subtraction match the control. Its full instruction list (927 vs 925) and ordered inline records (306 vs 307) differ, so this recovers a specific inlining decision, not the entire control procedure.
+
+library::name compares encoded size against 0x2001 (8193). Direct callsites include blake3::hash and the separate streaming Hasher::new / update / update / finalize sites. This is generated-code evidence. Effects of the remaining HashMap lookup, heap history, and changed code placement on latency require paired measurements.

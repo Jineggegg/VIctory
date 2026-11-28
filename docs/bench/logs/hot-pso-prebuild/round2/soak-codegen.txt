@@ -1,0 +1,22 @@
+1 MiB mixed writeback: c353316 measured PE f02d637159957b1bb696b39b68067b1edf7d22ce6939208ea8abece083f7d3f1 vs 6449897 PE 939159e7387bc5b70535b52eb42c515de4fe0ebe7a12d7a1ebedd825f6da0f64. PDB mapping and GNU objdump criteria as in codegen.txt and frame-check.txt. Offline source + static image comparison, no additional GPU run.
+
+PSO: before either the overall timer or per-round timer, mixed calls draw::tests::compile_cs once. This helper compiles the fixture's own HLSL with D3DCompile and calls the D3D12 device's CreateRootSignature and CreateComputePipelineState directly. Each round uses the saved root and PSO via SetComputeRootSignature/SetPipelineState; no pipeline-library name, DXIL borrowing/frame hashing, or prebuild operation is needed. The binary has the same matched compile_cs call in both mixed bodies. shadow::find obtains the test's single persistent shadow before its timer; there are no per-slot descriptor writes from this synthetic fixture. Host::execute does run descriptor::sync_heaps in its preparation, so general queue/descriptor code cannot be dismissed wholesale based on the fixture name.
+
+Selected procedure sizes/instructions/PDB inline sites: original -> frame. 'Same' means instruction shape retained after code/data address normalization, ordered inline names match, and all named external direct branch/call sites match. Hardware, indirect COM targets and data addresses outside these tests are not held identical by this comparison.
+  compile_cs                       1076/302/70     -> 1076/302/70     same, 20/20 matched direct sites
+  mixed test body                  7365/1445/303   -> 7349/1440/302   original body inlined in libtest's wrapper; frame emits a standalone mixed
+  Host::new_list                   2363/551/99     -> 2363/551/99     same, 30/30
+  HostList::close                   619/150/60     -> 619/150/60      same, 9/9
+  queue::bench_submit               395/109/34     -> 361/100/33      generated instructions and inline records differ; 8/8 external direct targets still match in order
+  queue::pump                      2551/612/285    -> 2551/612/285    same, 36/36
+  Host::execute                   35761/7115/2405  -> 36235/7215/2435 generated code and inline records differ; 318 vs 323 static direct sites across this multi-path procedure
+  Shadow::update                   4352/1114/436   -> 4352/1114/436   same, 63/63
+  shadow::refresh_run               674/190/47     -> 674/190/47      same, 6/6
+  Shadow::copy_back_or_not         5117/1275/451   -> 5117/1275/451   inline records and 55/55 direct sites match; two displaced memory operands differ
+  shadow::store_snapshot_changes   1527/419/116    -> 1527/419/116    same, 28/28
+  shadow::change_masks             1441/300/29     -> 1441/300/29     same, 4/4
+  shadow::write_masked              649/187/47     -> 649/186/47      matching inline records and 11/11 direct sites; first-time OnceLock setup, retry TLS offsets and alignment/jumps differ
+
+The hand-written store from victory_store_delta through the ret at victory_store_return is 94 bytes. The two PE byte ranges are identical, SHA256 235c57ad48b76ad1b17a8d3657f9dfb7403f08000e2ecac578d9c3dfe883ccfc. Code locations differ: RVA 0xb7ec0 vs 0x16be50. This rules out an instruction change in that leaf, not every placement or execution-time effect.
+
+The linear region in mixed from the per-round Instant::now call to the recorded Instant::elapsed call (inclusive) spans 612 bytes/124 instructions in each image, with all 14 named external direct sites matching. RVAs 0x15bb4f..0x15bdae vs 0x1f44bf..0x1f471e. Register allocation and stack offsets differ; this is a static address range, not a count of dynamically executed instructions. No sample-level evidence here isolates queue/compiler layout, driver/fence wait, worker scheduling or cache state. The measured p50 interval cannot be attributed to any one of those causes from this evidence.

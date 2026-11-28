@@ -1,6 +1,8 @@
 # RTX 5090 上 16 个热 PSO 预建的复测和归因
 
-优化前的 `6b1e408` 与第一轮合并后的 `c353316` 在两个新窗口中相差约 4%。16 个 compute shader 生成的 DXIL 合计增加 4,480 字节。热预建每次都要用 DXIL 和根签名计算 D3D12 管线库名称，复制字节并计算这个名称是测到的最大增量。候选修复把热预建加快约 19%，但两档描述符同步在正反序都变慢，未采用。[逐提交输出](logs/hot-pso-prebuild/shader-corpus.txt) · [分段配对差值](logs/hot-pso-prebuild/profile-deltas.txt)
+**最终修复在正反序各 30 对中把热预建耗时降低 18.47% 和 17.07%；其余 18 项计时及 1 MiB 回写的两个窗口均未检出退步。** [最终候选全项统计](logs/hot-pso-prebuild/round2/shared-forward-stats.txt) · [反序统计](logs/hot-pso-prebuild/round2/shared-reverse-stats.txt)
+
+优化前的 `6b1e408` 与第一轮合并后的 `c353316` 在两个新窗口中相差约 4%。16 个 compute shader 生成的 DXIL 合计增加 4,480 字节。热预建每次都要用 DXIL 和根签名计算 D3D12 管线库名称，复制字节并计算这个名称是测到的最大增量。首个候选虽把预建耗时降了约 19%，但两档描述符同步都变慢，详情见两轮对照。[逐提交输出](logs/hot-pso-prebuild/shader-corpus.txt) · [分段配对差值](logs/hot-pso-prebuild/profile-deltas.txt)
 
 ## 复现
 
@@ -36,7 +38,7 @@
 
 新增的描述符堆上限 OPTIONS19 查询、双堆绑定、SFI0 修订及单槽备用堆，均晚于验收修复前版本。堆绑定与备用堆选择发生在录制命令时；热预建的 16 次循环不录制命令。采样时采样器的 OPTIONS19 能力已由 `OnceLock` 初始化。SFI0 解析位于计时内，但“阶段准备与特性检查”的重复批次配对差仅 +0.025 µs，15 项校正区间包含零。两个早期窗口及一组历史 90 对已经在这些修订前测到退步。[历史复核](round1-acceptance-3.md) · [分段数据](logs/hot-pso-prebuild/profile-deltas.txt)
 
-## 候选修复
+## 第一轮候选修复
 
 `2fff375` 让管线描述与名称计算共用翻译器持有的 DXIL 字节，用有缓冲的写入器把短字段一并交给 BLAKE3。大段字节可直接送入哈希器，缓冲随本次调用释放。名称仍按原顺序写入每段的八字节小端长度与完整字节，已有名称的固定摘要加入原有回归用例。磁盘预建索引另有一层基于源码的标签；跨此次升级，旧标签会触发索引重建，驱动库里的 PSO 仍使用原名称。[库名称及索引标签](../../crates/victory-gpu/src/pipeline/library.rs) · [着色器字节的借用位置](../../crates/victory-gpu/src/pipeline/host.rs)
 
@@ -46,16 +48,77 @@
 
 独立反序窗也完成 30 对。候选的热预建由 103.9 降至 83.6 µs，配对 −19.91%，19 项校正区间 −24.33% 至 −17.10%。1,300 槽同步则为 794.7 → 822.25 µs，配对 +2.67%，逐项区间 +1.03% 至 +3.80%；14,400 槽为 7,005.35 → 7,332.40 µs，配对 +4.45%，19 项校正区间 +1.22% 至 +6.48%。两档在两个顺序下的逐项区间均高于零，并各在一个窗口通过 19 项校正。单个热 PSO 在两窗的区间均跨零。工作集在反序窗为 −1.02%，方向翻转。反序初次开窗在采样前耗尽预热重试次数；有效窗放宽了预热重试次数上限，两次重试后达到同一采样频率和链路门槛。[反序全项统计](logs/hot-pso-prebuild/fix-reverse-complete-summary.txt) · [逐对数据和频率](logs/hot-pso-prebuild/fix-reverse-complete-samples.json)
 
-候选仅修改 PSO 构造和库名称哈希；两档描述符同步都在后续计时段。现有测量无法区分先前分配行为、可执行文件布局和其他进程内影响。热预建的收益已超过原退步，但默认套件中出现重复的描述符损失，未满足其他 18 项的验收要求。此次仅交付调查记录，候选提交保留在本地供复核。
+候选仅修改 PSO 构造和库名称哈希；两档描述符同步都在后续计时段。第一轮对照尚无法区分先前分配行为、可执行文件布局和其他进程内影响。热预建的收益已超过原退步，但默认套件中出现重复的描述符损失，未满足其他 18 项的验收要求。第一轮据此暂缓合并，并保留候选供第二轮复核。
 
-## 1 MiB 回写
+## 第一轮候选的 1 MiB 回写
 
 沿用首轮验收的 1 MiB 混合负载，每轮改写、提交、等待、回写后校验全部输出。先按默认套件逐次检查入场频率，每进程运行 4 秒。第一窗因预热失败停在 2 对；提高预热重试上限后，第二窗在第 20 对开始前达到上限，留下 19 个完整对。两窗单列。19 对的 p50、p95、p99 配对变化分别为 +0.60%、−0.08%、+0.25%，三项校正区间均跨零；这只是未完成窗口的观测。[已完成对与区间](logs/hot-pso-prebuild/soak-incomplete.txt) · [混合负载实现](../../crates/victory-gpu/src/pipeline/hot/soak.rs)
 
 另在独立显卡窗口完成 16 对，每进程 8 秒。开窗的 10 次占用读数均为 0%，共用的预热达到原门槛后才开始；此窗保留每个进程开始、结束时的核心和显存频率，期间不按频率删除样本。两臂分别验证 99,256、99,235 轮，校验失败与设备移除均为零。p50 为 1,255.55 → 1,259.85 µs，配对 +0.36%（三项校正区间 −0.23% 至 +0.94%）；p95 为 −0.10%（−1.26% 至 +1.17%），p99 为 +0.34%（−1.64% 至 +1.83%）。1 MiB 短测未检出稳定退步。该窗与逐进程预热窗分别统计。[完整回写统计](logs/hot-pso-prebuild/fix-soak-window-summary.txt) · [逐对延迟、轮数与频率](logs/hot-pso-prebuild/fix-soak-window-samples.json)
 
-## 正确性验证与交付
+## 第一轮候选的正确性验证
 
 候选 `2fff375` 的 Windows 原生两套 Clippy（默认、全部功能）均通过。工作区 29 个顶层测试程序共 977 项通过、13 项忽略；GPU crate 连跑三轮，每轮 2 个顶层程序、321 项通过、4 项忽略，均零失败。计数排除了测试内部另外启动的筛选子进程。`run.ps1 -CheckOnly` 的普通检查和 GPU-based validation 读回相同的颜色和深度，验证错误为零。`cargo xtask policy` 通过。[命令、各程序计数和验证读回](logs/hot-pso-prebuild/verification.txt)
 
-交付分支 `perf/hot-pso-prebuild` 仅包含本说明与脱敏日志。实验分支 `experiment/hot-pso-buffer` 保留候选源码，未推送或合入主线。
+## 第二轮的描述符同步调查
+
+用同一工具链、同一路径重建基线。虽然 PE 的调试记录不同，复建与实测基线的机器码段（5,105,534 字节）、展开表和节地址逐字节一致，故可用复建 PDB 在实测原件中定位函数。另从同一主线父提交拆出只借用 DXIL 的 `39f18c0`，以及只合并哈希写入的 `62fe9ac`。下表是四份实际 PE 里的函数大小。[二进制哈希、RVA、反汇编和内联核对](logs/hot-pso-prebuild/round2/codegen.txt)
+
+| 描述符同步调用链上的函数（字节） | 基线 | 只借用 | 只合并哈希 | 组合候选 |
+|---|---:|---:|---:|---:|
+| 同步全部堆 `sync_heaps` | 1,863 | 1,863 | 1,863 | 1,863 |
+| 比较一页脏槽 `sync_slots` | 3,825 | 3,825 | 3,825 | 3,825 |
+| 更新绑定槽 `Viewed::set` | 2,463 | 2,463 | 2,063 | 2,063 |
+| 查找缓冲区副本 `shadow::find` | 3,652 | 3,652 | 3,354 | 3,354 |
+
+在只合并哈希和组合候选中，`Viewed::set` 将哈希表删除、`shadow::find` 将 B 树反向遍历的一步编译成独立调用。这两处在基线和只借用版本中均被内联。同步常量槽实际用到这两条路径。不同二进制的时间差还包含代码地址、其他函数和分配历史；单靠这些指令不能把百分比拆给两个调用。[描述符同步](../../crates/victory-gpu/src/descriptor/host.rs) · [绑定槽](../../crates/victory-gpu/src/bindless.rs) · [缓冲区查找](../../crates/victory-gpu/src/shadow.rs)
+
+管线名称使用每次调用独有的 BLAKE3 哈希器，描述符同步持有堆、已绑定视图和缓冲区注册表各自的锁；这两条路径共用普通进程分配器。此前优化既移除了 DXIL 临时分配，也引入了有缓冲写入器。为区分运行时行为与不同 PE 的编译结果，增加同一诊断二进制内逐进程切换旧／新算法的配对。该诊断在每个进程输出实际模式，使用与产品候选相同的适配器、着色器输出和缓存命中检查。
+
+同一份基线程序分别与拆分版各做 30 对，单位为同对“候选 / 基线 − 1”的中位数，括号内为逐项 95% 区间。两组都逐对交换先后，沿用 19 项家族校正，并核查每对的工作量与输出。
+
+| 首窗 | 16 个热预建 | 1,300 槽同步 | 14,400 槽同步 |
+|---|---:|---:|---:|
+| 只借用 DXIL | −4.77%（−7.80% 至 −1.02%） | +0.24%（−1.03% 至 +2.29%） | −0.28%（−0.94% 至 +1.46%） |
+| 只合并哈希 | −15.78%（−17.74% 至 −10.26%） | +4.30%（+2.55% 至 +6.82%） | +5.19%（+3.94% 至 +7.00%） |
+
+只合并哈希时，两档描述符损失经 19 项校正后仍都高于零。只借用时其余 18 项计时的逐项区间均未检出退步，附加指标峰值工作集上升 1.70%。[只借用全项](logs/hot-pso-prebuild/round2/borrow-forward-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/borrow-forward-pairs.json) · [只合并哈希全项](logs/hot-pso-prebuild/round2/hash-forward-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/hash-forward-pairs.json)
+
+同一诊断 PE（`8fa2aa6`）完成 30 对。反汇编及运行模式输出均确认，旧分支实际分配并复制单个 compute 阶段的 DXIL，新分支实际执行缓冲哈希。新分支热预建配对 −17.69%（19 项校正区间 −21.69% 至 −12.81%）；1,300 和 14,400 槽分别为 −1.21%（逐项 −2.90% 至 +0.55%）、−1.31%（−1.90% 至 +0.97%）。在这份相同机器码里，两档均未出现原先的 3–5% 损失。这支持独立链接后的代码生成是主要区别，也限制了“此前 PSO 的临时分配直接使后续同步变慢”的解释。实验没有单独量出哪个指令或缓存行占多少时间。[单 PE 处理分支核对](logs/hot-pso-prebuild/round2/matched-check.txt) · [全项统计](logs/hot-pso-prebuild/round2/matched-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/matched-pairs.json)
+
+将缓冲哈希提到禁止内联的私有辅助函数（`08139e1`）后，名称格式化函数由 1,764 缩至 240 字节，单独调用 1,556 字节的摘要函数。两处描述符热点的指令、内联和地址均与原组合候选相同。30 对里热预建 −18.00%，但两档同步分别 +2.14%（逐项 +0.02% 至 +3.68%）和 +3.60%（19 项校正 +0.95% 至 +7.11%）。这份候选同样未通过性能要求。[隔离前后机器码](logs/hot-pso-prebuild/round2/outline-check.txt) · [全项统计](logs/hot-pso-prebuild/round2/outline-forward-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/outline-forward-pairs.json)
+
+只借用版反序再测 30 对，热预建 −4.01%（19 项校正 −7.79% 至 −0.33%），两档描述符分别 +0.05%、−0.77%，区间均跨零。单独与优化前版本直接比较，热预建 +1.37%，逐项区间 −0.90% 至 +3.42%。反序窗的 fence 等待、提交准备、队列及 fence 三项分别 +3.07%、+39.29%、+2.40%，逐项区间下界分别 +0.95%、+3.33%、+1.24%，其中准备阶段的臂中位数为 9.0 → 14.5 µs。三项在首窗及反序窗的 19 项校正区间均跨零。此次预先按“两个复核窗中其余各项逐项区间均无正下界”验收，故只借用版本没有单独达标。[反序全项](logs/hot-pso-prebuild/round2/borrow-reverse-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/borrow-reverse-pairs.json) · [对优化前基线](logs/hot-pso-prebuild/round2/borrow-recovery-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/borrow-recovery-pairs.json)
+
+只借用版的 1 MiB 回写完成 16 对，每进程 8 秒。p50、p95、p99 配对分别 −0.86%、−0.06%、+0.16%，逐项和三项校正区间均跨零，两臂均无校验失败或设备移除。两轮的回写比较均沿用独立窗口预热后按进程记录频率的方法。[回写统计](logs/hot-pso-prebuild/round2/borrow-soak-stats.txt) · [逐对数据与频率](logs/hot-pso-prebuild/round2/borrow-soak-pairs.json)
+
+### 有界连续输入
+
+`6449897` 保留 DXIL 借用，去掉通用缓冲写入器。包含各个八字节长度字段的总输入至多 8 KiB 时，按准确大小分配并拼好整帧，一次交给 BLAKE3；超出上限或总长度溢出时，沿用逐段哈希。小键和跨 8 KiB 边界的固定格式用例覆盖两条路径。变更仅涉及 PSO 构造和名称计算，无需改动描述符、锁或 GPU 资源生命周期。此二进制中 `shadow::find` 的反向 B 树遍历重新内联，`Viewed::set` 的表删除仍是独立调用。[有界帧的机器码核对](logs/hot-pso-prebuild/round2/frame-check.txt)
+
+| 当前主线 GPU 对有界帧，各 30 对 | 正序 | 反序 |
+|---|---:|---:|
+| 热预建，µs / 16 个 | 102.15 → 84.45 | 103.50 → 84.35 |
+| 热预建配对变化与 19 项校正区间 | −18.16%（−20.96% 至 −14.11%） | −17.94%（−20.22% 至 −14.10%） |
+| 1,300 槽同步，配对变化与逐项区间 | +0.00%（−1.24% 至 +1.23%） | −2.07%（−3.23% 至 −0.79%） |
+| 14,400 槽同步，配对变化与逐项区间 | −0.34%（−1.71% 至 +1.11%） | −0.56%（−2.31% 至 +0.93%） |
+
+其余 18 项在两个窗口里均无逐项 95% 区间整体高于零。峰值工作集另算，正反序分别 −4.04%、−0.67%，反序区间跨零。这里报告可检出的退步，有限样本仍容许各区间内的小幅变化。[正序全项](logs/hot-pso-prebuild/round2/frame-forward-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/frame-forward-pairs.json) · [反序全项](logs/hot-pso-prebuild/round2/frame-reverse-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/frame-reverse-pairs.json)
+
+1 MiB 顺序窗的 p50 为 1,283.85 → 1,290.55 µs，逐对中位变化 +1.53%，三项校正区间 +0.27% 至 +2.37%；p95、p99 分别 +0.65%、+0.17%，两者区间均跨零。该场景在计时前直接通过 D3D12 建管线，每轮仅重新绑定，未进入被改的管线库名称计算。两份 PE 的差量写入汇编从入口到返回共 94 字节，逐字节一致；生成掩码和应用快照改动的两个函数也保留相同的归一指令。队列提交包装和下层执行函数的大小、指令和内联发生了变化。运行时间差不能只据这些静态差别分摊。[回写首窗](logs/hot-pso-prebuild/round2/frame-soak-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/frame-soak-pairs.json) · [回写路径机器码](logs/hot-pso-prebuild/round2/soak-codegen.txt)
+
+相同方法交换首臂，另做 16 对 1 MiB 回写。p50 为 +0.20%（三项校正 −1.74% 至 +2.39%），p95、p99 为 +0.62%、+0.80%，均跨零。首窗的 p50 升幅没有在反序窗达到显著，但首窗仍不满足预定门槛，两窗分别保留。[回写反序](logs/hot-pso-prebuild/round2/frame-soak-reverse-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/frame-soak-reverse-pairs.json)
+
+### 共用原有增量哈希器
+
+最后的 `e85dfd1` 保留 8 KiB 连续帧以及超限的流式输入，将两者都交给同一个原有增量哈希器，小帧只调用一次 update。这样去除了额外的一次性哈希入口，输出字节与边界用例保持一致。在这份 PE 中，`Viewed::set`、`shadow::find`、`bench_submit` 和底层 `Host::execute` 的归一指令序列与基线一致，各自 28、43、8、318 个外部直接调用或跳转目标全部匹配。函数地址仍有变化，`shadow::find` 的 307 条内联记录中有一条名字不同。[最终变体机器码](logs/hot-pso-prebuild/round2/single-hasher-check.txt)
+
+正、反序各 30 对，16 个热预建由 107.10 → 85.55 µs、102.15 → 84.65 µs；配对 −18.47% 和 −17.07%，19 项校正区间分别 −23.11% 至 −12.20%、−21.02% 至 −13.22%。1,300 槽为 +0.82% / −1.06%，14,400 槽为 −0.06% / −0.54%。两窗其余 18 项计时均无逐项区间高于零；峰值工作集分别 +0.02%、+0.34%，两个区间也都跨零。[正序统计](logs/hot-pso-prebuild/round2/shared-forward-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/shared-forward-pairs.json) · [反序统计](logs/hot-pso-prebuild/round2/shared-reverse-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/shared-reverse-pairs.json)
+
+1 MiB 回写正、反序各 16 对，每臂每进程 8 秒。两窗 p50 为 −0.58% / −0.34%，p95 为 −0.96% / −0.20%，p99 为 −0.13% / +1.30%，全部逐项及三项校正区间均跨零。基线共验证 190,109 轮，候选共 190,203 轮，校验失败和设备移除均为零。[回写正序统计](logs/hot-pso-prebuild/round2/shared-soak-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/shared-soak-pairs.json) · [回写反序统计](logs/hot-pso-prebuild/round2/shared-soak-reverse-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/shared-soak-reverse-pairs.json)
+
+另与第一轮优化前的 `6b1e408` 直接做 30 对，热预建为 98.75 → 83.45 µs，配对 −15.12%，19 项校正区间 −18.44% 至 −11.54%。在这个跨整轮优化的对照中，队列提交与 fence 合计仍比旧基线慢 2.29%（19 项校正 +0.03% 至 +7.81%）；当前主线与本修复的两组直接对照在这项上均未检出退步。正式性能程序来自 `e85dfd1`。与最新主线 `7e56b37` 整合后的 `e63ae76` 相对该候选只增加验收文档，产品源码和基准源码相同。[与优化前基线比较](logs/hot-pso-prebuild/round2/shared-recovery-stats.txt) · [逐对数据](logs/hot-pso-prebuild/round2/shared-recovery-pairs.json)
+
+## 最终验证
+
+在整合提交 `e63ae76` 上，两套 Windows 原生 Clippy（所有目标，默认与全部功能）均通过。工作区 29 个顶层测试程序共 978 项通过、13 项忽略；GPU crate 连跑三轮，每轮 2 个顶层测试程序、322 项通过、4 项忽略，均零失败。D3D12 Debug Layer 与 GPU-based validation 错误为零，普通检查和开启验证的颜色与深度读回一致。策略检查通过。[命令、各顶层程序计数和读回](logs/hot-pso-prebuild/round2/verification.txt)

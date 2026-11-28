@@ -1,0 +1,127 @@
+RTX 5090 investigation: PE/PDB code-generation comparison (offline x86-64 Windows)
+
+Control symbols: the measured c353316 executable has its original CodeView GUID and age 1; the separate native same-revision relink has age 3 and a matching PDB. Every byte of .text and .pdata, RVA, and section extent in the relink match the measured control. The comparison below disassembles the measured executable using these verified offsets. Other PDB files match their own measured PE GUID and age. GNU objdump 2.46, Intel syntax; procedure extents, inline records and callee names from CodeView/MSF7. .text/.pdata equality validates the control symbol mapping, not whole-file identity.
+
+original-measured: f02d637159957b1bb696b39b68067b1edf7d22ce6939208ea8abece083f7d3f1
+original-relinked: 7fe46153bb78d75551553cb73ea54eec28557ac5133d3568c8fbd83cfadcf062
+original .text SHA256 b8ae8b67f34523897bdb84303d452391a7d4e0c4b06276f8926e5f7a91050795
+original .pdata SHA256 f7b7acfa54570bcba29360439c295aec0037ce54d3dfea38a379400e08ce5dbd
+
+original PE f02d637159957b1bb696b39b68067b1edf7d22ce6939208ea8abece083f7d3f1
+combined PE 1c783df98d64ac693af0b5631dee855040fce29e7b66a6fa27c059b7fb46e61d
+borrow PE 39cfe0e586594b30fdbe561a2766e0d9bc09360ba1cab64030eb5e59ff0b877d
+hash PE 0f4fb4fa03041617b9a96c71297c66bfc6592f8f225b1f6b595a58954aa744d7
+
+Function         variant  start_RVA  RVA_mod64  bytes  instructions  inline_records  stack_sub  same_shape*  same_ordered_inline_names  compared_direct_sites**
+pipeline::hot::descriptors original 0x2aeb00 0 4868 1098 243 0x38 1 1 78/78
+pipeline::hot::descriptors combined 0xcba20 32 4868 1098 243 0x38 1 1 78/78
+pipeline::hot::descriptors borrow 0x2918a0 32 4868 1098 243 0x38 1 1 78/78
+pipeline::hot::descriptors hash 0xcba20 32 4868 1098 243 0x38 1 1 78/78
+
+sync_heaps original 0x1ef9c0 0 1863 582 263 0xa8 1 1 35/35
+sync_heaps combined 0x211280 0 1863 582 263 0xa8 1 1 35/35
+sync_heaps borrow 0x1ef9c0 0 1863 582 263 0xa8 1 1 35/35
+sync_heaps hash 0x211280 0 1863 582 263 0xa8 1 1 35/35
+
+sync_dirty original 0x1ef800 0 437 140 52 0x60 1 1 4/4
+sync_dirty combined 0x2110c0 0 437 140 52 0x60 1 1 4/4
+sync_dirty borrow 0x1ef800 0 437 140 52 0x60 1 1 4/4
+sync_dirty hash 0x2110c0 0 437 140 52 0x60 1 1 4/4
+
+host::HostHeap::sync_slots original 0x2589d0 16 3825 942 297 0x228 1 1 46/46
+host::HostHeap::sync_slots combined 0xea690 16 3825 942 297 0x228 1 1 46/46
+host::HostHeap::sync_slots borrow 0x2c7bb0 48 3825 942 297 0x228 1 1 46/46
+host::HostHeap::sync_slots hash 0xea690 16 3825 942 297 0x228 1 1 46/46
+
+host::impl$3::sync_constants::closure$1 original 0x7f190 16 431 118 28 0x28 1 1 5/5
+host::impl$3::sync_constants::closure$1 combined 0x7f190 16 431 118 28 0x28 1 1 5/5
+host::impl$3::sync_constants::closure$1 borrow 0x7f190 16 431 118 28 0x28 1 1 5/5
+host::impl$3::sync_constants::closure$1 hash 0x7f190 16 431 118 28 0x28 1 1 5/5
+
+with_views<slot_scan> original 0x1e4950 16 970 260 63 0x78 1 1 10/10
+with_views<slot_scan> combined 0x206210 16 970 260 63 0x78 1 1 10/10
+with_views<slot_scan> borrow 0x1e4950 16 970 260 63 0x78 1 1 10/10
+with_views<slot_scan> hash 0x206210 16 970 260 63 0x78 1 1 10/10
+
+host::SlotBatch::refresh original 0x2540a0 32 352 97 14 0x48 1 1 2/2
+host::SlotBatch::refresh combined 0xe73b0 48 352 97 14 0x48 1 1 2/2
+host::SlotBatch::refresh borrow 0x2c3280 0 352 97 14 0x48 1 1 2/2
+host::SlotBatch::refresh hash 0xe73b0 48 352 97 14 0x48 1 1 2/2
+
+host::HostHeap::remakes original 0x25d080 0 1014 276 114 0x98 1 1 17/17
+host::HostHeap::remakes combined 0xeed40 0 1014 276 114 0x98 1 1 17/17
+host::HostHeap::remakes borrow 0x2cc260 32 1014 276 114 0x98 1 1 17/17
+host::HostHeap::remakes hash 0xeed40 0 1014 276 114 0x98 1 1 17/17
+
+host::make_marked original 0x267de0 32 210 54 26 0x40 1 1 3/3
+host::make_marked combined 0xfac50 16 210 54 26 0x40 1 1 3/3
+host::make_marked borrow 0x2d6fc0 0 210 54 26 0x40 1 1 3/3
+host::make_marked hash 0xfac50 16 210 54 26 0x40 1 1 3/3
+
+host::make original 0x268d30 48 2077 540 162 0xf0 1 1 30/30
+host::make combined 0xfbba0 32 2077 540 162 0xf0 1 1 30/30
+host::make borrow 0x2d7f10 16 2077 540 162 0xf0 1 1 30/30
+host::make hash 0xfbba0 32 2077 540 162 0xf0 1 1 30/30
+
+host::prepare original 0x269550 16 898 249 102 0x50 1 1 18/18
+host::prepare combined 0xfc3c0 0 898 249 102 0x50 1 1 18/18
+host::prepare borrow 0x2d8730 48 898 249 102 0x50 1 1 18/18
+host::prepare hash 0xfc3c0 0 898 249 102 0x50 1 1 18/18
+
+host::write_address original 0x268470 48 685 196 28 0x38 1 1 1/1
+host::write_address combined 0xfb2e0 32 685 196 28 0x38 1 1 1/1
+host::write_address borrow 0x2d7650 16 685 196 28 0x38 1 1 1/1
+host::write_address hash 0xfb2e0 32 685 196 28 0x38 1 1 1/1
+
+host::HostHeap::keep original 0x25bc00 0 818 265 84 0xa0 1 1 17/17
+host::HostHeap::keep combined 0xed8c0 0 818 265 84 0xa0 1 1 17/17
+host::HostHeap::keep borrow 0x2cade0 32 818 265 84 0xa0 1 1 17/17
+host::HostHeap::keep hash 0xed8c0 0 818 265 84 0xa0 1 1 17/17
+
+pages::Pages::place original 0x25f4f0 48 347 115 46 0x38 1 1 7/7
+pages::Pages::place combined 0xf1020 32 347 115 46 0x38 1 1 7/7
+pages::Pages::place borrow 0x2ce6d0 16 347 115 46 0x38 1 1 7/7
+pages::Pages::place hash 0xf1020 32 347 115 46 0x38 1 1 7/7
+
+watch::Tracked::take original 0x211680 0 752 218 97 0x98 1 1 12/12
+watch::Tracked::take combined 0x2d0580 0 752 218 97 0x98 1 1 12/12
+watch::Tracked::take borrow 0x211680 0 752 218 97 0x98 1 1 12/12
+watch::Tracked::take hash 0x27acc0 0 752 218 97 0x98 1 1 12/12
+
+bindless::Viewed::set original 0x25dba0 32 2463 638 198 0x148 1 1 28/28
+bindless::Viewed::set combined 0xef860 32 2063 549 141 0x148 0 0 not-aligned(28/28)
+bindless::Viewed::set borrow 0x2ccd80 0 2463 638 198 0x148 1 1 28/28
+bindless::Viewed::set hash 0xef860 32 2063 549 141 0x148 0 0 not-aligned(28/28)
+
+shadow::find original 0x10ed90 16 3652 925 307 0xf8 1 1 43/43
+shadow::find combined 0x1506e0 32 3354 838 276 0x118 0 0 not-aligned(43/42)
+shadow::find borrow 0x10ed90 16 3652 925 307 0xf8 1 1 43/43
+shadow::find hash 0x1506e0 32 3354 838 276 0x118 0 0 not-aligned(43/42)
+
+* Shape retains opcode, registers, stack offsets, literals and internal branch destinations as function-relative offsets. Removes relocation-dependent RIP-relative displacements and replaces external direct branch targets with a placeholder; named sites checked separately. Only in sync_slots/make_marked are the audited TLS member relocations replaced by MARK/RAW_BIAS symbols. Equality of instruction shapes does not establish equality of data addresses, indirect driver dispatches, hardware counters or wall-clock cost.
+** Matching direct target means at least one identical PDB alias for paired direct external call/branch instructions at the same instruction ordinal when shape matches; ICF may produce multiple legitimate aliases. Different shapes cannot be compared by ordinal. Scope: listed functions and their inline records; compiler-emitted cleanup funclets outside these procedure extents are excluded.
+
+Computed static TLS offsets from exact PDB public TLS variable RVA minus PE TLS directory StartAddressOfRawData; the accessors fetch the thread vector at gs:0x58. Offsets in hexadecimal:
+original MARK=0xc8, RAW_BIAS=0xd4
+combined MARK=0x8, RAW_BIAS=0x14
+borrow MARK=0xf0, RAW_BIAS=0xfc
+hash MARK=0x8, RAW_BIAS=0x14
+
+Observed ordinary direct calls inside the selected linked functions (per static procedure body). Zero means there is no such direct call; it is not a count of runtime invocations.
+original victory_gpu::bindless::Viewed::set: none of the selected calls
+combined victory_gpu::bindless::Viewed::set: HashMap<u32, Seen>::remove
+borrow victory_gpu::bindless::Viewed::set: none of the selected calls
+hash victory_gpu::bindless::Viewed::set: HashMap<u32, Seen>::remove
+original victory_gpu::shadow::find: none of the selected calls
+combined victory_gpu::shadow::find: LeafRange<shadow::Entry>::perform_next_back_checked
+borrow victory_gpu::shadow::find: none of the selected calls
+hash victory_gpu::shadow::find: LeafRange<shadow::Entry>::perform_next_back_checked
+
+Source reachability: sync_dirty -> HostHeap::sync_slots, whose PDB lists sync_constants inlined; per ConstantSlot this invokes make, Viewed::set. make(View::Constant) calls shadow::find, then buffer_srv calls for_view which uses find again; seen(View::Constant) in Viewed::set also looks up its shadow. This workload registers the buffer before timing, so the B-tree lookup is live even on a shadow hit. Static evidence establishes changed code in a reached path, not which callee accounts for a particular percentage. CPU/cache/allocator mediation was not measured by this inspection.
+No shared PSO naming hasher or PSO cache lock in the descriptor path: library::name uses a per-call BLAKE3 hasher; pipeline names use NAMES and Library state. Descriptors synchronize HEAP_WORK/SHADER_HEAPS, made/kept, Viewed::inner and the shadow registry BUFFERS. Ordinary process memory allocation is shared: the combined candidate drops a DXIL clone and allocates a bounded temporary BufWriter. sync_slots later allocates scan scratch/changed/constants in the same process. Neither later heap state nor placement causality was measured here.
+
+PSO callers: CodeView standalone procedure size; inspect each direct CALL in HostPipeline::new and read the preceding AMD64 kind pointer and length from the PE image. Callsite RVAs below are paired with the verified UTF-8 kind literal.
+original HostPipeline::new=16729 B; library::name=522 B, caller inline sites named name=0; direct CALLs 0x23ef2e compute, 0x23f318 mesh, 0x24014d graphics
+combined HostPipeline::new=15805 B; library::name=1764 B, caller inline sites named name=0; direct CALLs 0x2786b8 compute, 0x278a59 mesh, 0x2798b5 graphics
+borrow HostPipeline::new=15805 B; library::name=522 B, caller inline sites named name=0; direct CALLs 0x2ae5c8 compute, 0x2ae969 mesh, 0x2af7c5 graphics
+hash HostPipeline::new=16729 B; library::name=1764 B, caller inline sites named name=0; direct CALLs 0x2a5e7e compute, 0x2a6268 mesh, 0x2a709d graphics
