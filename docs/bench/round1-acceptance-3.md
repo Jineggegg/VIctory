@@ -221,3 +221,19 @@ Windows 原生 MSVC 加载同一份 `toolchain/env.ps1`。合入调查分支的�
 | 修复后的 1 MiB 长测与验证层 | 同门槛复测的 p50 / p99 为 A 的 +2.2% / +7.3%，均无漂移、资源增长、校验失败或设备移除；验证层零错误。[A 分钟表](logs/round1-acceptance-3/soak-A-newgate/minutes.txt) · [B 分钟表](logs/round1-acceptance-3/soak-B-final/minutes.txt) · [验证结果](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/validation.json) |
 | 修复前后仍待观察的差异 | 小档和大档原始 A/B 显示副本刷新整体加快。另以修复版本相互比较，小档刷新 +3.9%，家族 95% 区间 −2.8% 至 +8.1%；大档 +2.1%，逐项区间 +0.9% 至 +3.2%，家族区间 −0.3% 至 +5.3%。这些读数仍需在实机跟踪。[分窗口统计](logs/r1-issues-investigation/parallel-review-fixes-2/new-gate/paired-stats.txt) · [合并两窗的区间](r1-issues-investigation.md) |
 | 已知遗留与后续 | 单独修复 victory-hle 的 xasync 竞态。自 `30a5202` 起，`complete_call` 先移除登记，再发布状态，导致等待者偶尔读到 E_PENDING；审核判定不阻塞本轮。实机观察物理页重映射等待并行回写的时长；旧运行时保留 645 的兼容性复测。热 PSO 的后续剖析优先看缓存命中路径。[偶发失败](logs/r1-issues-investigation/parallel-review-fixes-3/workspace-run1.txt) · [单独复跑](logs/r1-issues-investigation/parallel-review-fixes-3/xasync-alone.txt) · [调查与复审](r1-issues-investigation.md) |
+
+## 干净复测
+
+同一份 B 二进制在 RTX 5090 上重跑 30 分钟的 1 MiB 混合轮次，SHA-256 为 `08193123c00bf833443259d42acf6960f0872419e7ed740a9f7038a12de3dac9`。持有原 GPU 互斥锁，保留运行中的服务，用原门槛等待自然空闲。开跑前 10 次整卡占用均为 0%，沿用原预热、测试入口和按 PID 采集线程数的方式。[开跑记录](logs/round1-acceptance-3/soak-B-clean/window.txt) · [原生输出](logs/round1-acceptance-3/soak-B-clean/run.txt) · [线程采样](logs/round1-acceptance-3/soak-B-clean/threads.txt)
+
+下表的 p50、p95、p99 各取 30 个分钟值的中位数，单位为 ms。p50 漂移比较第 3–7 分钟和第 26–30 分钟的中位数。
+
+| 测量 | p50 | p95 | p99 | 第 18 分钟 p99 | 最高分钟 p99 | p50 漂移 | 完成轮数 | 分钟记录 |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| A | 1.346 | 1.587 | 1.907 | 1.969 | 2.169（第 19 分钟） | +1.08% | 1,303,180 | [A](logs/round1-acceptance-3/soak-A-newgate/minutes.txt) |
+| 上次 B | 1.376 | 1.701 | 2.047 | 2.695 | 2.695（第 18 分钟） | −3.82% | 1,282,954 | [上次 B](logs/round1-acceptance-3/soak-B-final/minutes.txt) |
+| 复测 B | 1.218 | 1.660 | 2.021 | 2.012 | 4.189（第 1 分钟） | −3.48% | 1,340,256 | [复测 B](logs/round1-acceptance-3/soak-B-clean/minutes.txt) |
+
+第 18–20 分钟的 p99 为 2.012、1.978、2.255 ms，旧尖峰没有在同一分钟复现。不过第 1、8、10、11 分钟分别达到 4.189、3.043、2.864、3.457 ms，都超过上次 B 的峰值。外部每 5 秒采样一次，361 次均有效，整卡利用率中位数 6%，范围 5%–22%。所有采样中仅测试进程出现过非零 3D/Compute 占用，另有两次系统 Copy 引擎活动，最高 3%。第 18 分钟的 12 次采样也只见测试进程使用 3D。两次采样之间的短时活动仍可能漏过，上次运行缺少同期记录，尖峰与视频播放的因果关系仍未确定。[逐分钟延迟](logs/round1-acceptance-3/soak-B-clean/minutes.txt) · [整卡及各进程引擎采样](logs/round1-acceptance-3/soak-B-clean/gpu-during.txt)
+
+三次运行的校验失败和设备移除均为 0，均未触发延迟漂移或资源增长判据。复测 B 前后两段的工作集、句柄、本地及非本地显存中位数均持平，全程句柄为 370–378 个，线程为 15–17 个，与上次 B 相同。[A 判据](logs/round1-acceptance-3/soak-A-newgate/run.txt) · [上次 B 判据](logs/round1-acceptance-3/soak-B-final/run.txt) · [复测 B 判据](logs/round1-acceptance-3/soak-B-clean/run.txt)

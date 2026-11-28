@@ -1,0 +1,39 @@
+Local build-queue slots reserved: 4
+2026-11-28 02:39:19Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=0% | VRAM=4822/32607 MiB | power=9.35 W | temp=31.87 C | graphics=195 MHz | memory=405 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=none
+WSL CUDA contexts: none
+GPU gate samples=0,0,0,0,0,0,0,0,0,0 mean=0.0% max=0% busy=0 waited_s=12.0 rule=mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none desktop background=none
+WSL CUDA contexts: none; shared GPU lock held; services left running.
+stage=soak-B-clean SHA256=08193123c00bf833443259d42acf6960f0872419e7ed740a9f7038a12de3dac9 profile=diag toolchain=../toolchain/env.ps1
+warm_ready=False stable_ms=0 pstate=P1 core_mhz=195 mem_mhz=13801 pcie=5x16
+warm_ready=False stable_ms=0 pstate=P1 core_mhz=195 mem_mhz=13801 pcie=5x16
+warm_ready=True stable_ms=3239 pstate=P1 core_mhz=2917 mem_mhz=13801 pcie=5x16
+soak minute 1 threads=17 observation_age_ms=66
+soak minute 2 threads=17 observation_age_ms=499
+soak minute 3 threads=15 observation_age_ms=425
+soak minute 4 threads=15 observation_age_ms=460
+soak minute 5 threads=15 observation_age_ms=495
+soak minute 6 threads=15 observation_age_ms=496
+soak minute 7 threads=15 observation_age_ms=18
+soak minute 8 threads=15 observation_age_ms=60
+soak minute 9 threads=15 observation_age_ms=489
+soak minute 10 threads=15 observation_age_ms=35
+soak minute 11 threads=15 observation_age_ms=103
+soak minute 12 threads=15 observation_age_ms=5
+soak minute 13 threads=15 observation_age_ms=14
+soak minute 14 threads=15 observation_age_ms=56
+soak minute 15 threads=15 observation_age_ms=517
+soak minute 16 threads=15 observation_age_ms=3
+soak minute 17 threads=15 observation_age_ms=61
+soak minute 18 threads=16 observation_age_ms=20
+soak minute 19 threads=15 observation_age_ms=0
+soak minute 20 threads=15 observation_age_ms=7
+soak minute 21 threads=15 observation_age_ms=3
+soak minute 22 threads=15 observation_age_ms=12
+soak minute 23 threads=15 observation_age_ms=2
+soak minute 24 threads=15 observation_age_ms=19
+soak minute 25 threads=15 observation_age_ms=515
+soak minute 26 threads=15 observation_age_ms=469
+soak minute 27 threads=15 observation_age_ms=0
+soak minute 28 threads=15 observation_age_ms=482
+soak minute 29 threads=15 observation_age_ms=514
+soak minute 30 threads=15 observation_age_ms=514
