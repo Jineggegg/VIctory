@@ -498,8 +498,8 @@ struct Call {
     /// Set by the first completion, which then runs without a lock: the
     /// provider's cleanup may wait for a thread completing the same call.
     claimed: AtomicBool,
-    /// The status is published.
-    done: Mutex<bool>,
+    /// The published status of this call, even if the block is later reused.
+    done: Mutex<Option<HRESULT>>,
     finished: Condvar,
 }
 
@@ -528,12 +528,9 @@ fn call(block: *mut AsyncBlock) -> Option<Arc<Call>> {
     lock(&CALLS).get(&(block as usize)).cloned()
 }
 
-/// Whether `call` is still the call in flight on `block`: once it is over,
-/// the title may begin another call on the same block.
-fn is_current(call: &Arc<Call>, block: *mut AsyncBlock) -> bool {
-    lock(&CALLS)
-        .get(&(block as usize))
-        .is_some_and(|current| Arc::ptr_eq(current, call))
+/// Cleanup keeps the call visible to waiters, but its provider can no longer do work.
+fn pending_call(block: *mut AsyncBlock) -> Option<Arc<Call>> {
+    call(block).filter(|call| !call.claimed.load(Ordering::Acquire))
 }
 
 /// The block's status and result-size words.
@@ -584,7 +581,7 @@ pub fn XAsyncBegin(
         // behind never reads zero (it holds the result's size). So this is
         // a new block, and the call left behind ends here. A call in flight
         // keeps its address, and a block still holding a result is in use.
-        let over = *lock(&left.done);
+        let over = lock(&left.done).is_some();
         if !(over && zeroed(block)) {
             return E_INVALIDARG;
         }
@@ -598,7 +595,7 @@ pub fn XAsyncBegin(
         context: context as usize,
         identity: identity as usize,
         claimed: AtomicBool::new(false),
-        done: Mutex::new(false),
+        done: Mutex::new(None),
         finished: Condvar::new(),
     });
     lock(&CALLS).insert(block as usize, call.clone());
@@ -621,7 +618,7 @@ pub fn XAsyncSchedule(block: *mut AsyncBlock, delay_ms: u32) -> HRESULT {
     extern "system" fn work(context: *mut c_void, canceled: bool) {
         // SAFETY: boxed in `XAsyncSchedule`; a task runs once.
         let Work { call, block } = *unsafe { Box::from_raw(context.cast::<Work>()) };
-        if !is_current(&call, block) {
+        if !pending_call(block).is_some_and(|current| Arc::ptr_eq(&call, &current)) {
             return;
         }
         let hr = if canceled {
@@ -634,7 +631,7 @@ pub fn XAsyncSchedule(block: *mut AsyncBlock, delay_ms: u32) -> HRESULT {
     if block.is_null() {
         return E_INVALIDARG;
     }
-    let Some(call) = call(block) else {
+    let Some(call) = pending_call(block) else {
         return E_INVALIDARG;
     };
     // SAFETY: a block in flight is valid.
@@ -682,13 +679,22 @@ fn complete_call(call: &Call, block: *mut AsyncBlock, result: HRESULT, required_
     // the block.
     // SAFETY: a block in flight is valid.
     let (handle, routine) = unsafe { ((*block).queue, (*block).callback) };
-    let (status, size) = words(block);
+    let publish = || {
+        let (status, size) = words(block);
+        size.store(required_size, Ordering::Release);
+        status.store(result as u32 as usize, Ordering::Release);
+    };
     if result < 0 || required_size == 0 {
-        release(block);
+        // Cleanup may reenter or join another completing thread. Keep the call
+        // registered throughout cleanup and hold no lock while the provider runs.
+        call.provider(OP_CLEANUP, block, 0, std::ptr::null_mut());
+        let mut calls = lock(&CALLS);
+        publish();
+        calls.remove(&(block as usize));
+    } else {
+        publish();
     }
-    size.store(required_size, Ordering::Release);
-    status.store(result as u32 as usize, Ordering::Release);
-    *lock(&call.done) = true;
+    *lock(&call.done) = Some(result);
     call.finished.notify_all();
     if routine.is_some() {
         let task = Task::new(block.cast(), complete);
@@ -704,8 +710,15 @@ pub fn XAsyncGetStatus(block: *mut AsyncBlock, wait: bool) -> HRESULT {
         return E_INVALIDARG;
     }
     if wait && let Some(call) = call(block) {
-        let done = lock(&call.done);
-        drop(call.finished.wait_while(done, |d| !*d));
+        let mut done = lock(&call.done);
+        #[cfg(test)]
+        tests::resume_cleanup_if_waiting();
+        loop {
+            if let Some(result) = *done {
+                return result;
+            }
+            done = call.finished.wait(done).unwrap_or_else(|e| e.into_inner());
+        }
     }
     status(block)
 }
@@ -1491,6 +1504,57 @@ mod tests {
         );
         assert_eq!((byte, used), (0x5a, 1));
         XTaskQueueCloseHandle(q);
+    }
+
+    // Only the regression test's waiter has a paused cleanup to release.
+    thread_local! {
+        static RESUME_CLEANUP: std::cell::Cell<Option<Arc<std::sync::Barrier>>> =
+            const { std::cell::Cell::new(None) };
+    }
+
+    pub(super) fn resume_cleanup_if_waiting() {
+        if let Some(resume) = RESUME_CLEANUP.take() {
+            resume.wait();
+        }
+    }
+
+    #[test]
+    fn status_waits_for_cleanup_to_publish_the_result() {
+        use std::sync::Barrier;
+
+        extern "system" fn provider(op: u32, data: *const ProviderData) -> HRESULT {
+            if op == OP_CLEANUP {
+                // SAFETY: the test keeps the barrier alive until this thread joins.
+                let gate = unsafe { &*(*data).context.cast::<Barrier>() };
+                gate.wait(); // Tell the waiter cleanup has started.
+                gate.wait(); // Wait for permission to finish cleanup.
+            }
+            S_OK
+        }
+
+        let gate = Arc::new(Barrier::new(2));
+        let context = Arc::as_ptr(&gate).cast_mut().cast();
+        let mut block = AsyncBlock {
+            queue: std::ptr::null(),
+            context: std::ptr::null_mut(),
+            callback: None,
+            internal: [0; 4],
+        };
+        assert_eq!(begin(&raw mut block, context, provider), S_OK);
+        let address = (&raw mut block) as usize;
+        let (poll, waited) = std::thread::scope(|scope| {
+            scope.spawn(move || XAsyncComplete(address as *mut AsyncBlock, E_ABORT, 0));
+            gate.wait();
+            let poll = XAsyncGetStatus(address as *mut AsyncBlock, false);
+            // Release cleanup once this thread has found the call to wait on.
+            // If it misses, hold cleanup until after it reads the block's status.
+            RESUME_CLEANUP.set(Some(gate.clone()));
+            let result = XAsyncGetStatus(address as *mut AsyncBlock, true);
+            resume_cleanup_if_waiting();
+            (poll, result)
+        });
+        assert_eq!(poll, E_PENDING);
+        assert_eq!(waited, E_ABORT);
     }
 
     #[test]
