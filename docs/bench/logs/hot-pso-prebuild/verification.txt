@@ -1,0 +1,59 @@
+Windows native tests; candidate 2fff37547380ef13b6f1b773f4c2bd3cf134ea80
+
+clippy | cargo clippy --workspace --all-targets --locked -- -D warnings | exit 0
+
+clippy-all | cargo clippy --workspace --all-targets --all-features --locked -- -D warnings | exit 0
+
+workspace | cargo test --workspace --locked | exit 0
+  victory-0ec53295fffbff09.exe: 14 passed, 0 failed, 0 ignored
+  census-c16a3181d222c2a2.exe: 2 passed, 0 failed, 0 ignored
+  census_unreadable-cce3b6bb1982d5e7.exe: 1 passed, 0 failed, 0 ignored
+  translate-650d78cf4efc04e6.exe: 1 passed, 0 failed, 0 ignored
+  victory_core-51f8c46a2f8449d8.exe: 13 passed, 0 failed, 0 ignored
+  victory_formats-0c7e51b8272807f7.exe: 47 passed, 0 failed, 5 ignored
+  victory_game-4013e62613415e43.exe: 19 passed, 0 failed, 0 ignored
+  victory_gpu-5c23fc70966601d0.exe: 321 passed, 0 failed, 4 ignored
+  victory_hle-b1c1588dbded77e8.exe: 154 passed, 0 failed, 0 ignored
+  fidelityfx-ee9b6aed44c5a3a2.exe: 1 passed, 0 failed, 0 ignored
+  no_dll_planting-8f2eeec3e7fd6809.exe: 1 passed, 0 failed, 0 ignored
+  victory_loader-200470b272292ca3.exe: 35 passed, 0 failed, 0 ignored
+  crash_log-0a309a53e68e2388.exe: 1 passed, 0 failed, 0 ignored
+  load_probe-bf0578a10d3d4466.exe: 2 passed, 0 failed, 0 ignored
+  title_dlls-1976a5926922e13e.exe: 1 passed, 0 failed, 0 ignored
+  victory_pe-90f95e0f3fdfbfc4.exe: 36 passed, 0 failed, 0 ignored
+  victory_pipeline-bbc4a0ec49b567c1.exe: 8 passed, 0 failed, 0 ignored
+  victory_shader-7e0c9d64298db58b.exe: 308 passed, 0 failed, 3 ignored
+  resource_tracking-f2f843dca0b2c0db.exe: 3 passed, 0 failed, 1 ignored
+  xtask-50b5976488d47005.exe: 9 passed, 0 failed, 0 ignored
+  Doc-tests victory_core: 0 passed, 0 failed, 0 ignored
+  Doc-tests victory_formats: 0 passed, 0 failed, 0 ignored
+  Doc-tests victory_game: 0 passed, 0 failed, 0 ignored
+  Doc-tests victory_gpu: 0 passed, 0 failed, 0 ignored
+  Doc-tests victory_hle: 0 passed, 0 failed, 0 ignored
+  Doc-tests victory_loader: 0 passed, 0 failed, 0 ignored
+  Doc-tests victory_pe: 0 passed, 0 failed, 0 ignored
+  Doc-tests victory_pipeline: 0 passed, 0 failed, 0 ignored
+  Doc-tests victory_shader: 0 passed, 0 failed, 0 ignored
+  Total 29 top-level programs: 977 passed, 0 failed, 13 ignored; excluded 4 filtered child results.
+
+gpu-1 | cargo test --locked -p victory-gpu | exit 0
+  victory_gpu-4ddd15aa5426e911.exe: 321 passed, 0 failed, 4 ignored
+  Doc-tests victory_gpu: 0 passed, 0 failed, 0 ignored
+  Total 2 top-level programs: 321 passed, 0 failed, 4 ignored; excluded 3 filtered child results.
+
+gpu-2 | cargo test --locked -p victory-gpu | exit 0
+  victory_gpu-4ddd15aa5426e911.exe: 321 passed, 0 failed, 4 ignored
+  Doc-tests victory_gpu: 0 passed, 0 failed, 0 ignored
+  Total 2 top-level programs: 321 passed, 0 failed, 4 ignored; excluded 3 filtered child results.
+
+gpu-3 | cargo test --locked -p victory-gpu | exit 0
+  victory_gpu-4ddd15aa5426e911.exe: 321 passed, 0 failed, 4 ignored
+  Doc-tests victory_gpu: 0 passed, 0 failed, 0 ignored
+  Total 2 top-level programs: 321 passed, 0 failed, 4 ignored; excluded 3 filtered child results.
+
+policy | cargo xtask policy | exit 0
+
+tools/bench/run.ps1 -CheckOnly (Debug Layer + GPU-based validation)
+passed; no failed runs or process crashes
+  check: {"adapter": "NVIDIA GeForce RTX 5090", "rgba": [[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]], "depth": [0.25, 0.5, 0.25, 0.25]}
+  validate: {"adapter": "NVIDIA GeForce RTX 5090", "rgba": [[1.0, 0.5, -0.25, 2.0], [0.0, 0.0, 0.0, 0.0]], "depth": [0.25, 0.5, 0.25, 0.25], "validation_errors": 0}
