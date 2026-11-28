@@ -1,0 +1,156 @@
+Saved mode=paused services={'studio-comfy.service': 'active', 'studio-swarm.service': 'active'}
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+2026-11-28 00:25:13Z | NVIDIA GeForce RTX 5090 | driver=621.14 | GPU=1% | VRAM=4401/32607 MiB | power=66.54 W | temp=44.80 C | graphics=975 MHz | memory=7001 MHz | 3D/Compute=none | krig-miner=none | other engines=none | tolerated background=chrome(pid=18724) 3D=1%
+Idle window: 11.5s, 10 samples=0,2,1,1,2,1,1,1,3,1, mean GPU=1.3%, max GPU=3%, rule: mean<=8% single<=10% over 10 samples, non-desktop 3D/Compute=none, waited=12.1s, busy samples=0, desktop background admitted: chrome(pid=18724) 3D max=1% in 3/10
+WSL CUDA contexts: none
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+RUN nogate sha256=D52F9A4DDC50AF93BB985075584F62E870A597CCADD0EA1691DDD568EB11D8F8 test=shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them round=1
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (33288) panicked at crates\victory-gpu\src\shadow.rs:3575:9:
+shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them in a child process: exit code: 101
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them ... FAILED
+
+failures:
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.30s
+
+
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them' (43336) panicked at crates\victory-gpu\src\shadow.rs:3487:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.35s
+
+EXIT nogate test=shadow::tests::a_release_and_alias_during_parallel_groups_waits_for_them round=1 code=101
+RUN nogate sha256=D52F9A4DDC50AF93BB985075584F62E870A597CCADD0EA1691DDD568EB11D8F8 test=shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups round=1
+
+running 1 test
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... FAILED
+
+failures:
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups' (17712) panicked at crates\victory-gpu\src\shadow.rs:3575:9:
+shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups in a child process: exit code: 101
+
+running 1 test
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups ... FAILED
+
+failures:
+
+failures:
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.26s
+
+
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups' (34152) panicked at crates\victory-gpu\src\shadow.rs:3487:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.31s
+
+EXIT nogate test=shadow::tests::an_alias_after_an_unseen_release_waits_for_snapshot_groups round=1 code=101
+RUN nogate sha256=D52F9A4DDC50AF93BB985075584F62E870A597CCADD0EA1691DDD568EB11D8F8 test=shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them round=1
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+
+failures:
+
+---- shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them stdout ----
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (20344) panicked at crates\victory-gpu\src\shadow.rs:3575:9:
+shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them in a child process: exit code: 101
+
+running 1 test
+test shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them ... FAILED
+
+failures:
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.28s
+
+
+
+thread 'shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them' (10516) panicked at crates\victory-gpu\src\shadow.rs:3487:9:
+a group stored into the remapped physical page
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.33s
+
+EXIT nogate test=shadow::tests::a_release_and_alias_during_parallel_marked_runs_waits_for_them round=1 code=101
+RUN nogate sha256=D52F9A4DDC50AF93BB985075584F62E870A597CCADD0EA1691DDD568EB11D8F8 test=shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs round=1
+
+running 1 test
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+
+failures:
+
+---- shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs stdout ----
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (8984) panicked at crates\victory-gpu\src\shadow.rs:3575:9:
+shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs in a child process: exit code: 101
+
+running 1 test
+test shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs ... FAILED
+
+failures:
+
+failures:
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.27s
+
+
+
+thread 'shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs' (38500) panicked at crates\victory-gpu\src\shadow.rs:3491:9:
+the remap completed while groups were storing
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 324 filtered out; finished in 0.32s
+
+EXIT nogate test=shadow::tests::an_alias_after_an_unseen_release_waits_for_marked_runs round=1 code=101
+PearlIdle mode=paused minerRunning=False reason=paused failureLockout=False
+Restored studio-comfy.service=active studio-swarm.service=active

@@ -1,0 +1,149 @@
+GPU gate for the third review round's test runs: the rule of ../parallel-review-fixes-2/new-gate/gate-change.txt with two changes.
+
+1. Discord joins the desktop-background list (a chat client like Teams; it keeps 2-3 % 3D).
+   accept3-tools/gpu-gate.ps1:
+     10:# Desktop background (compositor, browsers, Edge WebView, Teams, Discord, Windows shell) is
+     19:    'ms-teams', 'Teams', 'Discord', 'cloudmusic'
+
+2. target/parallel-review4/window.sh takes one read-only sample before it enters gpu-quiet and
+   waits outside while a non-desktop program uses the GPU or the whole GPU is above 10 %,
+   so the desktop services are not paused and restarted while, for example, a game runs.
+   Inside, gpu-quiet waits at most 180 s and is retried after 60 s. It also waits while
+   another session holds or has a pending GPU reservation. Nothing ends any process.
+
+3. A Windows GPU engine counter now and then reads as a huge number (seen: 711049543019964).
+   Converting it to [int] threw, which ended the second CI window before victory-gpu round 2.
+   Such a sample now counts as unreadable: the gate logs it and waits for the next sample.
+
+===== accept3-tools/gpu-gate.ps1, counter fix
+--- gpu-gate.ps1
++++ gpu-gate.ps1
+@@ -29,17 +29,22 @@
+     $util = [int]$fields[2]
+     $eng = @(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine -OperationTimeoutSec 6)
+     $desktop = Get-GpuGateDesktop
+-    $owners = @(); $other = @(); $tolerated = @(); $tracked = 0
++    $owners = @(); $other = @(); $tolerated = @(); $tracked = 0; $unreadable = 0
+     foreach ($row in $eng) {
+         if ($row.Name -notmatch '^pid_(\d+)_.*_engtype_(.+)$') { continue }
+         $procId = $Matches[1]; $type = $Matches[2]
+         $isTracked = $type -match '^(3d|compute|cuda)'
+         if ($isTracked) { $tracked++ }
+         if ($null -eq $row.UtilizationPercentage) { throw 'Unreadable GPU Engine counter' }
+-        if ($row.UtilizationPercentage -le 0) { continue }
++        $pct = [double]$row.UtilizationPercentage
++        if ($pct -le 0) { continue }
++        # The formatted counter now and then reads as a huge number (seen:
++        # 711049543019964). Such a sample cannot show who uses the GPU: the
++        # gate waits for the next one instead of failing.
++        if ($pct -gt 100) { $unreadable++; continue }
+         $name = (Get-Process -Id $procId -ErrorAction SilentlyContinue).ProcessName
+         if (!$name) { $name = 'unknown' }
+-        $entry = [pscustomobject]@{ name = $name; pid = $procId; type = $type; pct = [int]$row.UtilizationPercentage }
++        $entry = [pscustomobject]@{ name = $name; pid = $procId; type = $type; pct = [int]$pct }
+         if (!$isTracked) { $other += $entry }
+         elseif ($name -in $desktop) { $tolerated += $entry }
+         else { $owners += $entry }
+@@ -51,7 +56,8 @@
+         [datetime]::UtcNow, $fields[0], $fields[1], $util, $fields[3], $fields[4], $fields[5], $fields[6], $fields[7], $fields[8],
+         (& $fmt $owners), $(if ($miner.Count) { ($miner | ForEach-Object { "$($_.ProcessName)($($_.Id))" }) -join ',' } else { 'none' }),
+         (& $fmt $other), (& $fmt $tolerated)
+-    [pscustomobject]@{ util = $util; owners = $owners; tolerated = $tolerated; miners = $miner.Count; line = $line }
++    if ($unreadable) { $line += " | unreadable engine counters=$unreadable" }
++    [pscustomobject]@{ util = $util; owners = $owners; tolerated = $tolerated; miners = $miner.Count; unreadable = $unreadable; line = $line }
+ }
+ 
+ # Waits until the admission rule holds. Returns the accepted window, or $null after
+@@ -70,6 +76,7 @@
+         $now = $clock.Elapsed.TotalSeconds
+         $reason = $null; $kind = ''
+         if ($s.miners) { $reason = 'miner process present'; $kind = 'miner' }
++        elseif ($s.unreadable) { $reason = "unreadable GPU engine counter ($($s.unreadable))"; $kind = 'unreadable' }
+         elseif ($s.owners.Count) { $kind = 'owner'; $reason = 'non-desktop process on 3D/Compute: ' + (($s.owners | ForEach-Object { "$($_.name)(pid=$($_.pid)) $($_.type)=$($_.pct)%" }) -join ', ') }
+         elseif ($s.util -gt $MaxSingle) { $kind = 'single'; $reason = "GPU=$($s.util)% > single-sample limit $MaxSingle%" }
+         if ($reason) {
+
+===== target/parallel-review4/window.sh
+#!/bin/bash
+# Run a target/parallel-review4 PowerShell script inside a gpu-quiet window (shared
+# 8 %/10 % gate). Waits while another session has the GPU reserved or pending, and
+# retries while gpu-quiet's lock is held; never ends any process.
+set -u
+q=../accept-r1/target/accept3-tools/bin/gpu-quiet
+s="$HOME/.local/state/gpu-quiet"
+export GPU_QUIET_TIMEOUT=${GPU_QUIET_TIMEOUT:-180}
+out=$(mktemp)
+gate=$(wslpath -w /mnt/e/Projects/GTA-build/accept-r1/target/accept3-tools/gpu-gate.ps1)
+# One read-only sample: busy while a non-desktop program (a game, say) uses the GPU
+# or the whole GPU is above 10 %. Waiting here leaves the desktop services running.
+busy() {
+    /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -Command "\$ErrorActionPreference = 'Stop'; . '$gate'; \$g = Get-GpuGateSample; if (\$g.owners.Count -or \$g.miners -or \$g.unreadable -or \$g.util -gt 10) { 'busy | ' + \$g.line } else { 'idle' }" | tr -d '\r'
+}
+last=0
+while :; do
+    while [[ -e $s/state.json || -e $s/pending ]]; do sleep 20; done
+    b=$(busy)
+    if [[ $b != idle ]]; then
+        if (( SECONDS - last >= 300 )); then echo "pre-check $(date -u +%FT%TZ) $b"; last=$SECONDS; fi
+        sleep 60; continue
+    fi
+    build-queue "$q" run -- /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -File "target/parallel-review4/$1.ps1" "${@:2}" 2>&1 | tee "$out"
+    rc=${PIPESTATUS[0]}
+    if [[ $rc != 0 ]] && grep -q 'another operation owns the GPU reservation\|existing begin reservation\|s timeout; the GPU stayed above' "$out"; then
+        echo "window not admitted at $(date -u +%FT%TZ), waiting"; sleep 60; continue
+    fi
+    rm -f "$out"; exit "$rc"
+done
+
+===== target/parallel-review4/tests.ps1
+param([string]$Labels,[string]$Names,[int]$Repeat=1)
+. "$PSScriptRoot/../r1-review/env-local.ps1"
+# GPU gate (2026-11-27): 10 samples averaging <= 8 %, none above 10 %, desktop
+# background admitted and logged, any other 3D/Compute user only makes this wait.
+. "$PSScriptRoot/../../../accept-r1/target/accept3-tools/gpu-gate.ps1"
+$ErrorActionPreference = 'Continue'
+$status=0
+foreach($label in $Labels.Split(',')){
+    $exe="$PSScriptRoot/$label.exe"
+    foreach($name in $Names.Split(',')){
+        for($i=1;$i -le $Repeat;$i++){
+            Write-Output "RUN $label sha256=$((Get-FileHash $exe).Hash) test=$name round=$i"
+            & $exe --exact $name --test-threads=1 2>&1 | Out-String -Stream
+            Write-Output "EXIT $label test=$name round=$i code=$LASTEXITCODE"
+            if($LASTEXITCODE -and $label -notlike 'no*'){$status=1}
+        }
+    }
+}
+exit $status
+
+===== target/parallel-review4/final.ps1
+param([string]$Kind,[string]$Only='workspace,gpu1,gpu2,gpu3')
+. "$PSScriptRoot/../r1-review/env-local.ps1"
+. "$PSScriptRoot/../../../accept-r1/target/accept3-tools/gpu-gate.ps1"
+function Gate { Invoke-GpuGate }
+$script:failed=0
+if($Kind -eq 'ci'){
+    foreach($name in $Only.Split(',')){
+        Gate
+        $log=Join-Path $PSScriptRoot "ci-$name.txt"
+        Write-Output "START $name $(Get-Date -Format o)"
+        if($name -eq 'workspace'){cargo.exe test --workspace --locked > $log}
+        else{cargo.exe test --locked -p victory-gpu > $log}
+        if($LASTEXITCODE){Get-Content $log -Tail 30; Write-Output "FAIL $name"; $script:failed=1}
+        else{Write-Output "PASS $name"}
+    }
+    exit $script:failed
+}
+
+===== target/parallel-review4/xasync.ps1
+param([int]$Rounds=300,[string]$Name='modules::xasync::tests::run_returns_the_work_result',[string]$Threads='1')
+. "$PSScriptRoot/../r1-review/env-local.ps1"
+$ErrorActionPreference='Continue'
+$exe="$root/target/debug/deps/victory_hle-b1c1588dbded77e8.exe"
+Write-Output "exe sha256=$((Get-FileHash $exe).Hash) test=$Name rounds=$Rounds test-threads=$Threads"
+$fail=0
+for($i=1;$i -le $Rounds;$i++){
+    $o = & $exe --exact $Name "--test-threads=$Threads" 2>&1 | Out-String
+    if($LASTEXITCODE){$fail++; Write-Output "round $i FAILED"; Write-Output ($o -split "`n" | Select-String 'left:|right:|panicked')}
+}
+Write-Output "failed $fail of $Rounds"

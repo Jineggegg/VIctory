@@ -397,3 +397,31 @@ B 每轮恰有 65,536 个 16 字节掩码，全部是混合块。空块、整向
 - 大档副本刷新 +2.1% 落在本轮没有改动的路径上，上文已建议在正式浸泡中观察小档副本刷新，这项也一并观察。
 - 放行名单比用户点名的多了 Windows 外壳组件（explorer、SearchHost 等）、登录代理 `Microsoft.AAD.BrokerPlugin` 和网易云音乐，它们都只绘制桌面界面。名单之外的进程只会让门槛等待。整卡均值和单次上限对名单内的进程同样有效。
 - 桌面占用持续在 8%–10% 时门槛会一直等，本轮最长等了 18 分钟。gpu-quiet 默认等 180 秒后放弃，由调用方重试；本轮的窗口脚本设为 1800 秒。
+
+## 第三轮复审：隔离别名测试
+
+第三轮复审结论是有条件通过：生产代码没有问题，合并前要把测试隔离开。本节只改测试和报告，每项单独提交在 `investigate/r1-issues`。日志在 [parallel-review-fixes-3](logs/r1-issues-investigation/parallel-review-fixes-3/)，结果汇总见 [summary.txt](logs/r1-issues-investigation/parallel-review-fixes-3/summary.txt)。本节的测试都按新显卡门槛排队（见上一节），计数一律按顶层测试程序算，用例自己启动的子进程打印的结果不计入。
+
+### 四项修改
+
+1. **别名竞争用例在独立子进程里运行，`a72ee69`（必须修）。** 原测试解除自己映射的视图之后，仍对已经释放的整个池调用 `title_memory_remapped(pool, len)`。如果同进程的另一个测试已经复用了其中某一页，这个通知会把新持有者的页标脏、重新打开写保护，并删掉它的别名关系。现在四个别名竞争用例各自用 `--exact` 重新启动测试程序本身，在子进程里运行（与 `shader_cache`、`pipeline::library` 已有的子进程用例同一做法）；子进程的输出只在失败时转给父进程，因此顶层结果里每个用例只算一次。测试只对自己仍然映射着的视图发重映射通知，去掉了整池通知。
+2. **别名用例先确认重映射线程已经停在门前，`41ed1e9`（建议修）。** 原先给重映射线程 300 ms，只看它有没有完成，分不清“还没走到门”和“被门挡住”。现在钩子先等（最多 5 秒）重映射在 `remapping()` 里登记自己：登记和等待在同一把锁下先后发生，而运行钩子的组正持有映射，所以登记之后它一定在门前等待。之后才给 300 ms，并要求它没有完成。5 秒内没走到门就判测试失败。为此在 `watch::tests` 里加了只读的测试辅助函数 `remaps_at_gate()`，生产代码没有改。
+3. **故障组用例按本次实际的执行线程判断能否重叠，`407c51d`（建议修）。** 原先按 CPU 数推断有没有第二个执行者，但线程池创建失败时，`parallel_items` 会合法地全部在调用线程上运行。现在每页回调记下自己所在的线程；故障组装好保护后，等待（最多 5 秒）任一页在别的线程上被读到。看到了，才等待正常组、断言两组在两个线程上重叠；看不到，就只检查结果，并打印“只有一个执行者”。
+4. **报告计数更正，`1d286c6`。** 上一节初稿写的 980 项和 324 项多算了子进程的结果，按顶层测试程序应为工作区 976 通过、13 忽略，victory-gpu 每轮 321 通过、4 忽略。
+
+### 验证
+
+- 两套 Clippy（`--workspace --all-targets`，其中一套加 `--all-features`，均 `-D warnings`）在 `a72ee69`、`41ed1e9`、`407c51d` 上逐个运行，全部通过。[c1](logs/r1-issues-investigation/parallel-review-fixes-3/c1-clippy.txt) · [c1 全特性](logs/r1-issues-investigation/parallel-review-fixes-3/c1-clippy_all.txt) · [c2](logs/r1-issues-investigation/parallel-review-fixes-3/c2-clippy.txt) · [c2 全特性](logs/r1-issues-investigation/parallel-review-fixes-3/c2-clippy_all.txt) · [c3](logs/r1-issues-investigation/parallel-review-fixes-3/c3-clippy.txt) · [c3 全特性](logs/r1-issues-investigation/parallel-review-fixes-3/c3-clippy_all.txt)
+- `407c51d` 的测试程序在同一个 gpu-quiet 窗口里，五个用例各单独连跑 10 轮，**50/50 通过**：快照入口经登记释放、快照入口未登记释放、标记页入口经登记释放、标记页入口未登记释放、故障组。故障组 10 轮都看到了第二个执行者，并断言了两组重叠。[逐轮记录](logs/r1-issues-investigation/parallel-review-fixes-3/repeat-tests.txt)
+- 对照版：在 `407c51d` 上去掉 `remapping()` 的等待（[补丁](logs/r1-issues-investigation/parallel-review-fixes-3/nogate.patch.txt)），四个别名用例各跑一次，**4/4 失败**。快照两个用例和标记页“经登记释放”报“有组写进了重映射后的物理页”；标记页“未登记释放”报“重映射在组写入期间完成”。失败都来自子进程，由父进程转出。[对照版记录](logs/r1-issues-investigation/parallel-review-fixes-3/nogate-control.txt)
+- `cargo test --workspace --locked`：第一次在 `victory-hle` 的 `modules::xasync::tests::run_returns_the_work_result` 失败，期望 `E_ABORT`（0x80004004），实际 `E_PENDING`（0x8000000A）；cargo 在这个程序后停下，之前 9 个程序 570 项通过。[第一次](logs/r1-issues-investigation/parallel-review-fixes-3/workspace-run1.txt) · [窗口](logs/r1-issues-investigation/parallel-review-fixes-3/ci-window-run1.txt) 第二次 29 个顶层测试程序 **976 项通过，0 失败，13 项忽略**。[第二次](logs/r1-issues-investigation/parallel-review-fixes-3/workspace.txt)
+- `cargo test --locked -p victory-gpu` 在同一窗口里连跑 3 轮：每轮 2 个顶层测试程序，**321 项通过，0 失败，4 项忽略**。第二次 CI 窗口在第 2 轮前因门槛计数器的异常值中止（见下文），所以三轮整体重跑了一遍。[第 1 轮](logs/r1-issues-investigation/parallel-review-fixes-3/gpu1.txt) · [第 2 轮](logs/r1-issues-investigation/parallel-review-fixes-3/gpu2.txt) · [第 3 轮](logs/r1-issues-investigation/parallel-review-fixes-3/gpu3.txt) · [三轮窗口](logs/r1-issues-investigation/parallel-review-fixes-3/ci-window.txt) · [中止的第二次 CI 窗口](logs/r1-issues-investigation/parallel-review-fixes-3/ci-window-run2.txt)
+
+**xasync 失败的原因（与本轮改动无关）。** `complete_call` 先 `release(block)`，把调用从登记表里移除，之后才发布状态并置完成标志。`XAsyncGetStatus(block, true)` 如果正好在这两步之间进来，就查不到调用，不等待，直接读到尚未发布的 `E_PENDING`，与失败值完全一致。这段顺序来自 `30a5202`，优化前的 A（`6b1e408`）同样包含。本轮只改了 victory-gpu 的测试代码，没有改动 victory-hle。该用例在空闲机器上单独连跑 300 次全部通过，[记录](logs/r1-issues-investigation/parallel-review-fixes-3/xasync-alone.txt)：它只在整套测试并发运行时偶发。这是生产代码里的竞态，不在本轮“只改测试”的范围内，需要另行决定是否修复。
+
+**显卡排队。** 本节的测试一律经 gpu-quiet 开窗，门槛规则与上一节相同，另有三处补充（[说明](logs/r1-issues-investigation/parallel-review-fixes-3/gate-change.txt)）：
+- Discord 加入桌面后台名单，它和 Teams 一样常驻 2%–3% 的 3D 占用。
+- 进 gpu-quiet 之前先做一次只读采样，非桌面程序在用显卡时在外面等，不反复暂停、重启桌面服务。
+- Windows 引擎计数器偶尔读出离谱的数值（见过 711049543019964），原先转换时会抛异常，让第二次 CI 窗口在 victory-gpu 第 2 轮之前中止；现在把这种采样当作“读不出”，记进日志后继续等待。
+
+本节的测试从 21:33 起排队，用户从 21:23 起在玩《Phantom Blade Zero》（PBZ，3D 占用 80%–90%），门槛一直等到 00:24 游戏结束才放行。之后还让过另一个子线程的 30 分钟长测，也等过 Chrome 放视频（3D 19%，整卡 24%）。全程没有结束或通知任何进程。
