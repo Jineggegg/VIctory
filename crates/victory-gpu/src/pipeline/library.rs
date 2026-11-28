@@ -466,22 +466,21 @@ pub(crate) fn name(kind: &str, root: &[u8], code: &[&[u8]], state: &str) -> Stri
     // One contiguous input lets BLAKE3 hash multiple short shader chunks in
     // parallel. Keep the original streaming path for large pipeline descriptions.
     let size = parts.clone().try_fold(0usize, |n, p| n.checked_add(8)?.checked_add(p.len()));
-    let digest = if let Some(size) = size.filter(|&n| n <= 8 * blake3::CHUNK_LEN) {
+    let mut hash = blake3::Hasher::new();
+    if let Some(size) = size.filter(|&n| n <= 8 * blake3::CHUNK_LEN) {
         let mut frame = Vec::with_capacity(size);
         for part in parts {
             frame.extend_from_slice(&(part.len() as u64).to_le_bytes());
             frame.extend_from_slice(part);
         }
-        blake3::hash(&frame)
+        hash.update(&frame);
     } else {
-        let mut hash = blake3::Hasher::new();
         for part in parts {
             hash.update(&(part.len() as u64).to_le_bytes());
             hash.update(part);
         }
-        hash.finalize()
-    };
-    digest.to_hex()[..32].to_owned()
+    }
+    hash.finalize().to_hex()[..32].to_owned()
 }
 
 /// The pipeline named `name`: loaded from the library by `load` if it is
