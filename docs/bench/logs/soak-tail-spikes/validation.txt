@@ -1,0 +1,59 @@
+Native Windows x64, e071177; production source tree clean during validation.
+
+cargo clippy --workspace --all-targets --locked -- -D warnings: exit=0
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings: exit=0
+
+workspace  cargo test --workspace --locked  exit=0
+top_level_programs=29 passed=977 failed=0 ignored=13
+top-level executable or doc-tests, passed, failed, ignored
+victory-0ec53295fffbff09, 14, 0, 0
+census-c16a3181d222c2a2, 2, 0, 0
+census_unreadable-cce3b6bb1982d5e7, 1, 0, 0
+translate-650d78cf4efc04e6, 1, 0, 0
+victory_core-51f8c46a2f8449d8, 13, 0, 0
+victory_formats-0c7e51b8272807f7, 47, 0, 5
+victory_game-4013e62613415e43, 19, 0, 0
+victory_gpu-5c23fc70966601d0, 321, 0, 4
+victory_hle-b1c1588dbded77e8, 154, 0, 0
+fidelityfx-ee9b6aed44c5a3a2, 1, 0, 0
+no_dll_planting-8f2eeec3e7fd6809, 1, 0, 0
+victory_loader-200470b272292ca3, 35, 0, 0
+crash_log-0a309a53e68e2388, 1, 0, 0
+load_probe-bf0578a10d3d4466, 2, 0, 0
+title_dlls-1976a5926922e13e, 1, 0, 0
+victory_pe-90f95e0f3fdfbfc4, 36, 0, 0
+victory_pipeline-bbc4a0ec49b567c1, 8, 0, 0
+victory_shader-7e0c9d64298db58b, 308, 0, 3
+resource_tracking-f2f843dca0b2c0db, 3, 0, 1
+xtask-50b5976488d47005, 9, 0, 0
+Doc-tests victory_core, 0, 0, 0
+Doc-tests victory_formats, 0, 0, 0
+Doc-tests victory_game, 0, 0, 0
+Doc-tests victory_gpu, 0, 0, 0
+Doc-tests victory_hle, 0, 0, 0
+Doc-tests victory_loader, 0, 0, 0
+Doc-tests victory_pe, 0, 0, 0
+Doc-tests victory_pipeline, 0, 0, 0
+Doc-tests victory_shader, 0, 0, 0
+
+gpu1  cargo test --locked -p victory-gpu  exit=0
+top_level_programs=2 passed=321 failed=0 ignored=4
+top-level executable or doc-tests, passed, failed, ignored
+victory_gpu-4ddd15aa5426e911, 321, 0, 4
+Doc-tests victory_gpu, 0, 0, 0
+
+gpu2  cargo test --locked -p victory-gpu  exit=0
+top_level_programs=2 passed=321 failed=0 ignored=4
+top-level executable or doc-tests, passed, failed, ignored
+victory_gpu-4ddd15aa5426e911, 321, 0, 4
+Doc-tests victory_gpu, 0, 0, 0
+
+gpu3  cargo test --locked -p victory-gpu  exit=0
+top_level_programs=2 passed=321 failed=0 ignored=4
+top-level executable or doc-tests, passed, failed, ignored
+victory_gpu-4ddd15aa5426e911, 321, 0, 4
+Doc-tests victory_gpu, 0, 0, 0
+
+tools/bench/run.ps1 -CheckOnly: exit=0
+validation_status=passed validation_errors=0 failed_runs=0 process_crashes=0
+cargo xtask policy: exit=0
